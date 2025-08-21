@@ -12,6 +12,8 @@ import {
 	addDays,
 } from "date-fns";
 import LZString from "lz-string";
+import { PTOEntry, PTOConfig, PTOCalendarUtils } from "./utils/ptoUtils";
+import { isHolidayFromISODate } from "./constants/holidays";
 
 export const MAX_GROUPS = 5;
 
@@ -52,6 +54,10 @@ interface AppState {
 	showHelpModal: boolean;
 	licenseKey: string | null;
 	isProUser: boolean;
+	// PTO State
+	ptoConfig: PTOConfig;
+	ptoEntries: PTOEntry[];
+	// Actions
 	setStartDate: (date: Date) => void;
 	setIncludeWeekends: (include: boolean) => void;
 	setShowToday: (show: boolean) => void;
@@ -71,6 +77,21 @@ interface AppState {
 	deleteDateRange: (groupId: string, rangeToDelete: DateRange) => void;
 	getAppStateFromUrl: () => void;
 	generateShareableUrl: () => string;
+	// PTO Actions
+	setPTOConfig: (config: Partial<PTOConfig>) => void;
+	addPTOEntry: (entry: PTOEntry) => void;
+	updatePTOEntry: (date: string, updates: Partial<PTOEntry>) => void;
+	deletePTOEntry: (date: string) => void;
+	validatePTOEntry: (entry: PTOEntry) => { isValid: boolean; warning?: string };
+	getPTOSummary: () => {
+		totalHours: number;
+		usedHours: number;
+		remainingHours: number;
+		totalDays: number;
+		usedDays: number;
+		remainingDays: number;
+		accrualRate: number;
+	};
 }
 
 const defaultStartDate = startOfMonth(new Date());
@@ -100,6 +121,13 @@ export const useStore = create<AppState>((set, get) => ({
 	showHelpModal: false,
 	licenseKey: localStorage.getItem("pocketcal_license") || null,
 	isProUser: false,
+	// PTO Default State
+	ptoConfig: {
+		yearsOfService: 2,
+		rolloverHours: 0,
+		isEnabled: false,
+	},
+	ptoEntries: [],
 
 	setStartDate: (date) => set({ startDate: startOfMonth(date) }),
 	setIncludeWeekends: (include) => set({ includeWeekends: include }),
@@ -309,6 +337,20 @@ export const useStore = create<AppState>((set, get) => ({
 							}
 						);
 
+						// Handle PTO data restoration
+						const ptoConfig = decodedState.pto ? {
+							yearsOfService: decodedState.pto.y || 2,
+							rolloverHours: decodedState.pto.r || 0,
+							isEnabled: true
+						} : { yearsOfService: 2, rolloverHours: 0, isEnabled: false };
+
+						const ptoEntries = decodedState.ptoEntries ? 
+							decodedState.ptoEntries.map((entry: any) => ({
+								date: formatISO(addDays(startDate, entry.d), { representation: "date" }),
+								hours: entry.h,
+								name: entry.n
+							})) : [];
+
 						set({
 							startDate,
 							includeWeekends: decodedState.w ?? true,
@@ -318,6 +360,8 @@ export const useStore = create<AppState>((set, get) => ({
 									? eventGroups
 									: [createDefaultEventGroup()],
 							selectedGroupId: eventGroups[0]?.id ?? null,
+							ptoConfig,
+							ptoEntries,
 						});
 					} else {
 						const eventGroups = decodedState.eventGroups ?? [
@@ -345,36 +389,134 @@ export const useStore = create<AppState>((set, get) => ({
 		}
 	},
 
+	// PTO Actions
+	setPTOConfig: (config) =>
+		set((state) => ({
+			ptoConfig: { ...state.ptoConfig, ...config },
+		})),
+
+	addPTOEntry: (entry) => {
+		set((state) => {
+			// Check if entry is valid (no holidays, valid hours)
+			if (isHolidayFromISODate(entry.date)) {
+				console.warn(`Cannot add PTO entry on holiday: ${entry.date}`);
+				return state;
+			}
+			if (!PTOCalendarUtils.isValidPTOHours(entry.hours)) {
+				console.warn(`Invalid PTO hours: ${entry.hours}`);
+				return state;
+			}
+			
+			// Remove existing entry for same date if it exists
+			const filteredEntries = state.ptoEntries.filter(e => e.date !== entry.date);
+			return {
+				ptoEntries: [...filteredEntries, entry],
+			};
+		});
+	},
+
+	updatePTOEntry: (date, updates) =>
+		set((state) => ({
+			ptoEntries: state.ptoEntries.map((entry) =>
+				entry.date === date ? { ...entry, ...updates } : entry
+			),
+		})),
+
+	deletePTOEntry: (date) =>
+		set((state) => ({
+			ptoEntries: state.ptoEntries.filter((entry) => entry.date !== date),
+		})),
+
+	validatePTOEntry: (entry) => {
+		const state = get();
+		if (isHolidayFromISODate(entry.date)) {
+			return {
+				isValid: false,
+				warning: "Cannot request PTO on company holidays",
+			};
+		}
+		if (!PTOCalendarUtils.isValidPTOHours(entry.hours)) {
+			return {
+				isValid: false,
+				warning: "PTO hours must be 2, 4, or 8 hours",
+			};
+		}
+
+		const totalHours = PTOCalendarUtils.calculateTotalPTOHours(
+			state.ptoConfig.yearsOfService
+		);
+		const remainingHours = PTOCalendarUtils.calculateRemainingPTO(
+			state.ptoEntries,
+			totalHours,
+			state.ptoConfig.rolloverHours
+		);
+
+		if (entry.hours > remainingHours) {
+			return {
+				isValid: false,
+				warning: `Exceeds remaining PTO balance (${remainingHours}h available)`,
+			};
+		}
+
+		return { isValid: true };
+	},
+
+	getPTOSummary: () => {
+		const state = get();
+		return PTOCalendarUtils.calculatePTOSummary(
+			state.ptoEntries,
+			state.ptoConfig
+		);
+	},
+
 	generateShareableUrl: () => {
 		const state = get();
 		const startDate = state.startDate;
 
-		const compressedState: { s: string; w?: boolean; t?: boolean; g?: any[] } =
-			{
-				s: formatISO(startDate, { representation: "date" }),
-				w: state.includeWeekends ? undefined : false,
-				t: state.showToday ? undefined : false,
-				g: state.eventGroups.map((group) => {
-					const compressedGroup: any = {
-						n: group.name === `My Events` ? undefined : group.name,
-						c: GROUP_COLORS.findIndex((c) => c.hex === group.color),
-						r: group.ranges.map((range) => [
-							differenceInDays(parseISO(range.start), startDate),
-							differenceInDays(parseISO(range.end), startDate),
-						]),
-					};
-					Object.keys(compressedGroup).forEach(
-						(key) =>
-							compressedGroup[key] === undefined && delete compressedGroup[key]
-					);
-					return compressedGroup;
-				}),
-			};
+		const compressedState: { 
+			s: string; 
+			w?: boolean; 
+			t?: boolean; 
+			g?: any[]; 
+			pto?: any;
+			ptoEntries?: any[];
+		} = {
+			s: formatISO(startDate, { representation: "date" }),
+			w: state.includeWeekends ? undefined : false,
+			t: state.showToday ? undefined : false,
+			g: state.eventGroups.map((group) => {
+				const compressedGroup: any = {
+					n: group.name === `My Events` ? undefined : group.name,
+					c: GROUP_COLORS.findIndex((c) => c.hex === group.color),
+					r: group.ranges.map((range) => [
+						differenceInDays(parseISO(range.start), startDate),
+						differenceInDays(parseISO(range.end), startDate),
+					]),
+				};
+				Object.keys(compressedGroup).forEach(
+					(key) =>
+						compressedGroup[key] === undefined && delete compressedGroup[key]
+				);
+				return compressedGroup;
+			}),
+			// Add PTO data compression
+			pto: state.ptoConfig.isEnabled ? {
+				y: state.ptoConfig.yearsOfService,
+				r: state.ptoConfig.rolloverHours
+			} : undefined,
+			ptoEntries: state.ptoEntries.length > 0 ? state.ptoEntries.map(entry => ({
+				d: differenceInDays(parseISO(entry.date), startDate),
+				h: entry.hours,
+				n: entry.name
+			})) : undefined
+		};
 
 		// Remove default values
 		if (compressedState.w === undefined) delete compressedState.w;
 		if (compressedState.t === undefined) delete compressedState.t;
 		if (compressedState.g?.length === 0) delete compressedState.g;
+		if (compressedState.pto === undefined) delete compressedState.pto;
+		if (compressedState.ptoEntries === undefined) delete compressedState.ptoEntries;
 
 		const compressed = LZString.compressToEncodedURIComponent(
 			JSON.stringify(compressedState)

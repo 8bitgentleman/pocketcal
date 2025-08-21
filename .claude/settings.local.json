@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__windows-notifications__windows_notification_send",
+      "Bash(npm install)",
+      "Bash(npm run test:run:*)",
+      "Bash(node:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
