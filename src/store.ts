@@ -101,7 +101,7 @@ const defaultStartDate = new Date(new Date().getFullYear(), 0, 1); // January 1s
 // Create a function to generate the default event group
 const createDefaultEventGroup = (index = 0): EventGroup => ({
 	id: nanoid(),
-	name: "My Events",
+	name: "My PTO",
 	color: GROUP_COLORS[index].hex,
 	ranges: [],
 });
@@ -341,7 +341,7 @@ export const useStore = create<AppState>((set, get) => ({
 
 								return {
 									id: nanoid(),
-									name: g.n || "My Events",
+									name: g.n || "My PTO",
 									color: GROUP_COLORS[colorIndex].hex,
 									ranges: (g.r || []).map((r: any) => ({
 										start: formatISO(addDays(startDate, r[0]), {
@@ -574,7 +574,7 @@ export const useStore = create<AppState>((set, get) => ({
 			t: state.showToday ? undefined : false,
 			g: state.eventGroups.map((group) => {
 				const compressedGroup: any = {
-					n: group.name === `My Events` ? undefined : group.name,
+					n: group.name === `My PTO` ? undefined : group.name,
 					c: GROUP_COLORS.findIndex((c) => c.hex === group.color),
 					r: group.ranges.map((range) => [
 						differenceInDays(parseISO(range.start), startDate),

@@ -205,7 +205,29 @@ const Calendar: React.FC = () => {
 		);
 		if (!selectedGroup) return;
 
-		// Use consistent drag-based interaction for all event types
+		// Check if PTO is enabled for this group
+		const dateStr = formatISO(date, { representation: "date" });
+		const isPTOEnabled = isPTOEnabledForGroup(selectedGroupId);
+		
+		// Block PTO creation on weekends and holidays
+		if (isPTOEnabled && (isWeekend(date) || isHolidayFromISODate(dateStr))) {
+			if (isWeekend(date)) {
+				alert("PTO cannot be requested on weekends.");
+			} else {
+				const holidayName = getHolidayFromISODate(dateStr);
+				alert(`Cannot select ${holidayName}. PTO cannot be requested on company holidays.`);
+			}
+			return;
+		}
+
+		// If PTO is enabled, trigger PTO selection modal
+		if (isPTOEnabled) {
+			const ptoSelectEvent = new CustomEvent('ptoDateSelect', {
+				detail: { date: dateStr }
+			});
+			window.dispatchEvent(ptoSelectEvent);
+			return;
+		}
 
 		// Check if the date is already in a range for this group
 		const existingRange = findRangeForDate(date, selectedGroup);
@@ -377,6 +399,8 @@ const Calendar: React.FC = () => {
 
 		if (!includeWeekends && isWeekend(date)) {
 			className += " weekend-hidden";
+		} else if (isWeekend(date)) {
+			className += " weekend";
 		}
 
 		if (focusedDate && checkSameDay(date, focusedDate)) {

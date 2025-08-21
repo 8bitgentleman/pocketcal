@@ -51,7 +51,7 @@ function Sidebar({
 
 	const handleAddGroup = () => {
 		if (eventGroups.length < maxGroups) {
-			const newGroup = addEventGroup("New Group");
+			const newGroup = addEventGroup("New Calendar");
 			selectEventGroup(newGroup.id);
 		}
 	};
@@ -248,7 +248,7 @@ function Sidebar({
 					onClick={handleAddGroup}
 					disabled={!!editingGroup}
 				>
-					<PlusIcon height={18} /> Add new group
+					<PlusIcon height={18} /> Add new calendar
 				</button>
 			)}
 
