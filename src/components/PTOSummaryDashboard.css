@@ -1,0 +1,223 @@
+.pto-summary-dashboard {
+	background-color: #f8f9fa;
+	border: 1px solid #e9ecef;
+	border-radius: 8px;
+	padding: 16px;
+	margin-bottom: 16px;
+}
+
+.pto-summary-dashboard h3 {
+	margin: 0 0 16px 0;
+	color: #333;
+	font-size: 18px;
+	border-bottom: 2px solid #8a35de;
+	padding-bottom: 8px;
+}
+
+.pto-summary-dashboard h4 {
+	margin: 16px 0 8px 0;
+	color: #333;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+/* Balance Overview */
+.pto-balance-overview {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+.balance-card {
+	background: white;
+	border: 1px solid #dee2e6;
+	border-radius: 6px;
+	padding: 12px;
+}
+
+.balance-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 4px;
+}
+
+.balance-title {
+	font-size: 12px;
+	color: #6c757d;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.balance-main {
+	font-size: 20px;
+	font-weight: 700;
+	color: #8a35de;
+}
+
+.balance-subtitle {
+	font-size: 12px;
+	color: #6c757d;
+}
+
+/* Progress Bar */
+.pto-progress-section {
+	margin-bottom: 16px;
+}
+
+.progress-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	color: #333;
+}
+
+.progress-bar {
+	height: 8px;
+	background-color: #e9ecef;
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.progress-fill {
+	height: 100%;
+	border-radius: 4px;
+	transition: width 0.3s ease;
+}
+
+/* Configuration Details */
+.pto-config-details {
+	background: white;
+	border: 1px solid #dee2e6;
+	border-radius: 6px;
+	padding: 12px;
+	margin-bottom: 16px;
+}
+
+.config-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 4px 0;
+	font-size: 13px;
+}
+
+.config-item:not(:last-child) {
+	border-bottom: 1px solid #f8f9fa;
+}
+
+.config-label {
+	color: #6c757d;
+	font-weight: 500;
+}
+
+.config-value {
+	color: #333;
+	font-weight: 600;
+}
+
+/* Recent PTO Section */
+.recent-pto-section {
+	margin-bottom: 16px;
+}
+
+.recent-pto-list {
+	background: white;
+	border: 1px solid #dee2e6;
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.recent-pto-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 12px;
+	font-size: 13px;
+	border-bottom: 1px solid #f8f9fa;
+}
+
+.recent-pto-item:last-child {
+	border-bottom: none;
+}
+
+.pto-item-date {
+	color: #6c757d;
+	font-weight: 500;
+}
+
+.pto-item-details {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.pto-item-hours {
+	color: #8a35de;
+	font-weight: 600;
+}
+
+.pto-item-name {
+	color: #495057;
+	font-style: italic;
+	max-width: 100px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Quick Stats */
+.pto-quick-stats {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+
+.stat-item {
+	background: white;
+	border: 1px solid #dee2e6;
+	border-radius: 6px;
+	padding: 8px;
+	text-align: center;
+}
+
+.stat-value {
+	display: block;
+	font-size: 18px;
+	font-weight: 700;
+	color: #8a35de;
+	line-height: 1;
+}
+
+.stat-label {
+	font-size: 11px;
+	color: #6c757d;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	font-weight: 500;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+	.pto-balance-overview,
+	.pto-quick-stats {
+		grid-template-columns: 1fr;
+	}
+	
+	.balance-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+	}
+	
+	.pto-item-details {
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 2px;
+	}
+}

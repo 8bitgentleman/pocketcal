@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useStore, EventGroup, getMaxGroups } from "../store";
-import { format } from "date-fns";
 import CalIcon from "./icons/CalIcon";
 import PencilIcon from "./icons/PencilIcon";
 import TrashIcon from "./icons/TrashIcon";
@@ -10,6 +9,7 @@ import PlusIcon from "./icons/PlusIcon";
 import SettingsIcon from "./icons/SettingsIcon";
 import HelpIcon from "./icons/HelpIcon";
 import CopyIcon from "./icons/CopyIcon";
+import PTOSummaryDashboard from "./PTOSummaryDashboard";
 
 import "./Sidebar.css";
 
@@ -33,6 +33,10 @@ function Sidebar({
 		deleteEventGroup,
 		selectEventGroup,
 		isProUser,
+		// PTO state
+		setPTOConfig,
+		getSelectedGroupPTOConfig,
+		isPTOEnabledForGroup,
 	} = useStore();
 	const maxGroups = getMaxGroups(isProUser);
 	const [newEventName, setNewEventName] = useState("");
@@ -86,13 +90,13 @@ function Sidebar({
 
 	const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		try {
-			const [year, month] = e.target.value.split("-").map(Number);
-			if (year && month) {
-				const newDate = new Date(year, month - 1, 1);
+			const year = parseInt(e.target.value);
+			if (year >= 2020 && year <= 2030) {
+				const newDate = new Date(year, 0, 1); // January 1st of the selected year
 				setStartDate(newDate);
 			}
 		} catch (error) {
-			console.error("Invalid date format", error);
+			console.error("Invalid year format", error);
 		}
 	};
 
@@ -141,8 +145,9 @@ function Sidebar({
 
 			<h3>
 				<CalIcon height={20} />
-				Event Groups ({eventGroups.length}/{maxGroups})
+				People/Teams ({eventGroups.length}/{maxGroups})
 			</h3>
+			<p className="sidebar-help-text">Each group represents a person or team with their own calendar and PTO settings.</p>
 			<div className="event-groups-list" role="list">
 				{eventGroups.map((group) => (
 					<div
@@ -252,11 +257,13 @@ function Sidebar({
 					<SettingsIcon height={20} /> Settings
 				</h3>
 				<div className="setting-item">
-					<label htmlFor="start-date">Start Month:</label>
+					<label htmlFor="start-date">Start Year:</label>
 					<input
-						type="month"
+						type="number"
 						id="start-date"
-						value={format(startDate, "yyyy-MM")}
+						min="2020"
+						max="2030"
+						value={startDate.getFullYear()}
 						onChange={handleStartDateChange}
 					/>
 				</div>
@@ -278,7 +285,61 @@ function Sidebar({
 						onChange={(e) => setShowToday(e.target.checked)}
 					/>
 				</div>
+				
+				{/* Per-Group PTO Settings */}
+				{selectedGroupId && (
+					<>
+						<h4>🏝️ PTO Settings - {eventGroups.find(g => g.id === selectedGroupId)?.name}</h4>
+						<p className="sidebar-help-text">Configure vacation/PTO policy for this person/team.</p>
+						<div className="setting-item">
+							<label htmlFor="pto-enabled">Enable PTO:</label>
+							<input
+								type="checkbox"
+								id="pto-enabled"
+								checked={isPTOEnabledForGroup(selectedGroupId)}
+								onChange={(e) => setPTOConfig(selectedGroupId, { isEnabled: e.target.checked })}
+							/>
+						</div>
+						
+						{isPTOEnabledForGroup(selectedGroupId) && (
+							<>
+								<div className="setting-item">
+									<label htmlFor="years-of-service">Years of Service:</label>
+									<select
+										id="years-of-service"
+										value={getSelectedGroupPTOConfig()?.yearsOfService || 2}
+										onChange={(e) => setPTOConfig(selectedGroupId, { yearsOfService: parseInt(e.target.value) })}
+									>
+										{Array.from({ length: 10 }, (_, i) => i + 1).map(year => (
+											<option key={year} value={year}>
+												{year} year{year !== 1 ? 's' : ''} {year < 5 ? '(21 days)' : '(26 days)'}
+											</option>
+										))}
+										<option value={10}>10+ years (26 days)</option>
+									</select>
+								</div>
+								<div className="setting-item">
+									<label htmlFor="rollover-hours">Rollover Hours:</label>
+									<input
+										type="number"
+										id="rollover-hours"
+										min="0"
+										max="200"
+										step="1"
+										value={getSelectedGroupPTOConfig()?.rolloverHours || 0}
+										onChange={(e) => setPTOConfig(selectedGroupId, { rolloverHours: parseInt(e.target.value) || 0 })}
+										placeholder="0"
+									/>
+									<small className="setting-help">Hours carried over from previous year</small>
+								</div>
+							</>
+						)}
+					</>
+				)}
 			</>
+
+			{/* PTO Summary Dashboard */}
+			<PTOSummaryDashboard />
 
 			<div className="sidebar-footer">{footerGroups()}</div>
 		</div>

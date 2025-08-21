@@ -122,3 +122,162 @@ pre.license-key-display {
 	font-family: monospace;
 	margin-top: 8px;
 }
+
+/* PTO Modal Styles */
+.pto-modal-content {
+	margin-top: 16px;
+}
+
+.pto-date-info h3 {
+	margin: 0 0 16px 0;
+	color: #333;
+	font-size: 18px;
+}
+
+.holiday-warning {
+	background-color: #fff3cd;
+	border: 1px solid #ffeaa7;
+	border-radius: 4px;
+	padding: 12px;
+	margin-bottom: 16px;
+	color: #856404;
+}
+
+.holiday-warning p {
+	margin: 8px 0 0 0;
+	font-size: 14px;
+}
+
+.pto-hours-selection {
+	margin-bottom: 20px;
+}
+
+.pto-hours-selection label {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: 600;
+	color: #333;
+}
+
+.hours-buttons {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.hour-button {
+	padding: 12px 16px;
+	border: 2px solid #ddd;
+	border-radius: 6px;
+	background: white;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-size: 14px;
+	flex: 1;
+	min-width: 120px;
+}
+
+.hour-button:hover {
+	border-color: #8a35de;
+	background-color: #f8f4ff;
+}
+
+.hour-button.selected {
+	border-color: #8a35de;
+	background-color: #8a35de;
+	color: white;
+}
+
+.pto-description {
+	margin-bottom: 20px;
+}
+
+.pto-description label {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: 600;
+	color: #333;
+}
+
+.pto-balance-info {
+	background-color: #f8f9fa;
+	border-radius: 6px;
+	padding: 16px;
+	margin-bottom: 24px;
+}
+
+.pto-balance-info h4 {
+	margin: 0 0 12px 0;
+	color: #333;
+	font-size: 16px;
+}
+
+.balance-grid {
+	display: grid;
+	gap: 8px;
+}
+
+.balance-item {
+	display: flex;
+	justify-content: space-between;
+	padding: 4px 0;
+}
+
+.balance-label {
+	font-weight: 500;
+	color: #666;
+}
+
+.balance-value {
+	font-weight: 600;
+	color: #333;
+}
+
+.pto-modal-actions {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	margin-top: 24px;
+}
+
+.primary-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.cancel-button, .submit-button, .delete-button {
+	padding: 10px 20px;
+	border-radius: 4px;
+	border: none;
+	cursor: pointer;
+	font-weight: 500;
+	transition: background-color 0.2s ease;
+}
+
+.cancel-button {
+	background-color: #6c757d;
+	color: white;
+}
+
+.cancel-button:hover {
+	background-color: #5a6268;
+}
+
+.submit-button {
+	background-color: #8a35de;
+	color: white;
+}
+
+.submit-button:hover {
+	background-color: #7429c7;
+}
+
+.delete-button {
+	background-color: #dc3545;
+	color: white;
+}
+
+.delete-button:hover {
+	background-color: #c82333;
+}

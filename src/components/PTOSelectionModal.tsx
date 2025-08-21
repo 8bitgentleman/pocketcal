@@ -1,0 +1,282 @@
+import React, { useState } from "react";
+import XIcon from "./icons/XIcon";
+import { useStore } from "../store";
+import { PTOEntry, PTOCalendarUtils } from "../utils/ptoUtils";
+import { format, parseISO, addDays } from "date-fns";
+import { getHolidayFromISODate } from "../constants/holidays";
+import "./Modal.css";
+
+interface PTOSelectionModalProps {
+	selectedDate: string; // ISO date format
+	onClose: () => void;
+}
+
+const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, onClose }) => {
+	const { 
+		selectedGroupId,
+		addPTOEntry, 
+		updatePTOEntry, 
+		deletePTOEntry, 
+		validatePTOEntry, 
+		getPTOSummary,
+		getSelectedGroupPTOEntries
+	} = useStore();
+	
+	const [selectedHours, setSelectedHours] = useState<number>(8);
+	const [description, setDescription] = useState<string>("");
+	const [isMultiDay, setIsMultiDay] = useState<boolean>(false);
+	const [endDate, setEndDate] = useState<string>(selectedDate);
+	const [duration, setDuration] = useState<number>(1);
+	
+	// Find existing PTO entry for this date
+	const ptoEntries = getSelectedGroupPTOEntries();
+	const existingEntry = ptoEntries.find(entry => 
+		selectedDate >= entry.startDate && selectedDate <= entry.endDate
+	);
+	
+	// Initialize form with existing entry if it exists
+	React.useEffect(() => {
+		if (existingEntry) {
+			setSelectedHours(existingEntry.hoursPerDay);
+			setDescription(existingEntry.name || "");
+			setIsMultiDay(existingEntry.startDate !== existingEntry.endDate);
+			setEndDate(existingEntry.endDate);
+			// Calculate duration
+			const start = parseISO(existingEntry.startDate);
+			const end = parseISO(existingEntry.endDate);
+			const dayDiff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+			setDuration(dayDiff);
+		} else {
+			setSelectedHours(8);
+			setDescription("");
+			setIsMultiDay(false);
+			setEndDate(selectedDate);
+			setDuration(1);
+		}
+	}, [existingEntry, selectedDate]);
+
+	if (!selectedGroupId) {
+		return null;
+	}
+
+	const summary = getPTOSummary(selectedGroupId);
+	const holidayName = getHolidayFromISODate(selectedDate);
+	const parsedDate = parseISO(selectedDate);
+	const formattedDate = format(parsedDate, "EEEE, MMMM d, yyyy");
+
+	// Calculate end date from duration
+	const calculateEndDate = (startDate: string, days: number): string => {
+		const start = parseISO(startDate);
+		const end = addDays(start, days - 1);
+		return format(end, "yyyy-MM-dd");
+	};
+
+	// Handle duration change
+	const handleDurationChange = (days: number) => {
+		setDuration(days);
+		setEndDate(calculateEndDate(selectedDate, days));
+	};
+
+	const handleSubmit = () => {
+		const finalEndDate = isMultiDay ? endDate : selectedDate;
+		const entry: PTOEntry = isMultiDay 
+			? PTOCalendarUtils.createMultiDayEntry(
+				selectedDate,
+				finalEndDate,
+				selectedHours,
+				description.trim() || undefined
+			)
+			: PTOCalendarUtils.createSingleDayEntry(
+				selectedDate,
+				selectedHours,
+				description.trim() || undefined
+			);
+
+		const validation = validatePTOEntry(selectedGroupId, entry);
+		if (!validation.isValid) {
+			alert(validation.warning);
+			return;
+		}
+
+		if (existingEntry && existingEntry.id) {
+			updatePTOEntry(selectedGroupId, existingEntry.id, entry);
+		} else {
+			addPTOEntry(selectedGroupId, entry);
+		}
+		onClose();
+	};
+
+	const handleDelete = () => {
+		if (existingEntry && existingEntry.id) {
+			deletePTOEntry(selectedGroupId, existingEntry.id);
+			onClose();
+		}
+	};
+
+	const getHourDisplay = (hours: number): string => {
+		switch (hours) {
+			case 2: return "2h (Quarter Day)";
+			case 4: return "4h (Half Day)";
+			case 8: return "8h (Full Day)";
+			default: return `${hours}h`;
+		}
+	};
+
+	return (
+		<div className="modal-overlay" onClick={onClose}>
+			<div className="modal-content" onClick={(e) => e.stopPropagation()}>
+				<button
+					className="modal-close"
+					onClick={onClose}
+					aria-label="Close PTO selection"
+				>
+					<XIcon color="#000" />
+				</button>
+				
+				<h2>{existingEntry ? "Edit PTO Request" : "Request PTO"}</h2>
+				
+				<div className="pto-modal-content">
+					<div className="pto-date-info">
+						<h3>{formattedDate}</h3>
+						{holidayName && (
+							<div className="holiday-warning">
+								<strong>⚠️ Company Holiday:</strong> {holidayName}
+								<p>PTO cannot be requested on company holidays.</p>
+							</div>
+						)}
+					</div>
+
+					{!holidayName && (
+						<>
+							{/* Multi-day toggle */}
+							<div className="pto-duration-selection">
+								<label htmlFor="pto-multiday">Multi-day PTO:</label>
+								<input
+									type="checkbox"
+									id="pto-multiday"
+									checked={isMultiDay}
+									onChange={(e) => setIsMultiDay(e.target.checked)}
+								/>
+							</div>
+
+							{/* Duration selection for multi-day */}
+							{isMultiDay && (
+								<div className="pto-multiday-options">
+									<div className="pto-duration-input">
+										<label htmlFor="pto-duration">Number of days:</label>
+										<input
+											type="number"
+											id="pto-duration"
+											min="1"
+											max="30"
+											value={duration}
+											onChange={(e) => handleDurationChange(parseInt(e.target.value) || 1)}
+										/>
+									</div>
+									<div className="pto-end-date">
+										<label htmlFor="pto-end-date">End date:</label>
+										<input
+											type="date"
+											id="pto-end-date"
+											value={endDate}
+											onChange={(e) => {
+												setEndDate(e.target.value);
+												const start = parseISO(selectedDate);
+												const end = parseISO(e.target.value);
+												const dayDiff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+												setDuration(Math.max(1, dayDiff));
+											}}
+										/>
+									</div>
+								</div>
+							)}
+
+							<div className="pto-hours-selection">
+								<label htmlFor="pto-hours">Hours per day:</label>
+								<div className="hours-buttons">
+									{[2, 4, 8].map(hours => (
+										<button
+											key={hours}
+											className={`hour-button ${selectedHours === hours ? 'selected' : ''}`}
+											onClick={() => setSelectedHours(hours)}
+											type="button"
+										>
+											{getHourDisplay(hours)}
+										</button>
+									))}
+								</div>
+								{isMultiDay && (
+									<div className="pto-total-hours">
+										Total hours: {selectedHours * duration}h
+									</div>
+								)}
+							</div>
+
+							<div className="pto-description">
+								<label htmlFor="pto-description">Description (Optional):</label>
+								<input
+									type="text"
+									id="pto-description"
+									value={description}
+									onChange={(e) => setDescription(e.target.value)}
+									placeholder="e.g., Vacation, Personal, Medical"
+									maxLength={100}
+								/>
+							</div>
+
+							{summary && (
+								<div className="pto-balance-info">
+									<h4>PTO Balance Summary</h4>
+									<div className="balance-grid">
+										<div className="balance-item">
+											<span className="balance-label">Remaining:</span>
+											<span className="balance-value">{summary.remainingHours}h ({summary.remainingDays} days)</span>
+										</div>
+										<div className="balance-item">
+											<span className="balance-label">Used:</span>
+											<span className="balance-value">{summary.usedHours}h ({summary.usedDays} days)</span>
+										</div>
+										<div className="balance-item">
+											<span className="balance-label">Total:</span>
+											<span className="balance-value">{summary.totalHours}h ({summary.totalDays} days)</span>
+										</div>
+									</div>
+								</div>
+							)}
+
+							<div className="pto-modal-actions">
+								{existingEntry && (
+									<button 
+										className="delete-button"
+										onClick={handleDelete}
+										type="button"
+									>
+										Delete Request
+									</button>
+								)}
+								<div className="primary-actions">
+									<button 
+										className="cancel-button"
+										onClick={onClose}
+										type="button"
+									>
+										Cancel
+									</button>
+									<button 
+										className="submit-button"
+										onClick={handleSubmit}
+										type="button"
+									>
+										{existingEntry ? "Update Request" : "Request PTO"}
+									</button>
+								</div>
+							</div>
+						</>
+					)}
+				</div>
+			</div>
+		</div>
+	);
+};
+
+export default PTOSelectionModal;

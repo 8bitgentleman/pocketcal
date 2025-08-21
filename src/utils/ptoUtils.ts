@@ -4,9 +4,12 @@
  */
 
 export interface PTOEntry {
-  date: string;     // ISO date format (YYYY-MM-DD)
-  hours: number;    // 2, 4, or 8 hours
-  name?: string;    // Optional description
+  id?: string;         // Unique identifier for the entry
+  startDate: string;   // ISO date format (YYYY-MM-DD)
+  endDate: string;     // ISO date format (YYYY-MM-DD) - same as startDate for single day
+  hoursPerDay: number; // 2, 4, or 8 hours per day
+  totalHours: number;  // calculated: hoursPerDay * number of days
+  name?: string;       // Optional description
 }
 
 export interface PTOConfig {
@@ -44,7 +47,7 @@ export class PTOCalendarUtils {
    * @returns Validation result with warning if invalid
    */
   static validatePTORequest(
-    date: number,
+    _date: number,
     hours: number,
     ptoHours: Record<number, number>,
     totalHours: number,
@@ -64,11 +67,11 @@ export class PTOCalendarUtils {
   }
 
   /**
-   * Calculates total PTO hours for a given years of service
+   * Calculates annual PTO hours allowance for a given years of service
    * @param yearsOfService Number of years of service
-   * @returns Total PTO hours for the year
+   * @returns Annual PTO hours for the year
    */
-  static calculateTotalPTOHours(yearsOfService: number): number {
+  static calculateAnnualPTOHours(yearsOfService: number): number {
     // < 5 years: 21 days (168 hours)
     // 5+ years: 26 days (208 hours)
     return yearsOfService < 5 ? 168 : 208;
@@ -121,6 +124,64 @@ export class PTOCalendarUtils {
   }
 
   /**
+   * Calculates total hours for a multi-day PTO entry
+   * @param startDate Start date in ISO format
+   * @param endDate End date in ISO format  
+   * @param hoursPerDay Hours per day (2, 4, or 8)
+   * @returns Total hours for the PTO entry
+   */
+  static calculateTotalPTOHours(
+    startDate: string,
+    endDate: string,
+    hoursPerDay: number
+  ): number {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const days = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    return days * hoursPerDay;
+  }
+
+  /**
+   * Creates a single-day PTO entry
+   * @param date Date in ISO format
+   * @param hours Hours (2, 4, or 8)
+   * @param name Optional description
+   * @returns PTOEntry for single day
+   */
+  static createSingleDayEntry(date: string, hours: number, name?: string): PTOEntry {
+    return {
+      startDate: date,
+      endDate: date,
+      hoursPerDay: hours,
+      totalHours: hours,
+      name
+    };
+  }
+
+  /**
+   * Creates a multi-day PTO entry
+   * @param startDate Start date in ISO format
+   * @param endDate End date in ISO format
+   * @param hoursPerDay Hours per day (2, 4, or 8)
+   * @param name Optional description
+   * @returns PTOEntry for date range
+   */
+  static createMultiDayEntry(
+    startDate: string, 
+    endDate: string, 
+    hoursPerDay: number, 
+    name?: string
+  ): PTOEntry {
+    return {
+      startDate,
+      endDate,
+      hoursPerDay,
+      totalHours: this.calculateTotalPTOHours(startDate, endDate, hoursPerDay),
+      name
+    };
+  }
+
+  /**
    * Calculates remaining PTO hours for the year
    * @param ptoEntries Array of PTO entries
    * @param totalHours Total hours for the year
@@ -132,7 +193,7 @@ export class PTOCalendarUtils {
     totalHours: number,
     rollover: number
   ): number {
-    const usedHours = ptoEntries.reduce((sum, entry) => sum + entry.hours, 0);
+    const usedHours = ptoEntries.reduce((sum, entry) => sum + entry.totalHours, 0);
     return (totalHours + rollover) - usedHours;
   }
 
@@ -154,8 +215,8 @@ export class PTOCalendarUtils {
     remainingDays: number;
     accrualRate: number;
   } {
-    const totalHours = this.calculateTotalPTOHours(config.yearsOfService) + config.rolloverHours;
-    const usedHours = ptoEntries.reduce((sum, entry) => sum + entry.hours, 0);
+    const totalHours = this.calculateAnnualPTOHours(config.yearsOfService) + config.rolloverHours;
+    const usedHours = ptoEntries.reduce((sum, entry) => sum + entry.totalHours, 0);
     const remainingHours = totalHours - usedHours;
     
     return {

@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { nanoid } from "nanoid";
 import {
 	addMonths,
-	startOfMonth,
 	isWithinInterval,
 	formatISO,
 	parseISO,
@@ -43,6 +42,8 @@ export interface EventGroup {
 	name: string;
 	color: string;
 	ranges: DateRange[];
+	ptoConfig?: PTOConfig;  // Optional PTO settings per group
+	ptoEntries?: PTOEntry[]; // PTO entries specific to this group
 }
 
 interface AppState {
@@ -54,9 +55,6 @@ interface AppState {
 	showHelpModal: boolean;
 	licenseKey: string | null;
 	isProUser: boolean;
-	// PTO State
-	ptoConfig: PTOConfig;
-	ptoEntries: PTOEntry[];
 	// Actions
 	setStartDate: (date: Date) => void;
 	setIncludeWeekends: (include: boolean) => void;
@@ -77,13 +75,13 @@ interface AppState {
 	deleteDateRange: (groupId: string, rangeToDelete: DateRange) => void;
 	getAppStateFromUrl: () => void;
 	generateShareableUrl: () => string;
-	// PTO Actions
-	setPTOConfig: (config: Partial<PTOConfig>) => void;
-	addPTOEntry: (entry: PTOEntry) => void;
-	updatePTOEntry: (date: string, updates: Partial<PTOEntry>) => void;
-	deletePTOEntry: (date: string) => void;
-	validatePTOEntry: (entry: PTOEntry) => { isValid: boolean; warning?: string };
-	getPTOSummary: () => {
+	// Per-Group PTO Actions
+	setPTOConfig: (groupId: string, config: Partial<PTOConfig>) => void;
+	addPTOEntry: (groupId: string, entry: PTOEntry) => void;
+	updatePTOEntry: (groupId: string, entryId: string, updates: Partial<PTOEntry>) => void;
+	deletePTOEntry: (groupId: string, entryId: string) => void;
+	validatePTOEntry: (groupId: string, entry: PTOEntry) => { isValid: boolean; warning?: string };
+	getPTOSummary: (groupId: string) => {
 		totalHours: number;
 		usedHours: number;
 		remainingHours: number;
@@ -91,10 +89,14 @@ interface AppState {
 		usedDays: number;
 		remainingDays: number;
 		accrualRate: number;
-	};
+	} | null;
+	// Helper methods
+	getSelectedGroupPTOConfig: () => PTOConfig | null;
+	getSelectedGroupPTOEntries: () => PTOEntry[];
+	isPTOEnabledForGroup: (groupId: string) => boolean;
 }
 
-const defaultStartDate = startOfMonth(new Date());
+const defaultStartDate = new Date(new Date().getFullYear(), 0, 1); // January 1st of current year
 
 // Create a function to generate the default event group
 const createDefaultEventGroup = (index = 0): EventGroup => ({
@@ -121,15 +123,8 @@ export const useStore = create<AppState>((set, get) => ({
 	showHelpModal: false,
 	licenseKey: localStorage.getItem("pocketcal_license") || null,
 	isProUser: false,
-	// PTO Default State
-	ptoConfig: {
-		yearsOfService: 2,
-		rolloverHours: 0,
-		isEnabled: false,
-	},
-	ptoEntries: [],
 
-	setStartDate: (date) => set({ startDate: startOfMonth(date) }),
+	setStartDate: (date) => set({ startDate: new Date(date.getFullYear(), 0, 1) }),
 	setIncludeWeekends: (include) => set({ includeWeekends: include }),
 	setShowToday: (show) => set({ showToday: show }),
 	setShowHelpModal: (show) => set({ showHelpModal: show }),
@@ -287,7 +282,8 @@ export const useStore = create<AppState>((set, get) => ({
 
 				if (decodedState.startDate || decodedState.s) {
 					if (decodedState.s) {
-						const startDate = startOfMonth(parseISO(decodedState.s));
+						const parsedDate = parseISO(decodedState.s);
+						const startDate = new Date(parsedDate.getFullYear(), 0, 1);
 						const usedColorIndices = new Set<number>();
 
 						const validGroups = (decodedState.g || []).filter((g: any) => {
@@ -321,6 +317,28 @@ export const useStore = create<AppState>((set, get) => ({
 									}
 								}
 
+								// Handle per-group PTO config restoration
+								const ptoConfig = g.pto ? {
+									yearsOfService: g.pto.y || 2,
+									rolloverHours: g.pto.r || 0,
+									isEnabled: g.pto.e !== undefined ? g.pto.e : false
+								} : undefined;
+
+								// Handle per-group PTO entries restoration
+								const ptoEntries = g.ptoEntries ? 
+									g.ptoEntries.map((entry: any) => ({
+										id: `${entry.sd}-${entry.ed}-restored`,
+										startDate: formatISO(addDays(startDate, entry.sd), { representation: "date" }),
+										endDate: formatISO(addDays(startDate, entry.ed), { representation: "date" }),
+										hoursPerDay: entry.hpd,
+										totalHours: PTOCalendarUtils.calculateTotalPTOHours(
+											formatISO(addDays(startDate, entry.sd), { representation: "date" }),
+											formatISO(addDays(startDate, entry.ed), { representation: "date" }),
+											entry.hpd
+										),
+										name: entry.n
+									})) : undefined;
+
 								return {
 									id: nanoid(),
 									name: g.n || "My Events",
@@ -333,23 +351,11 @@ export const useStore = create<AppState>((set, get) => ({
 											representation: "date",
 										}),
 									})),
+									ptoConfig,
+									ptoEntries
 								};
 							}
 						);
-
-						// Handle PTO data restoration
-						const ptoConfig = decodedState.pto ? {
-							yearsOfService: decodedState.pto.y || 2,
-							rolloverHours: decodedState.pto.r || 0,
-							isEnabled: true
-						} : { yearsOfService: 2, rolloverHours: 0, isEnabled: false };
-
-						const ptoEntries = decodedState.ptoEntries ? 
-							decodedState.ptoEntries.map((entry: any) => ({
-								date: formatISO(addDays(startDate, entry.d), { representation: "date" }),
-								hours: entry.h,
-								name: entry.n
-							})) : [];
 
 						set({
 							startDate,
@@ -360,15 +366,13 @@ export const useStore = create<AppState>((set, get) => ({
 									? eventGroups
 									: [createDefaultEventGroup()],
 							selectedGroupId: eventGroups[0]?.id ?? null,
-							ptoConfig,
-							ptoEntries,
 						});
 					} else {
 						const eventGroups = decodedState.eventGroups ?? [
 							createDefaultEventGroup(),
 						];
 						set({
-							startDate: startOfMonth(parseISO(decodedState.startDate)),
+							startDate: new Date(parseISO(decodedState.startDate).getFullYear(), 0, 1),
 							includeWeekends: decodedState.includeWeekends ?? true,
 							showToday: decodedState.showToday ?? true,
 							eventGroups,
@@ -389,69 +393,111 @@ export const useStore = create<AppState>((set, get) => ({
 		}
 	},
 
-	// PTO Actions
-	setPTOConfig: (config) =>
+	// Per-Group PTO Actions
+	setPTOConfig: (groupId, config) =>
 		set((state) => ({
-			ptoConfig: { ...state.ptoConfig, ...config },
+			eventGroups: state.eventGroups.map((group) =>
+				group.id === groupId
+					? { 
+						...group, 
+						ptoConfig: { 
+							yearsOfService: config.yearsOfService ?? group.ptoConfig?.yearsOfService ?? 2,
+							rolloverHours: config.rolloverHours ?? group.ptoConfig?.rolloverHours ?? 0,
+							isEnabled: config.isEnabled !== undefined ? config.isEnabled : (group.ptoConfig?.isEnabled ?? false)
+						} 
+					}
+					: group
+			),
 		})),
 
-	addPTOEntry: (entry) => {
+	addPTOEntry: (groupId, entry) => {
 		set((state) => {
 			// Check if entry is valid (no holidays, valid hours)
-			if (isHolidayFromISODate(entry.date)) {
-				console.warn(`Cannot add PTO entry on holiday: ${entry.date}`);
+			if (isHolidayFromISODate(entry.startDate) || isHolidayFromISODate(entry.endDate)) {
+				console.warn(`Cannot add PTO entry on holiday dates: ${entry.startDate} - ${entry.endDate}`);
 				return state;
 			}
-			if (!PTOCalendarUtils.isValidPTOHours(entry.hours)) {
-				console.warn(`Invalid PTO hours: ${entry.hours}`);
+			if (!PTOCalendarUtils.isValidPTOHours(entry.hoursPerDay)) {
+				console.warn(`Invalid PTO hours per day: ${entry.hoursPerDay}`);
 				return state;
 			}
 			
-			// Remove existing entry for same date if it exists
-			const filteredEntries = state.ptoEntries.filter(e => e.date !== entry.date);
 			return {
-				ptoEntries: [...filteredEntries, entry],
+				eventGroups: state.eventGroups.map((group) =>
+					group.id === groupId
+						? { 
+							...group, 
+							ptoEntries: [
+								...(group.ptoEntries || []).filter(e => !(e.startDate === entry.startDate && e.endDate === entry.endDate)),
+								{ ...entry, id: `${entry.startDate}-${entry.endDate}-${Date.now()}` }
+							] 
+						}
+						: group
+				),
 			};
 		});
 	},
 
-	updatePTOEntry: (date, updates) =>
+	updatePTOEntry: (groupId, entryId, updates) =>
 		set((state) => ({
-			ptoEntries: state.ptoEntries.map((entry) =>
-				entry.date === date ? { ...entry, ...updates } : entry
+			eventGroups: state.eventGroups.map((group) =>
+				group.id === groupId
+					? {
+						...group,
+						ptoEntries: (group.ptoEntries || []).map((entry) =>
+							entry.id === entryId ? { ...entry, ...updates } : entry
+						),
+					}
+					: group
 			),
 		})),
 
-	deletePTOEntry: (date) =>
+	deletePTOEntry: (groupId, entryId) =>
 		set((state) => ({
-			ptoEntries: state.ptoEntries.filter((entry) => entry.date !== date),
+			eventGroups: state.eventGroups.map((group) =>
+				group.id === groupId
+					? {
+						...group,
+						ptoEntries: (group.ptoEntries || []).filter((entry) => entry.id !== entryId),
+					}
+					: group
+			),
 		})),
 
-	validatePTOEntry: (entry) => {
+	validatePTOEntry: (groupId, entry) => {
 		const state = get();
-		if (isHolidayFromISODate(entry.date)) {
+		const group = state.eventGroups.find(g => g.id === groupId);
+		
+		if (!group?.ptoConfig?.isEnabled) {
+			return {
+				isValid: false,
+				warning: "PTO is not enabled for this group",
+			};
+		}
+
+		if (isHolidayFromISODate(entry.startDate) || isHolidayFromISODate(entry.endDate)) {
 			return {
 				isValid: false,
 				warning: "Cannot request PTO on company holidays",
 			};
 		}
-		if (!PTOCalendarUtils.isValidPTOHours(entry.hours)) {
+		if (!PTOCalendarUtils.isValidPTOHours(entry.hoursPerDay)) {
 			return {
 				isValid: false,
-				warning: "PTO hours must be 2, 4, or 8 hours",
+				warning: "PTO hours per day must be 2, 4, or 8 hours",
 			};
 		}
 
-		const totalHours = PTOCalendarUtils.calculateTotalPTOHours(
-			state.ptoConfig.yearsOfService
+		const totalHours = PTOCalendarUtils.calculateAnnualPTOHours(
+			group.ptoConfig.yearsOfService
 		);
 		const remainingHours = PTOCalendarUtils.calculateRemainingPTO(
-			state.ptoEntries,
+			group.ptoEntries || [],
 			totalHours,
-			state.ptoConfig.rolloverHours
+			group.ptoConfig.rolloverHours
 		);
 
-		if (entry.hours > remainingHours) {
+		if (entry.totalHours > remainingHours) {
 			return {
 				isValid: false,
 				warning: `Exceeds remaining PTO balance (${remainingHours}h available)`,
@@ -461,12 +507,39 @@ export const useStore = create<AppState>((set, get) => ({
 		return { isValid: true };
 	},
 
-	getPTOSummary: () => {
+	getPTOSummary: (groupId) => {
 		const state = get();
+		const group = state.eventGroups.find(g => g.id === groupId);
+		
+		if (!group?.ptoConfig?.isEnabled) {
+			return null;
+		}
+
 		return PTOCalendarUtils.calculatePTOSummary(
-			state.ptoEntries,
-			state.ptoConfig
+			group.ptoEntries || [],
+			group.ptoConfig
 		);
+	},
+
+	// Helper methods
+	getSelectedGroupPTOConfig: () => {
+		const state = get();
+		if (!state.selectedGroupId) return null;
+		const group = state.eventGroups.find(g => g.id === state.selectedGroupId);
+		return group?.ptoConfig || null;
+	},
+
+	getSelectedGroupPTOEntries: () => {
+		const state = get();
+		if (!state.selectedGroupId) return [];
+		const group = state.eventGroups.find(g => g.id === state.selectedGroupId);
+		return group?.ptoEntries || [];
+	},
+
+	isPTOEnabledForGroup: (groupId) => {
+		const state = get();
+		const group = state.eventGroups.find(g => g.id === groupId);
+		return group?.ptoConfig?.isEnabled ?? false;
 	},
 
 	generateShareableUrl: () => {
@@ -478,8 +551,6 @@ export const useStore = create<AppState>((set, get) => ({
 			w?: boolean; 
 			t?: boolean; 
 			g?: any[]; 
-			pto?: any;
-			ptoEntries?: any[];
 		} = {
 			s: formatISO(startDate, { representation: "date" }),
 			w: state.includeWeekends ? undefined : false,
@@ -492,31 +563,33 @@ export const useStore = create<AppState>((set, get) => ({
 						differenceInDays(parseISO(range.start), startDate),
 						differenceInDays(parseISO(range.end), startDate),
 					]),
+					// Add per-group PTO data
+					pto: group.ptoConfig ? {
+						y: group.ptoConfig.yearsOfService,
+						r: group.ptoConfig.rolloverHours,
+						e: group.ptoConfig.isEnabled
+					} : undefined,
+					ptoEntries: (group.ptoEntries && group.ptoEntries.length > 0) ? 
+						group.ptoEntries.map(entry => ({
+							sd: differenceInDays(parseISO(entry.startDate), startDate),
+							ed: differenceInDays(parseISO(entry.endDate), startDate),
+							hpd: entry.hoursPerDay,
+							n: entry.name
+						})) : undefined
 				};
+				// Clean up undefined values
 				Object.keys(compressedGroup).forEach(
 					(key) =>
 						compressedGroup[key] === undefined && delete compressedGroup[key]
 				);
 				return compressedGroup;
 			}),
-			// Add PTO data compression
-			pto: state.ptoConfig.isEnabled ? {
-				y: state.ptoConfig.yearsOfService,
-				r: state.ptoConfig.rolloverHours
-			} : undefined,
-			ptoEntries: state.ptoEntries.length > 0 ? state.ptoEntries.map(entry => ({
-				d: differenceInDays(parseISO(entry.date), startDate),
-				h: entry.hours,
-				n: entry.name
-			})) : undefined
 		};
 
 		// Remove default values
 		if (compressedState.w === undefined) delete compressedState.w;
 		if (compressedState.t === undefined) delete compressedState.t;
 		if (compressedState.g?.length === 0) delete compressedState.g;
-		if (compressedState.pto === undefined) delete compressedState.pto;
-		if (compressedState.ptoEntries === undefined) delete compressedState.ptoEntries;
 
 		const compressed = LZString.compressToEncodedURIComponent(
 			JSON.stringify(compressedState)

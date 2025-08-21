@@ -6,16 +6,20 @@ import Calendar from "./components/Calendar";
 import ChevronIcon from "./components/icons/ChevronIcon";
 import HelpModal from "./components/HelpModal";
 import LicenseModal from "./components/LicenseModal";
+import PTOSelectionModal from "./components/PTOSelectionModal";
 
 function App() {
 	const [isSidebarHidden, setIsSidebarHidden] = useState(false);
 	const [showLicenseModal, setShowLicenseModal] = useState(false);
+	const [showPTOModal, setShowPTOModal] = useState(false);
+	const [selectedPTODate, setSelectedPTODate] = useState<string>("");
 	const getAppStateFromUrl = useStore((state) => state.getAppStateFromUrl);
 	const generateShareableUrl = useStore((state) => state.generateShareableUrl);
 	const showHelpModal = useStore((state) => state.showHelpModal);
 	const setShowHelpModal = useStore((state) => state.setShowHelpModal);
 	const validateLicenseKey = useStore((state) => state.validateLicenseKey);
 	const licenseKey = useStore((state) => state.licenseKey);
+	const getSelectedGroupPTOConfig = useStore((state) => state.getSelectedGroupPTOConfig);
 
 	// Select individual state pieces needed for the URL
 	const startDate = useStore((state) => state.startDate);
@@ -41,6 +45,25 @@ function App() {
 			}
 		}
 	}, [getAppStateFromUrl, validateLicenseKey, licenseKey]);
+
+	// Handle PTO date selection from Calendar
+	const handlePTODateSelection = (dateStr: string) => {
+		const ptoConfig = getSelectedGroupPTOConfig();
+		if (ptoConfig?.isEnabled) {
+			setSelectedPTODate(dateStr);
+			setShowPTOModal(true);
+		}
+	};
+
+	// Set up global PTO date selection handler
+	useEffect(() => {
+		const handlePTODateSelect = (event: CustomEvent) => {
+			handlePTODateSelection(event.detail.date);
+		};
+
+		window.addEventListener('ptoDateSelect' as any, handlePTODateSelect);
+		return () => window.removeEventListener('ptoDateSelect' as any, handlePTODateSelect);
+	}, [getSelectedGroupPTOConfig]);
 
 	// Update URL whenever relevant state pieces change
 	useEffect(() => {
@@ -84,6 +107,15 @@ function App() {
 			{showHelpModal && <HelpModal onClose={() => setShowHelpModal(false)} />}
 			{showLicenseModal && (
 				<LicenseModal onClose={() => setShowLicenseModal(false)} />
+			)}
+			{showPTOModal && selectedPTODate && (
+				<PTOSelectionModal 
+					selectedDate={selectedPTODate} 
+					onClose={() => {
+						setShowPTOModal(false);
+						setSelectedPTODate("");
+					}} 
+				/>
 			)}
 		</div>
 	);

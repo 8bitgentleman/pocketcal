@@ -7,6 +7,7 @@ import {
 	DateRange,
 	findRangeForDate,
 } from "../store";
+import { isHolidayFromISODate, getHolidayFromISODate } from "../constants/holidays";
 import {
 	format,
 	getMonth,
@@ -33,6 +34,9 @@ const Calendar: React.FC = () => {
 		selectedGroupId,
 		addDateRange,
 		deleteDateRange,
+		// PTO state
+		getSelectedGroupPTOEntries,
+		isPTOEnabledForGroup,
 	} = useStore();
 
 	const calendarDates = getCalendarDates(startDate);
@@ -43,6 +47,8 @@ const Calendar: React.FC = () => {
 	const [dragEndDate, setDragEndDate] = useState<Date | null>(null);
 	const [focusedDate, setFocusedDate] = useState<Date | null>(null);
 	const [isContainerFocused, setIsContainerFocused] = useState(false);
+	// Tooltip state
+	const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number } | null>(null);
 	const calendarGridRef = useRef<HTMLDivElement>(null);
 
 	// Focus management
@@ -136,6 +142,25 @@ const Calendar: React.FC = () => {
 		);
 		if (!selectedGroup) return;
 
+		// Check if PTO mode is enabled and date is a holiday
+		const dateStr = formatISO(date, { representation: "date" });
+		const isPTOEnabled = selectedGroupId && isPTOEnabledForGroup(selectedGroupId);
+		
+		if (isPTOEnabled && isHolidayFromISODate(dateStr)) {
+			const holidayName = getHolidayFromISODate(dateStr);
+			alert(`Cannot select ${holidayName}. PTO cannot be requested on company holidays.`);
+			return;
+		}
+
+		// If PTO mode is enabled, trigger PTO selection instead of normal date range selection
+		if (isPTOEnabled) {
+			const ptoSelectEvent = new CustomEvent('ptoDateSelect', {
+				detail: { date: dateStr }
+			});
+			window.dispatchEvent(ptoSelectEvent);
+			return;
+		}
+
 		// Check if the date is already in a range for this group
 		const existingRange = findRangeForDate(date, selectedGroup);
 		if (existingRange) {
@@ -180,6 +205,25 @@ const Calendar: React.FC = () => {
 		);
 		if (!selectedGroup) return;
 
+		// Check if PTO mode is enabled and date is a holiday
+		const dateStr = formatISO(date, { representation: "date" });
+		const isPTOEnabled = selectedGroupId && isPTOEnabledForGroup(selectedGroupId);
+		
+		if (isPTOEnabled && isHolidayFromISODate(dateStr)) {
+			const holidayName = getHolidayFromISODate(dateStr);
+			alert(`Cannot select ${holidayName}. PTO cannot be requested on company holidays.`);
+			return;
+		}
+
+		// If PTO mode is enabled, trigger PTO selection instead of normal date range selection
+		if (isPTOEnabled) {
+			const ptoSelectEvent = new CustomEvent('ptoDateSelect', {
+				detail: { date: dateStr }
+			});
+			window.dispatchEvent(ptoSelectEvent);
+			return;
+		}
+
 		// Check if the date is already in a range for this group
 		const existingRange = findRangeForDate(date, selectedGroup);
 		if (existingRange) {
@@ -216,6 +260,22 @@ const Calendar: React.FC = () => {
 	const handleMouseMove = (date: Date) => {
 		if (!isDragging || !dragStartDate) return;
 		setDragEndDate(date);
+	};
+
+	const handleMouseEnterDate = (date: Date, event: React.MouseEvent) => {
+		const tooltipContent = getTooltipContent(date);
+		if (tooltipContent) {
+			const rect = (event.target as HTMLElement).getBoundingClientRect();
+			setTooltip({
+				content: tooltipContent,
+				x: rect.left + rect.width / 2,
+				y: rect.top - 5
+			});
+		}
+	};
+
+	const handleMouseLeaveDate = () => {
+		setTooltip(null);
 	};
 
 	const handleMouseUp = useCallback(() => {
@@ -276,6 +336,55 @@ const Calendar: React.FC = () => {
 		return acc;
 	}, {} as { [key: string]: Date[] });
 
+	const getTooltipContent = (date: Date): string | null => {
+		const dateStr = formatISO(date, { representation: "date" });
+		
+		// Check for holidays first
+		if (isHolidayFromISODate(dateStr)) {
+			const holiday = getHolidayFromISODate(dateStr);
+			return holiday ? `🎉 ${holiday}` : "🎉 Company Holiday";
+		}
+
+		// Check for PTO entries in the selected group
+		if (selectedGroupId && isPTOEnabledForGroup(selectedGroupId)) {
+			const ptoEntries = getSelectedGroupPTOEntries();
+			const ptoEntry = ptoEntries.find(entry => 
+				dateStr >= entry.startDate && dateStr <= entry.endDate
+			);
+			if (ptoEntry) {
+				const hourText = ptoEntry.hoursPerDay === 2 ? "Quarter Day" : 
+								ptoEntry.hoursPerDay === 4 ? "Half Day" : "Full Day";
+				const nameText = ptoEntry.name ? ` - ${ptoEntry.name}` : "";
+				const dayText = ptoEntry.startDate === ptoEntry.endDate ? "" : 
+								` (${ptoEntry.startDate} to ${ptoEntry.endDate})`;
+				return `🏝️ PTO: ${hourText} (${ptoEntry.hoursPerDay}h)${nameText}${dayText}`;
+			}
+		}
+
+		// Check for regular events from all groups
+		const groupsWithEvent = eventGroups.filter(group => isDateInRange(date, group));
+		if (groupsWithEvent.length > 0) {
+			if (groupsWithEvent.length === 1) {
+				const group = groupsWithEvent[0];
+				const isSelected = group.id === selectedGroupId;
+				const prefix = isSelected ? "📅" : "📋";
+				return `${prefix} ${group.name}${isSelected ? "" : " (background)"}`;
+			} else {
+				const selectedGroup = groupsWithEvent.find(g => g.id === selectedGroupId);
+				const otherGroups = groupsWithEvent.filter(g => g.id !== selectedGroupId);
+				if (selectedGroup) {
+					const others = otherGroups.map(g => g.name).join(", ");
+					return `📅 ${selectedGroup.name} + ${otherGroups.length} other${otherGroups.length > 1 ? 's' : ''}: ${others}`;
+				} else {
+					const groups = groupsWithEvent.map(g => g.name).join(", ");
+					return `📋 Background events: ${groups}`;
+				}
+			}
+		}
+
+		return null;
+	};
+
 	const getDayClassName = (date: Date): string => {
 		let className = "calendar-day";
 
@@ -289,6 +398,23 @@ const Calendar: React.FC = () => {
 
 		if (focusedDate && checkSameDay(date, focusedDate)) {
 			className += " focused";
+		}
+
+		// Add holiday styling when PTO mode is enabled
+		const dateStr = formatISO(date, { representation: "date" });
+		if (isHolidayFromISODate(dateStr)) {
+			className += " holiday";
+		}
+
+		// Add PTO entry styling for the selected group
+		if (selectedGroupId && isPTOEnabledForGroup(selectedGroupId)) {
+			const ptoEntries = getSelectedGroupPTOEntries();
+			const ptoEntry = ptoEntries.find(entry => 
+				dateStr >= entry.startDate && dateStr <= entry.endDate
+			);
+			if (ptoEntry) {
+				className += " pto-requested";
+			}
 		}
 
 		if (isDragging && dragStartDate && dragEndDate) {
@@ -313,22 +439,45 @@ const Calendar: React.FC = () => {
 			isDateInRange(date, group)
 		);
 
-		const totalGroups = groupsWithDate.length;
+		// Show selected group prominently, others dimmed
 		groupsWithDate.forEach((group, index) => {
-			styles.push({
-				backgroundColor: group.color,
-				position: "absolute",
-				left: 0,
-				right: 0,
-				top: `${(index / totalGroups) * 100}%`,
-				height: `${100 / totalGroups}%`,
-			});
+			const isSelected = group.id === selectedGroupId;
+			const opacity = isSelected ? 1 : 0.3;
+			const zIndex = isSelected ? 2 : 1;
+			
+			if (isSelected) {
+				// Selected group takes full height
+				styles.push({
+					backgroundColor: group.color,
+					position: "absolute",
+					left: 0,
+					right: 0,
+					top: 0,
+					height: "100%",
+					opacity: opacity,
+					zIndex: zIndex,
+				});
+			} else {
+				// Other groups shown as thin strips at the bottom
+				styles.push({
+					backgroundColor: group.color,
+					position: "absolute",
+					left: `${index * 20}%`,
+					width: "20%",
+					bottom: "2px",
+					height: "3px",
+					opacity: opacity,
+					zIndex: zIndex,
+					borderRadius: "1px",
+				});
+			}
 		});
 
 		return styles;
 	};
 
 	return (
+		<>
 		<div
 			className="calendar-container"
 			ref={calendarGridRef}
@@ -389,7 +538,11 @@ const Calendar: React.FC = () => {
 										key={dateStr}
 										className={getDayClassName(date)}
 										onMouseDown={() => handleMouseDown(date)}
-										onMouseEnter={() => handleMouseMove(date)}
+										onMouseEnter={(e) => {
+											handleMouseMove(date);
+											handleMouseEnterDate(date, e);
+										}}
+										onMouseLeave={handleMouseLeaveDate}
 										data-date={dateStr}
 										role="gridcell"
 										aria-selected={isSelected}
@@ -418,6 +571,30 @@ const Calendar: React.FC = () => {
 				);
 			})}
 		</div>
+		{/* Tooltip */}
+		{tooltip && (
+			<div
+				className="calendar-tooltip"
+				style={{
+					position: 'fixed',
+					left: tooltip.x,
+					top: tooltip.y,
+					transform: 'translateX(-50%) translateY(-100%)',
+					zIndex: 1000,
+					backgroundColor: 'rgba(0, 0, 0, 0.9)',
+					color: 'white',
+					padding: '8px 12px',
+					borderRadius: '6px',
+					fontSize: '14px',
+					whiteSpace: 'nowrap',
+					pointerEvents: 'none',
+					boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+				}}
+			>
+				{tooltip.content}
+			</div>
+		)}
+		</>
 	);
 };
 

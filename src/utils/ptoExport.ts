@@ -50,15 +50,25 @@ export const exportPTODataAsJSON = (
  */
 export const exportPTODataAsCSV = (
   ptoEntries: PTOEntry[], 
-  config: PTOConfig
+  _config: PTOConfig
 ): void => {
   const headers = ['Date', 'Hours', 'Description', 'Day Fraction'];
-  const rows = ptoEntries.map(entry => [
-    entry.date,
-    entry.hours.toString(),
-    entry.name || '',
-    (entry.hours / 8).toString() // Day fraction for ADP
-  ]);
+  
+  // Convert new multi-day structure to individual day entries for export compatibility
+  const rows: string[][] = [];
+  ptoEntries.forEach(entry => {
+    const startDate = new Date(entry.startDate);
+    const endDate = new Date(entry.endDate);
+    
+    for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+      rows.push([
+        format(date, 'yyyy-MM-dd'),
+        entry.hoursPerDay.toString(),
+        entry.name || '',
+        (entry.hoursPerDay / 8).toString() // Day fraction for ADP
+      ]);
+    }
+  });
 
   const csvContent = [
     headers.join(','),
@@ -83,8 +93,10 @@ export const exportPTODataAsCSV = (
 export const exportForADP = (ptoEntries: PTOEntry[]): void => {
   const adpData = ptoEntries.map(entry => ({
     'Pay Code': 'PTO',
-    'Date': format(new Date(entry.date), 'MM/dd/yyyy'),
-    'Hours': entry.hours,
+    'Date': entry.startDate === entry.endDate ? 
+      format(new Date(entry.startDate), 'MM/dd/yyyy') :
+      `${format(new Date(entry.startDate), 'MM/dd/yyyy')} - ${format(new Date(entry.endDate), 'MM/dd/yyyy')}`,
+    'Hours': entry.totalHours,
     'Comments': entry.name || 'PTO Request'
   }));
 
@@ -137,10 +149,10 @@ export const importPTODataFromJSON = (file: File): Promise<ExportData | null> =>
         
         // Validate each PTO entry
         for (const entry of data.ptoEntries) {
-          if (!entry.date || !entry.hours) {
+          if (!entry.startDate || !entry.hoursPerDay) {
             throw new Error('Invalid PTO entry format');
           }
-          if (![2, 4, 8].includes(entry.hours)) {
+          if (![2, 4, 8].includes(entry.hoursPerDay)) {
             throw new Error('Invalid PTO hours (must be 2, 4, or 8)');
           }
         }
@@ -168,11 +180,11 @@ export const generatePTOSummaryReport = (
 ): string => {
   const totalHours = config.yearsOfService < 5 ? 168 : 208;
   const totalAvailable = totalHours + config.rolloverHours;
-  const usedHours = ptoEntries.reduce((sum, entry) => sum + entry.hours, 0);
+  const usedHours = ptoEntries.reduce((sum, entry) => sum + entry.totalHours, 0);
   const remainingHours = totalAvailable - usedHours;
   
   const entriesByMonth = ptoEntries.reduce((acc, entry) => {
-    const month = format(new Date(entry.date), 'MMM yyyy');
+    const month = format(new Date(entry.startDate), 'MMM yyyy');
     if (!acc[month]) acc[month] = [];
     acc[month].push(entry);
     return acc;
@@ -196,7 +208,7 @@ export const generatePTOSummaryReport = (
 
   Object.keys(entriesByMonth).sort().forEach(month => {
     const entries = entriesByMonth[month];
-    const monthTotal = entries.reduce((sum, entry) => sum + entry.hours, 0);
+    const monthTotal = entries.reduce((sum, entry) => sum + entry.totalHours, 0);
     
     html += `
       <div style="margin-bottom: 20px; border-left: 3px solid #007cba; padding-left: 15px;">
@@ -212,8 +224,10 @@ export const generatePTOSummaryReport = (
     entries.forEach(entry => {
       html += `
         <tr>
-          <td style="padding: 8px; border: 1px solid #ddd;">${format(new Date(entry.date), 'MMM dd, yyyy')}</td>
-          <td style="padding: 8px; border: 1px solid #ddd;">${entry.hours}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${entry.startDate === entry.endDate ? 
+            format(new Date(entry.startDate), 'MMM dd, yyyy') : 
+            `${format(new Date(entry.startDate), 'MMM dd')} - ${format(new Date(entry.endDate), 'MMM dd, yyyy')}`}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${entry.totalHours}</td>
           <td style="padding: 8px; border: 1px solid #ddd;">${entry.name || '-'}</td>
         </tr>
       `;

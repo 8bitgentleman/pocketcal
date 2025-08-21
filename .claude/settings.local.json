@@ -4,9 +4,17 @@
       "mcp__windows-notifications__windows_notification_send",
       "Bash(npm install)",
       "Bash(npm run test:run:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm test)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\c\\Users\\matt.vogel\\Documents\\GitHub"
+    ]
   }
 }
