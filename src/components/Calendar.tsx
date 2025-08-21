@@ -205,24 +205,7 @@ const Calendar: React.FC = () => {
 		);
 		if (!selectedGroup) return;
 
-		// Check if PTO mode is enabled and date is a holiday
-		const dateStr = formatISO(date, { representation: "date" });
-		const isPTOEnabled = selectedGroupId && isPTOEnabledForGroup(selectedGroupId);
-		
-		if (isPTOEnabled && isHolidayFromISODate(dateStr)) {
-			const holidayName = getHolidayFromISODate(dateStr);
-			alert(`Cannot select ${holidayName}. PTO cannot be requested on company holidays.`);
-			return;
-		}
-
-		// If PTO mode is enabled, trigger PTO selection instead of normal date range selection
-		if (isPTOEnabled) {
-			const ptoSelectEvent = new CustomEvent('ptoDateSelect', {
-				detail: { date: dateStr }
-			});
-			window.dispatchEvent(ptoSelectEvent);
-			return;
-		}
+		// Use consistent drag-based interaction for all event types
 
 		// Check if the date is already in a range for this group
 		const existingRange = findRangeForDate(date, selectedGroup);
@@ -400,21 +383,10 @@ const Calendar: React.FC = () => {
 			className += " focused";
 		}
 
-		// Add holiday styling when PTO mode is enabled
+		// Add holiday styling
 		const dateStr = formatISO(date, { representation: "date" });
 		if (isHolidayFromISODate(dateStr)) {
 			className += " holiday";
-		}
-
-		// Add PTO entry styling for the selected group
-		if (selectedGroupId && isPTOEnabledForGroup(selectedGroupId)) {
-			const ptoEntries = getSelectedGroupPTOEntries();
-			const ptoEntry = ptoEntries.find(entry => 
-				dateStr >= entry.startDate && dateStr <= entry.endDate
-			);
-			if (ptoEntry) {
-				className += " pto-requested";
-			}
 		}
 
 		if (isDragging && dragStartDate && dragEndDate) {
@@ -439,38 +411,16 @@ const Calendar: React.FC = () => {
 			isDateInRange(date, group)
 		);
 
-		// Show selected group prominently, others dimmed
+		const totalGroups = groupsWithDate.length;
 		groupsWithDate.forEach((group, index) => {
-			const isSelected = group.id === selectedGroupId;
-			const opacity = isSelected ? 1 : 0.3;
-			const zIndex = isSelected ? 2 : 1;
-			
-			if (isSelected) {
-				// Selected group takes full height
-				styles.push({
-					backgroundColor: group.color,
-					position: "absolute",
-					left: 0,
-					right: 0,
-					top: 0,
-					height: "100%",
-					opacity: opacity,
-					zIndex: zIndex,
-				});
-			} else {
-				// Other groups shown as thin strips at the bottom
-				styles.push({
-					backgroundColor: group.color,
-					position: "absolute",
-					left: `${index * 20}%`,
-					width: "20%",
-					bottom: "2px",
-					height: "3px",
-					opacity: opacity,
-					zIndex: zIndex,
-					borderRadius: "1px",
-				});
-			}
+			styles.push({
+				backgroundColor: group.color,
+				position: "absolute",
+				left: 0,
+				right: 0,
+				top: `${(index / totalGroups) * 100}%`,
+				height: `${100 / totalGroups}%`,
+			});
 		});
 
 		return styles;

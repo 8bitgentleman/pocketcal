@@ -427,10 +427,16 @@ export const useStore = create<AppState>((set, get) => ({
 					group.id === groupId
 						? { 
 							...group, 
+							// Add PTO entry
 							ptoEntries: [
 								...(group.ptoEntries || []).filter(e => !(e.startDate === entry.startDate && e.endDate === entry.endDate)),
 								{ ...entry, id: `${entry.startDate}-${entry.endDate}-${Date.now()}` }
-							] 
+							],
+							// Also add as regular event range for visual consistency
+							ranges: [
+								...group.ranges.filter(r => !(r.start === entry.startDate && r.end === entry.endDate)),
+								{ start: entry.startDate, end: entry.endDate }
+							]
 						}
 						: group
 				),
@@ -453,16 +459,27 @@ export const useStore = create<AppState>((set, get) => ({
 		})),
 
 	deletePTOEntry: (groupId, entryId) =>
-		set((state) => ({
-			eventGroups: state.eventGroups.map((group) =>
-				group.id === groupId
-					? {
-						...group,
-						ptoEntries: (group.ptoEntries || []).filter((entry) => entry.id !== entryId),
-					}
-					: group
-			),
-		})),
+		set((state) => {
+			// Find the PTO entry to get its dates for removing the corresponding range
+			const group = state.eventGroups.find(g => g.id === groupId);
+			const ptoEntry = (group?.ptoEntries || []).find(entry => entry.id === entryId);
+			
+			return {
+				eventGroups: state.eventGroups.map((group) =>
+					group.id === groupId
+						? {
+							...group,
+							// Remove PTO entry
+							ptoEntries: (group.ptoEntries || []).filter((entry) => entry.id !== entryId),
+							// Also remove corresponding regular event range
+							ranges: ptoEntry 
+								? group.ranges.filter(r => !(r.start === ptoEntry.startDate && r.end === ptoEntry.endDate))
+								: group.ranges
+						}
+						: group
+				),
+			};
+		}),
 
 	validatePTOEntry: (groupId, entry) => {
 		const state = get();
