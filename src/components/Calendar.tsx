@@ -23,6 +23,7 @@ import {
 	subDays,
 	addDays,
 } from "date-fns";
+import { getHolidayFromISODate } from "../constants/holidays";
 import "./Calendar.css";
 
 const Calendar: React.FC = () => {
@@ -202,7 +203,6 @@ const Calendar: React.FC = () => {
 		}
 
 		// Check if PTO is enabled for this group
-		const dateStr = formatISO(date, { representation: "date" });
 		const isPTOEnabled = isPTOEnabledForGroup(selectedGroupId);
 		
 		// Block PTO creation on weekends only
@@ -211,15 +211,7 @@ const Calendar: React.FC = () => {
 			return;
 		}
 
-		// If PTO is enabled, trigger PTO selection modal
-		if (isPTOEnabled) {
-			const ptoSelectEvent = new CustomEvent('ptoDateSelect', {
-				detail: { date: dateStr }
-			});
-			window.dispatchEvent(ptoSelectEvent);
-			return;
-		}
-
+		// For both PTO and regular calendars, start drag detection
 		// Check if the date is already in a range for this group
 		const existingRange = findRangeForDate(date, selectedGroup);
 		if (existingRange) {
@@ -280,6 +272,9 @@ const Calendar: React.FC = () => {
 
 		setIsDragging(false);
 
+		// Check if PTO is enabled for this group
+		const isPTOEnabled = isPTOEnabledForGroup(selectedGroupId);
+
 		// Ensure start is before end
 		const finalStartDate = isBefore(dragStartDate, dragEndDate)
 			? dragStartDate
@@ -288,16 +283,34 @@ const Calendar: React.FC = () => {
 			? dragEndDate
 			: dragStartDate;
 
-		const newRange: DateRange = {
-			start: formatISO(finalStartDate, { representation: "date" }),
-			end: formatISO(finalEndDate, { representation: "date" }),
-		};
+		if (isPTOEnabled) {
+			// For PTO calendars, trigger the modal with the date range
+			const startDateStr = formatISO(finalStartDate, { representation: "date" });
+			const endDateStr = formatISO(finalEndDate, { representation: "date" });
+			
+			// Check if this is a single-day selection (no drag occurred)
+			const isSingleDay = checkSameDay(finalStartDate, finalEndDate);
+			
+			const ptoSelectEvent = new CustomEvent('ptoDateSelect', {
+				detail: { 
+					date: startDateStr,
+					endDate: isSingleDay ? undefined : endDateStr
+				}
+			});
+			window.dispatchEvent(ptoSelectEvent);
+		} else {
+			// For regular calendars, create the date range directly
+			const newRange: DateRange = {
+				start: formatISO(finalStartDate, { representation: "date" }),
+				end: formatISO(finalEndDate, { representation: "date" }),
+			};
 
-		addDateRange(selectedGroupId, newRange);
+			addDateRange(selectedGroupId, newRange);
+		}
 
 		setDragStartDate(null);
 		setDragEndDate(null);
-	}, [isDragging, dragStartDate, dragEndDate, selectedGroupId, addDateRange]);
+	}, [isDragging, dragStartDate, dragEndDate, selectedGroupId, addDateRange, isPTOEnabledForGroup, checkSameDay]);
 
 	useEffect(() => {
 		const handleGlobalMouseUp = () => {
@@ -361,18 +374,26 @@ const Calendar: React.FC = () => {
 				const isSelected = group.id === selectedGroupId;
 				const isHoliday = group.name === "Unispace Holidays";
 				const prefix = isHoliday ? "🎉" : (isSelected ? "📅" : "📋");
-				return `${prefix} ${group.name}${isSelected ? "" : " (background)"}`;
+				
+				if (isHoliday) {
+					const holidayName = getHolidayFromISODate(formatISO(date, { representation: "date" }));
+					return `${prefix} ${holidayName || group.name}`;
+				}
+				
+				return `${prefix} ${group.name}${isSelected ? "" : ""}`;
 			} else {
 				const holidayGroup = groupsWithEvent.find(g => g.name === "Unispace Holidays");
 				const selectedGroup = groupsWithEvent.find(g => g.id === selectedGroupId);
 				const otherGroups = groupsWithEvent.filter(g => g.id !== selectedGroupId && g.name !== "Unispace Holidays");
 				
 				if (holidayGroup && selectedGroup) {
+					const holidayName = getHolidayFromISODate(formatISO(date, { representation: "date" }));
 					const others = otherGroups.length > 0 ? ` + ${otherGroups.map(g => g.name).join(", ")}` : "";
-					return `🎉 ${holidayGroup.name} + 📅 ${selectedGroup.name}${others}`;
+					return `🎉 ${holidayName || holidayGroup.name} + 📅 ${selectedGroup.name}${others}`;
 				} else if (holidayGroup) {
+					const holidayName = getHolidayFromISODate(formatISO(date, { representation: "date" }));
 					const others = otherGroups.length > 0 ? ` + ${otherGroups.map(g => g.name).join(", ")}` : "";
-					return `🎉 ${holidayGroup.name}${others}`;
+					return `🎉 ${holidayName || holidayGroup.name}${others}`;
 				} else if (selectedGroup) {
 					const others = otherGroups.map(g => g.name).join(", ");
 					return `📅 ${selectedGroup.name} + ${otherGroups.length} other${otherGroups.length > 1 ? 's' : ''}: ${others}`;

@@ -13,6 +13,7 @@ function App() {
 	const [showLicenseModal, setShowLicenseModal] = useState(false);
 	const [showPTOModal, setShowPTOModal] = useState(false);
 	const [selectedPTODate, setSelectedPTODate] = useState<string>("");
+	const [selectedPTOEndDate, setSelectedPTOEndDate] = useState<string | undefined>();
 	const getAppStateFromUrl = useStore((state) => state.getAppStateFromUrl);
 	const generateShareableUrl = useStore((state) => state.generateShareableUrl);
 	const showHelpModal = useStore((state) => state.showHelpModal);
@@ -47,10 +48,11 @@ function App() {
 	}, [getAppStateFromUrl, validateLicenseKey, licenseKey]);
 
 	// Handle PTO date selection from Calendar
-	const handlePTODateSelection = (dateStr: string) => {
+	const handlePTODateSelection = (dateStr: string, endDateStr?: string) => {
 		const ptoConfig = getSelectedGroupPTOConfig();
 		if (ptoConfig?.isEnabled) {
 			setSelectedPTODate(dateStr);
+			setSelectedPTOEndDate(endDateStr);
 			setShowPTOModal(true);
 		}
 	};
@@ -58,7 +60,7 @@ function App() {
 	// Set up global PTO date selection handler
 	useEffect(() => {
 		const handlePTODateSelect = (event: CustomEvent) => {
-			handlePTODateSelection(event.detail.date);
+			handlePTODateSelection(event.detail.date, event.detail.endDate);
 		};
 
 		window.addEventListener('ptoDateSelect' as any, handlePTODateSelect);
@@ -110,10 +112,12 @@ function App() {
 			)}
 			{showPTOModal && selectedPTODate && (
 				<PTOSelectionModal 
-					selectedDate={selectedPTODate} 
+					selectedDate={selectedPTODate}
+					initialEndDate={selectedPTOEndDate}
 					onClose={() => {
 						setShowPTOModal(false);
 						setSelectedPTODate("");
+						setSelectedPTOEndDate(undefined);
 					}} 
 				/>
 			)}

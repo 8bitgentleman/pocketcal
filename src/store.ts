@@ -12,7 +12,7 @@ import {
 } from "date-fns";
 import LZString from "lz-string";
 import { PTOEntry, PTOConfig, PTOCalendarUtils } from "./utils/ptoUtils";
-import { isHolidayFromISODate } from "./constants/holidays";
+import { isHolidayFromISODate, getHolidaysForYear } from "./constants/holidays";
 
 export const MAX_GROUPS = 5;
 
@@ -57,11 +57,13 @@ interface AppState {
 	showHelpModal: boolean;
 	licenseKey: string | null;
 	isProUser: boolean;
+	isDarkMode: boolean;
 	// Actions
 	setStartDate: (date: Date) => void;
 	setIncludeWeekends: (include: boolean) => void;
 	setShowToday: (show: boolean) => void;
 	setShowHelpModal: (show: boolean) => void;
+	setIsDarkMode: (isDark: boolean) => void;
 	setLicenseKey: (key: string | null) => void;
 	validateLicenseKey: (key: string) => Promise<boolean>;
 	addEventGroup: (name: string) => EventGroup;
@@ -103,32 +105,16 @@ interface AppState {
 
 const defaultStartDate = new Date(new Date().getFullYear(), 0, 1); // January 1st of current year
 
-// Create the special holidays calendar
-const createHolidaysCalendar = (): EventGroup => {
-	// Convert 2025 holidays to date ranges
-	const holidays2025 = {
-		101: "New Year's Day",
-		120: "MLK Jr. Day", 
-		526: "Memorial Day",
-		619: "Juneteenth",
-		703: "Independence Day Eve",
-		704: "Independence Day",
-		901: "Labor Day",
-		1013: "Indigenous People's Day",
-		1127: "Thanksgiving",
-		1128: "Day after Thanksgiving", 
-		1225: "Christmas",
-		1226: "Unispace Gift Day",
-		1227: "Unispace Gift Day",
-		1230: "Unispace Gift Day",
-		1231: "Unispace Gift Day"
-	};
+// Create the special holidays calendar for a given year
+const createHolidaysCalendar = (year: number = new Date().getFullYear()): EventGroup => {
+	// Get holidays for the specific year from constants
+	const holidayDates = getHolidaysForYear(year);
 
-	const ranges: DateRange[] = Object.keys(holidays2025).map(dateKey => {
+	const ranges: DateRange[] = Object.keys(holidayDates).map(dateKey => {
 		const mmdd = parseInt(dateKey);
 		const month = Math.floor(mmdd / 100);
 		const day = mmdd % 100;
-		const dateStr = formatISO(new Date(2025, month - 1, day), { representation: "date" });
+		const dateStr = formatISO(new Date(year, month - 1, day), { representation: "date" });
 		return {
 			start: dateStr,
 			end: dateStr
@@ -136,7 +122,7 @@ const createHolidaysCalendar = (): EventGroup => {
 	});
 
 	return {
-		id: "holidays-2025",
+		id: `holidays-${year}`,
 		name: "Unispace Holidays",
 		color: "#f44336", // Red color for holidays
 		ranges,
@@ -154,7 +140,8 @@ const createDefaultEventGroup = (index = 0): EventGroup => ({
 
 // Create a function to get the default state
 const getDefaultState = () => {
-	const holidaysCalendar = createHolidaysCalendar();
+	const currentYear = defaultStartDate.getFullYear();
+	const holidaysCalendar = createHolidaysCalendar(currentYear);
 	const defaultGroup = createDefaultEventGroup(1); // Use index 1 since holidays uses index 0 color
 	return {
 		startDate: defaultStartDate,
@@ -171,8 +158,22 @@ export const useStore = create<AppState>((set, get) => ({
 	showHelpModal: false,
 	licenseKey: localStorage.getItem("pocketcal_license") || null,
 	isProUser: false,
+	isDarkMode: localStorage.getItem("pocketcal_dark_mode") === "true" || false,
 
-	setStartDate: (date) => set({ startDate: new Date(date.getFullYear(), 0, 1) }),
+	setStartDate: (date) => {
+		const newStartDate = new Date(date.getFullYear(), 0, 1);
+		const newYear = date.getFullYear();
+		set((state) => {
+			// Only regenerate holidays if the year actually changed
+			if (state.startDate.getFullYear() !== newYear) {
+				return {
+					startDate: newStartDate,
+					holidays: createHolidaysCalendar(newYear)
+				};
+			}
+			return { startDate: newStartDate };
+		});
+	},
 	setIncludeWeekends: (include) => set({ includeWeekends: include }),
 	setShowToday: (show) => set({ showToday: show }),
 	setShowHelpModal: (show) => set({ showHelpModal: show }),
@@ -564,7 +565,7 @@ export const useStore = create<AppState>((set, get) => ({
 		if (isHolidayFromISODate(entry.startDate) || isHolidayFromISODate(entry.endDate)) {
 			return {
 				isValid: false,
-				warning: "Cannot request PTO on company holidays",
+				warning: "Cannot log PTO on company holidays",
 			};
 		}
 		if (!PTOCalendarUtils.isValidPTOHours(entry.hoursPerDay)) {

@@ -146,7 +146,7 @@ function Sidebar({
 	return (
 		<div className="sidebar">
 			<h1 className="logo">
-				Pocket<span className="logo-cal">Cal</span>{" "}
+				<span className="logo-cal">Unispace</span> PTO Calculator{" "}
 				{isProUser && <span className="pro-badge">Pro</span>}
 			</h1>
 

@@ -3,7 +3,10 @@ import { useStore } from "../store";
 import "./PTOSummaryDashboard.css";
 
 const PTOSummaryDashboard: React.FC = () => {
-	const { selectedGroupId, getPTOSummary, getSelectedGroupPTOConfig } = useStore();
+	const { selectedGroupId, getPTOSummary, getSelectedGroupPTOConfig, getSelectedGroupPTOEntries } = useStore();
+	
+	// Subscribe to PTO entries to trigger re-renders when they change
+	const ptoEntries = getSelectedGroupPTOEntries();
 
 	const ptoConfig = getSelectedGroupPTOConfig();
 	

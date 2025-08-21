@@ -8,10 +8,11 @@ import "./Modal.css";
 
 interface PTOSelectionModalProps {
 	selectedDate: string; // ISO date format
+	initialEndDate?: string; // Optional end date for multi-day selection
 	onClose: () => void;
 }
 
-const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, onClose }) => {
+const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, initialEndDate, onClose }) => {
 	const { 
 		selectedGroupId,
 		addPTOEntry, 
@@ -49,11 +50,20 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, onC
 		} else {
 			setSelectedHours(8);
 			setDescription("");
-			setIsMultiDay(false);
-			setEndDate(selectedDate);
-			setDuration(1);
+			// If initialEndDate prop is provided, this is a multi-day selection from drag
+			const isMultiDayFromDrag = initialEndDate && initialEndDate !== selectedDate;
+			setIsMultiDay(isMultiDayFromDrag);
+			setEndDate(initialEndDate || selectedDate);
+			if (isMultiDayFromDrag) {
+				const start = parseISO(selectedDate);
+				const end = parseISO(initialEndDate);
+				const dayDiff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+				setDuration(dayDiff);
+			} else {
+				setDuration(1);
+			}
 		}
-	}, [existingEntry, selectedDate]);
+	}, [existingEntry, selectedDate, initialEndDate]);
 
 	if (!selectedGroupId) {
 		return null;
@@ -133,7 +143,7 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, onC
 					<XIcon color="#000" />
 				</button>
 				
-				<h2>{existingEntry ? "Edit PTO Request" : "Request PTO"}</h2>
+				<h2>{existingEntry ? "Edit PTO Request" : "Log PTO"}</h2>
 				
 				<div className="pto-modal-content">
 					<div className="pto-date-info">
@@ -267,7 +277,7 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, onC
 										onClick={handleSubmit}
 										type="button"
 									>
-										{existingEntry ? "Update Request" : "Request PTO"}
+										{existingEntry ? "Update Request" : "Log PTO"}
 									</button>
 								</div>
 							</div>
