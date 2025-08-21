@@ -7,7 +7,7 @@ import {
 	DateRange,
 	findRangeForDate,
 } from "../store";
-import { isHolidayFromISODate, getHolidayFromISODate } from "../constants/holidays";
+// Holidays are now handled as a regular calendar
 import {
 	format,
 	getMonth,
@@ -37,6 +37,9 @@ const Calendar: React.FC = () => {
 		// PTO state
 		getSelectedGroupPTOEntries,
 		isPTOEnabledForGroup,
+		// Display helpers
+		getAllDisplayGroups,
+		getHolidaysGroup,
 	} = useStore();
 
 	const calendarDates = getCalendarDates(startDate);
@@ -137,27 +140,14 @@ const Calendar: React.FC = () => {
 	const handleDateSelection = (date: Date) => {
 		if (!selectedGroupId) return;
 
-		const selectedGroup = eventGroups.find(
+		const selectedGroup = getAllDisplayGroups().find(
 			(group) => group.id === selectedGroupId
 		);
 		if (!selectedGroup) return;
 
-		// Check if PTO mode is enabled and date is a holiday
-		const dateStr = formatISO(date, { representation: "date" });
-		const isPTOEnabled = selectedGroupId && isPTOEnabledForGroup(selectedGroupId);
-		
-		if (isPTOEnabled && isHolidayFromISODate(dateStr)) {
-			const holidayName = getHolidayFromISODate(dateStr);
-			alert(`Cannot select ${holidayName}. PTO cannot be requested on company holidays.`);
-			return;
-		}
-
-		// If PTO mode is enabled, trigger PTO selection instead of normal date range selection
-		if (isPTOEnabled) {
-			const ptoSelectEvent = new CustomEvent('ptoDateSelect', {
-				detail: { date: dateStr }
-			});
-			window.dispatchEvent(ptoSelectEvent);
+		// Prevent interaction with special calendars (like holidays)
+		if (selectedGroup.isSpecial) {
+			alert("Cannot modify the holidays calendar. Please select a different calendar.");
 			return;
 		}
 
@@ -200,23 +190,24 @@ const Calendar: React.FC = () => {
 		if (!selectedGroupId) return;
 		setFocusedDate(date);
 
-		const selectedGroup = eventGroups.find(
+		const selectedGroup = getAllDisplayGroups().find(
 			(group) => group.id === selectedGroupId
 		);
 		if (!selectedGroup) return;
+
+		// Prevent interaction with special calendars
+		if (selectedGroup.isSpecial) {
+			alert("Cannot modify the holidays calendar. Please select a different calendar.");
+			return;
+		}
 
 		// Check if PTO is enabled for this group
 		const dateStr = formatISO(date, { representation: "date" });
 		const isPTOEnabled = isPTOEnabledForGroup(selectedGroupId);
 		
-		// Block PTO creation on weekends and holidays
-		if (isPTOEnabled && (isWeekend(date) || isHolidayFromISODate(dateStr))) {
-			if (isWeekend(date)) {
-				alert("PTO cannot be requested on weekends.");
-			} else {
-				const holidayName = getHolidayFromISODate(dateStr);
-				alert(`Cannot select ${holidayName}. PTO cannot be requested on company holidays.`);
-			}
+		// Block PTO creation on weekends only
+		if (isPTOEnabled && isWeekend(date)) {
+			alert("PTO cannot be requested on weekends.");
 			return;
 		}
 
@@ -344,11 +335,7 @@ const Calendar: React.FC = () => {
 	const getTooltipContent = (date: Date): string | null => {
 		const dateStr = formatISO(date, { representation: "date" });
 		
-		// Check for holidays first
-		if (isHolidayFromISODate(dateStr)) {
-			const holiday = getHolidayFromISODate(dateStr);
-			return holiday ? `🎉 ${holiday}` : "🎉 Company Holiday";
-		}
+		// Holidays are now handled as a regular calendar, so check event groups first
 
 		// Check for PTO entries in the selected group
 		if (selectedGroupId && isPTOEnabledForGroup(selectedGroupId)) {
@@ -367,17 +354,26 @@ const Calendar: React.FC = () => {
 		}
 
 		// Check for regular events from all groups
-		const groupsWithEvent = eventGroups.filter(group => isDateInRange(date, group));
+		const groupsWithEvent = getAllDisplayGroups().filter(group => isDateInRange(date, group));
 		if (groupsWithEvent.length > 0) {
 			if (groupsWithEvent.length === 1) {
 				const group = groupsWithEvent[0];
 				const isSelected = group.id === selectedGroupId;
-				const prefix = isSelected ? "📅" : "📋";
+				const isHoliday = group.name === "Unispace Holidays";
+				const prefix = isHoliday ? "🎉" : (isSelected ? "📅" : "📋");
 				return `${prefix} ${group.name}${isSelected ? "" : " (background)"}`;
 			} else {
+				const holidayGroup = groupsWithEvent.find(g => g.name === "Unispace Holidays");
 				const selectedGroup = groupsWithEvent.find(g => g.id === selectedGroupId);
-				const otherGroups = groupsWithEvent.filter(g => g.id !== selectedGroupId);
-				if (selectedGroup) {
+				const otherGroups = groupsWithEvent.filter(g => g.id !== selectedGroupId && g.name !== "Unispace Holidays");
+				
+				if (holidayGroup && selectedGroup) {
+					const others = otherGroups.length > 0 ? ` + ${otherGroups.map(g => g.name).join(", ")}` : "";
+					return `🎉 ${holidayGroup.name} + 📅 ${selectedGroup.name}${others}`;
+				} else if (holidayGroup) {
+					const others = otherGroups.length > 0 ? ` + ${otherGroups.map(g => g.name).join(", ")}` : "";
+					return `🎉 ${holidayGroup.name}${others}`;
+				} else if (selectedGroup) {
 					const others = otherGroups.map(g => g.name).join(", ");
 					return `📅 ${selectedGroup.name} + ${otherGroups.length} other${otherGroups.length > 1 ? 's' : ''}: ${others}`;
 				} else {
@@ -407,11 +403,7 @@ const Calendar: React.FC = () => {
 			className += " focused";
 		}
 
-		// Add holiday styling
-		const dateStr = formatISO(date, { representation: "date" });
-		if (isHolidayFromISODate(dateStr)) {
-			className += " holiday";
-		}
+		// Remove hard-coded holiday styling - holidays are now handled as a regular calendar
 
 		if (isDragging && dragStartDate && dragEndDate) {
 			const currentDragStart = isBefore(dragStartDate, dragEndDate)
@@ -431,7 +423,7 @@ const Calendar: React.FC = () => {
 
 	const getRangeStyles = (date: Date): React.CSSProperties[] => {
 		const styles: React.CSSProperties[] = [];
-		const groupsWithDate = eventGroups.filter((group) =>
+		const groupsWithDate = getAllDisplayGroups().filter((group) =>
 			isDateInRange(date, group)
 		);
 
@@ -504,7 +496,7 @@ const Calendar: React.FC = () => {
 
 							{datesInMonth.map((date) => {
 								const dateStr = formatISO(date, { representation: "date" });
-								const isSelected = eventGroups.some((group) =>
+								const isSelected = getAllDisplayGroups().some((group) =>
 									isDateInRange(date, group)
 								);
 								return (

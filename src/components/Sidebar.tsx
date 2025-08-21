@@ -37,15 +37,22 @@ function Sidebar({
 		setPTOConfig,
 		getSelectedGroupPTOConfig,
 		isPTOEnabledForGroup,
+		// Display helpers
+		getAllDisplayGroups,
+		getHolidaysGroup,
 	} = useStore();
 	const maxGroups = getMaxGroups(isProUser);
 	const [newEventName, setNewEventName] = useState("");
 	const [editingGroup, setEditingGroup] = useState<EventGroup | null>(null);
 
-	// Add effect to select the first group if none is selected
+	// Add effect to select the first non-special group if none is selected
 	useEffect(() => {
 		if (!selectedGroupId && eventGroups.length > 0) {
-			selectEventGroup(eventGroups[0].id);
+			// Find first non-special group
+			const firstNonSpecialGroup = eventGroups.find(group => !group.isSpecial);
+			if (firstNonSpecialGroup) {
+				selectEventGroup(firstNonSpecialGroup.id);
+			}
 		}
 	}, [selectedGroupId, eventGroups, selectEventGroup]);
 
@@ -132,8 +139,8 @@ function Sidebar({
 		);
 
 		return isProUser
-			? [helpAndCopyButtons, proButton]
-			: [proButton, helpAndCopyButtons];
+			? [<React.Fragment key="help">{helpAndCopyButtons}</React.Fragment>, <React.Fragment key="pro">{proButton}</React.Fragment>]
+			: [<React.Fragment key="help">{helpAndCopyButtons}</React.Fragment>];
 	};
 
 	return (
@@ -149,14 +156,14 @@ function Sidebar({
 			</h3>
 			<p className="sidebar-help-text">Each group represents a person or team with their own calendar and PTO settings.</p>
 			<div className="event-groups-list" role="list">
-				{eventGroups.map((group) => (
+				{getAllDisplayGroups().map((group) => (
 					<div
 						key={group.id}
 						className={`event-group-item ${
 							selectedGroupId === group.id ? "selected" : ""
 						} ${editingGroup?.id === group.id ? "editing" : ""}`}
 						onClick={() =>
-							editingGroup?.id !== group.id && selectEventGroup(group.id)
+							editingGroup?.id !== group.id && !group.isSpecial && selectEventGroup(group.id)
 						}
 						onKeyDown={(e) => handleKeyDown(e, group)}
 						tabIndex={editingGroup?.id !== group.id ? 0 : -1}
@@ -212,30 +219,32 @@ function Sidebar({
 						) : (
 							<>
 								<span className="group-name">{group.name}</span>
-								<div className="group-actions">
-									<button
-										onClick={(e) => {
-											e.stopPropagation();
-											handleEditClick(group);
-										}}
-										disabled={!!editingGroup}
-										className="edit-button"
-										aria-label={`Edit ${group.name}`}
-									>
-										<PencilIcon color="#000" />
-									</button>
-									<button
-										onClick={(e) => {
-											e.stopPropagation();
-											deleteEventGroup(group.id);
-										}}
-										disabled={!!editingGroup}
-										className="delete-button"
-										aria-label={`Delete ${group.name}`}
-									>
-										<TrashIcon color="#000" />
-									</button>
-								</div>
+								{!group.isSpecial && (
+									<div className="group-actions">
+										<button
+											onClick={(e) => {
+												e.stopPropagation();
+												handleEditClick(group);
+											}}
+											disabled={!!editingGroup}
+											className="edit-button"
+											aria-label={`Edit ${group.name}`}
+										>
+											<PencilIcon color="#000" />
+										</button>
+										<button
+											onClick={(e) => {
+												e.stopPropagation();
+												deleteEventGroup(group.id);
+											}}
+											disabled={!!editingGroup}
+											className="delete-button"
+											aria-label={`Delete ${group.name}`}
+										>
+											<TrashIcon color="#000" />
+										</button>
+									</div>
+								)}
 							</>
 						)}
 					</div>
@@ -287,9 +296,9 @@ function Sidebar({
 				</div>
 				
 				{/* Per-Group PTO Settings */}
-				{selectedGroupId && (
+				{selectedGroupId && !getAllDisplayGroups().find(g => g.id === selectedGroupId)?.isSpecial && (
 					<>
-						<h4>🏝️ PTO Settings - {eventGroups.find(g => g.id === selectedGroupId)?.name}</h4>
+						<h4>🏝️ PTO Settings - {getAllDisplayGroups().find(g => g.id === selectedGroupId)?.name}</h4>
 						<p className="sidebar-help-text">Configure vacation/PTO policy for this person/team.</p>
 						<div className="setting-item">
 							<label htmlFor="pto-enabled">Enable PTO:</label>

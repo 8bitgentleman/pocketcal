@@ -44,6 +44,7 @@ export interface EventGroup {
 	ranges: DateRange[];
 	ptoConfig?: PTOConfig;  // Optional PTO settings per group
 	ptoEntries?: PTOEntry[]; // PTO entries specific to this group
+	isSpecial?: boolean;     // Special calendars cannot be edited/deleted
 }
 
 interface AppState {
@@ -51,6 +52,7 @@ interface AppState {
 	includeWeekends: boolean;
 	showToday: boolean;
 	eventGroups: EventGroup[];
+	holidays: EventGroup; // Separate read-only holidays data
 	selectedGroupId: string | null;
 	showHelpModal: boolean;
 	licenseKey: string | null;
@@ -94,9 +96,53 @@ interface AppState {
 	getSelectedGroupPTOConfig: () => PTOConfig | null;
 	getSelectedGroupPTOEntries: () => PTOEntry[];
 	isPTOEnabledForGroup: (groupId: string) => boolean;
+	// Display helpers that merge holidays with eventGroups
+	getAllDisplayGroups: () => EventGroup[];
+	getHolidaysGroup: () => EventGroup;
 }
 
 const defaultStartDate = new Date(new Date().getFullYear(), 0, 1); // January 1st of current year
+
+// Create the special holidays calendar
+const createHolidaysCalendar = (): EventGroup => {
+	// Convert 2025 holidays to date ranges
+	const holidays2025 = {
+		101: "New Year's Day",
+		120: "MLK Jr. Day", 
+		526: "Memorial Day",
+		619: "Juneteenth",
+		703: "Independence Day Eve",
+		704: "Independence Day",
+		901: "Labor Day",
+		1013: "Indigenous People's Day",
+		1127: "Thanksgiving",
+		1128: "Day after Thanksgiving", 
+		1225: "Christmas",
+		1226: "Unispace Gift Day",
+		1227: "Unispace Gift Day",
+		1230: "Unispace Gift Day",
+		1231: "Unispace Gift Day"
+	};
+
+	const ranges: DateRange[] = Object.keys(holidays2025).map(dateKey => {
+		const mmdd = parseInt(dateKey);
+		const month = Math.floor(mmdd / 100);
+		const day = mmdd % 100;
+		const dateStr = formatISO(new Date(2025, month - 1, day), { representation: "date" });
+		return {
+			start: dateStr,
+			end: dateStr
+		};
+	});
+
+	return {
+		id: "holidays-2025",
+		name: "Unispace Holidays",
+		color: "#f44336", // Red color for holidays
+		ranges,
+		isSpecial: true
+	};
+};
 
 // Create a function to generate the default event group
 const createDefaultEventGroup = (index = 0): EventGroup => ({
@@ -108,13 +154,15 @@ const createDefaultEventGroup = (index = 0): EventGroup => ({
 
 // Create a function to get the default state
 const getDefaultState = () => {
-	const defaultGroup = createDefaultEventGroup();
+	const holidaysCalendar = createHolidaysCalendar();
+	const defaultGroup = createDefaultEventGroup(1); // Use index 1 since holidays uses index 0 color
 	return {
 		startDate: defaultStartDate,
 		includeWeekends: true,
 		showToday: true,
-		eventGroups: [defaultGroup],
-		selectedGroupId: defaultGroup.id, // Select the first group by default
+		eventGroups: [defaultGroup], // Only user groups, no holidays
+		holidays: holidaysCalendar, // Separate holidays data
+		selectedGroupId: defaultGroup.id,
 	};
 };
 
@@ -222,47 +270,68 @@ export const useStore = create<AppState>((set, get) => ({
 	selectEventGroup: (id) => set({ selectedGroupId: id }),
 
 	addDateRange: (groupId, range) =>
-		set((state) => ({
-			eventGroups: state.eventGroups.map((group) =>
-				group.id === groupId
-					? { ...group, ranges: [...group.ranges, range] }
-					: group
-			),
-		})),
+		set((state) => {
+			// Prevent adding to holidays (safety check)
+			if (groupId === state.holidays.id) {
+				console.warn('Cannot add date range to holidays calendar');
+				return state;
+			}
+			return {
+				eventGroups: state.eventGroups.map((group) =>
+					group.id === groupId
+						? { ...group, ranges: [...group.ranges, range] }
+						: group
+				),
+			};
+		}),
 
 	updateDateRange: (groupId, oldRange, newRange) =>
-		set((state) => ({
-			eventGroups: state.eventGroups.map((group) =>
-				group.id === groupId
-					? {
-							...group,
-							ranges: group.ranges.map((r) =>
-								r.start === oldRange.start && r.end === oldRange.end
-									? newRange
-									: r
-							),
-					  }
-					: group
-			),
-		})),
+		set((state) => {
+			// Prevent updating holidays (safety check)
+			if (groupId === state.holidays.id) {
+				console.warn('Cannot update date range in holidays calendar');
+				return state;
+			}
+			return {
+				eventGroups: state.eventGroups.map((group) =>
+					group.id === groupId
+						? {
+								...group,
+								ranges: group.ranges.map((r) =>
+									r.start === oldRange.start && r.end === oldRange.end
+										? newRange
+										: r
+								),
+						  }
+						: group
+				),
+			};
+		}),
 
 	deleteDateRange: (groupId, rangeToDelete) =>
-		set((state) => ({
-			eventGroups: state.eventGroups.map((group) =>
-				group.id === groupId
-					? {
-							...group,
-							ranges: group.ranges.filter(
-								(r) =>
-									!(
-										r.start === rangeToDelete.start &&
-										r.end === rangeToDelete.end
-									)
-							),
-					  }
-					: group
-			),
-		})),
+		set((state) => {
+			// Prevent deleting from holidays (safety check)
+			if (groupId === state.holidays.id) {
+				console.warn('Cannot delete date range from holidays calendar');
+				return state;
+			}
+			return {
+				eventGroups: state.eventGroups.map((group) =>
+					group.id === groupId
+						? {
+								...group,
+								ranges: group.ranges.filter(
+									(r) =>
+										!(
+											r.start === rangeToDelete.start &&
+											r.end === rangeToDelete.end
+										)
+								),
+						  }
+						: group
+				),
+			};
+		}),
 
 	getAppStateFromUrl: () => {
 		try {
@@ -557,6 +626,17 @@ export const useStore = create<AppState>((set, get) => ({
 		const state = get();
 		const group = state.eventGroups.find(g => g.id === groupId);
 		return group?.ptoConfig?.isEnabled ?? false;
+	},
+
+	// Display helpers that merge holidays with eventGroups
+	getAllDisplayGroups: () => {
+		const state = get();
+		return [state.holidays, ...state.eventGroups];
+	},
+
+	getHolidaysGroup: () => {
+		const state = get();
+		return state.holidays;
 	},
 
 	generateShareableUrl: () => {
