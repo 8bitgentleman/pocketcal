@@ -57,7 +57,7 @@ const LicenseModal: React.FC<LicenseModalProps> = ({ onClose }) => {
 		return (
 			<>
 				<p className="pro-description">
-					Support PocketCal's development with a lifetime <span>Pro</span>{" "}
+					Support Unispace PTO Calculator's development with a lifetime <span>Pro</span>{" "}
 					license!
 				</p>
 				<p className="pro-description">
@@ -79,7 +79,7 @@ const LicenseModal: React.FC<LicenseModalProps> = ({ onClose }) => {
 					<XIcon color="#000" />
 				</button>
 				<h2>
-					Pocket<span className="logo-cal">Cal</span>{" "}
+					Unispace PTO Calculator{" "}
 					<span className="pro-badge">Pro</span>
 				</h2>
 

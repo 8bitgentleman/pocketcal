@@ -13,7 +13,7 @@ The PTO integration foundation has been **100% completed** with full mathematica
 - ✅ **Export/Import System** - JSON, CSV, ADP formats with validation
 - ✅ **Comprehensive Test Suite** - 73 passing tests covering all edge cases
 - ✅ **Type-Safe Interfaces** - Complete TypeScript definitions
-- ✅ **Production-Ready Code** - Follows all PocketCal architectural patterns
+- ✅ **Production-Ready Code** - Follows all Unispace PTO Calculator architectural patterns
 
 **Files Implemented:**
 - `src/utils/ptoUtils.ts` - Core calculation engine
@@ -28,7 +28,7 @@ The PTO integration foundation has been **100% completed** with full mathematica
 
 ## Overview
 
-This document provides a comprehensive guide for implementing PTO (Paid Time Off) functionality in PocketCal, drawing from the existing pto-calendar implementation and the detailed integration plan in `PTO_INTEGRATION_PLAN.md`.
+This document provides a comprehensive guide for implementing PTO (Paid Time Off) functionality in Unispace PTO Calculator, drawing from the existing pto-calendar implementation and the detailed integration plan in `PTO_INTEGRATION_PLAN.md`.
 
 **Note:** The core backend functionality described in this document has been fully implemented and tested. This now serves as both implementation guidance and API documentation for the completed system.
 

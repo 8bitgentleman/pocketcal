@@ -1,8 +1,8 @@
-# PTO Calendar Integration Plan for PocketCal
+# PTO Calendar Integration Plan for Unispace PTO Calculator
 
 ## Executive Summary
 
-This document outlines a comprehensive plan to integrate PTO (Paid Time Off) functionality from the pto-calendar repository into pocketcal. The integration preserves pocketcal's core architecture (React 19, Zustand, URL-based state persistence) while adding the exact PTO calculation logic and validation rules from pto-calendar.
+This document outlines a comprehensive plan to integrate PTO (Paid Time Off) functionality from the pto-calendar repository into Unispace PTO Calculator. The integration preserves Unispace PTO Calculator's core architecture (React 19, Zustand, URL-based state persistence) while adding the exact PTO calculation logic and validation rules from pto-calendar.
 
 **Key Integration Points:**
 - Exact mathematical PTO calculations (critical requirement)
@@ -111,7 +111,7 @@ export class PTOCalendarUtils {
 ```
 
 **Integration Requirements:**
-- Convert from pto-calendar's numeric date format (MMDD) to pocketcal's date-fns format
+- Convert from pto-calendar's numeric date format (MMDD) to Unispace PTO Calculator's date-fns format
 - Maintain exact mathematical calculations for accrual and validation
 - Add helper functions to bridge between date formats
 
@@ -912,7 +912,7 @@ const compressedState = {
 ### Final Integration Success Criteria
 - [x] Mathematical calculations are 100% identical to pto-calendar
 - [x] All original pto-calendar calculation features are available
-- [x] PocketCal's existing features remain fully functional
+- [x] Unispace PTO Calculator's existing features remain fully functional
 - [x] URL-based sharing works with both regular events and PTO data
 - [x] Export functionality matches or exceeds pto-calendar capabilities
 - [ ] UI components for PTO calendar interaction (Phase 2/3 remaining)
@@ -937,6 +937,6 @@ const compressedState = {
 
 ## Conclusion
 
-This implementation plan provides a systematic approach to integrating PTO functionality while preserving pocketcal's core architecture and user experience. The phased approach allows for iterative testing and validation, ensuring that the critical PTO calculation requirements are met exactly while maintaining the flexibility and sharing capabilities that make pocketcal unique.
+This implementation plan provides a systematic approach to integrating PTO functionality while preserving Unispace PTO Calculator's core architecture and user experience. The phased approach allows for iterative testing and validation, ensuring that the critical PTO calculation requirements are met exactly while maintaining the flexibility and sharing capabilities that make Unispace PTO Calculator unique.
 
-The key to success will be maintaining mathematical precision in the PTO calculations while adapting the functionality to work seamlessly within pocketcal's event group system and URL-based state management.
+The key to success will be maintaining mathematical precision in the PTO calculations while adapting the functionality to work seamlessly within Unispace PTO Calculator's event group system and URL-based state management.

@@ -19,7 +19,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 					<XIcon color="#000" />
 				</button>
 				<h2>
-					Pocket<span>Cal</span> Instructions
+					Unispace PTO Calculator Instructions
 				</h2>
 				<div className="instructions-content">
 					<h3>Features</h3>
@@ -47,7 +47,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 					</ul>
 					<h3>About</h3>
 					<p className="footer">
-						PocketCal is built by <a href="https://cassidoo.co/">cassidoo</a>{" "}
+						Unispace PTO Calculator is built by <a href="https://cassidoo.co/">cassidoo</a>{" "}
 						and is open source on{" "}
 						<a href="https://github.com/cassidoo/pocketcal">GitHub</a>.
 					</p>
