@@ -41,6 +41,7 @@ const Calendar: React.FC = () => {
 		isPTOEnabledForGroup,
 		deletePTOEntry,
 		addPTOEntry,
+		cleanupWeekendPTOEntries,
 		// Display helpers
 		getAllDisplayGroups,
 		getHolidaysGroup,
@@ -68,6 +69,11 @@ const Calendar: React.FC = () => {
 			setFocusedDate(todayInCalendar || calendarDates[0]);
 		}
 	}, [calendarDates, focusedDate, today, isContainerFocused]);
+
+	// Cleanup weekend PTO entries on component mount (one-time migration)
+	useEffect(() => {
+		cleanupWeekendPTOEntries();
+	}, []); // Run only once on mount
 
 	const handleContainerFocus = () => {
 		setIsContainerFocused(true);
@@ -304,6 +310,23 @@ const Calendar: React.FC = () => {
 
 	const handleMouseMove = (date: Date) => {
 		if (!isDragging || !dragStartDate) return;
+		
+		// For PTO-enabled groups, skip weekends during drag
+		const isPTOEnabled = selectedGroupId ? isPTOEnabledForGroup(selectedGroupId) : false;
+		if (isPTOEnabled && isWeekend(date)) {
+			// Find the nearest weekday in the direction of the drag
+			const dragDirection = isAfter(date, dragStartDate) ? 1 : -1;
+			let nearestWeekday = new Date(date);
+			
+			// Keep moving in the drag direction until we find a weekday
+			while (isWeekend(nearestWeekday)) {
+				nearestWeekday.setDate(nearestWeekday.getDate() + dragDirection);
+			}
+			
+			setDragEndDate(nearestWeekday);
+			return;
+		}
+		
 		setDragEndDate(date);
 	};
 
@@ -341,17 +364,34 @@ const Calendar: React.FC = () => {
 			: dragStartDate;
 
 		if (isPTOEnabled) {
-			// For PTO calendars, trigger the modal with the date range
-			const startDateStr = formatISO(finalStartDate, { representation: "date" });
-			const endDateStr = formatISO(finalEndDate, { representation: "date" });
+			// For PTO calendars, filter out weekends from the date range
+			let ptoStartDate = new Date(finalStartDate);
+			let ptoEndDate = new Date(finalEndDate);
 			
-			// Check if this is a single-day selection (no drag occurred)
-			const isSingleDay = checkSameDay(finalStartDate, finalEndDate);
+			// Find first weekday in the range
+			while (ptoStartDate <= finalEndDate && isWeekend(ptoStartDate)) {
+				ptoStartDate = addDays(ptoStartDate, 1);
+			}
 			
+			// Find last weekday in the range
+			while (ptoEndDate >= finalStartDate && isWeekend(ptoEndDate)) {
+				ptoEndDate = subDays(ptoEndDate, 1);
+			}
+			
+			// If no weekdays found in range, don't create PTO
+			if (ptoStartDate > ptoEndDate) {
+				alert("PTO cannot be requested on weekends only.");
+				return;
+			}
+			
+			const startDateStr = formatISO(ptoStartDate, { representation: "date" });
+			const endDateStr = formatISO(ptoEndDate, { representation: "date" });
+			
+			// Always send both dates for PTO - let modal handle single vs multi-day logic
 			const ptoSelectEvent = new CustomEvent('ptoDateSelect', {
 				detail: { 
 					date: startDateStr,
-					endDate: isSingleDay ? undefined : endDateStr
+					endDate: endDateStr  // Always send endDate, let modal decide
 				}
 			});
 			window.dispatchEvent(ptoSelectEvent);
@@ -492,7 +532,13 @@ const Calendar: React.FC = () => {
 				: dragStartDate;
 
 			if (date >= currentDragStart && date <= currentDragEnd) {
-				className += " dragging";
+				// For PTO-enabled groups, only highlight weekdays during drag
+				const isPTOEnabled = selectedGroupId ? isPTOEnabledForGroup(selectedGroupId) : false;
+				if (isPTOEnabled && isWeekend(date)) {
+					// Skip highlighting weekends for PTO groups
+				} else {
+					className += " dragging";
+				}
 			}
 		}
 

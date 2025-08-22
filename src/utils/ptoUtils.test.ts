@@ -81,17 +81,55 @@ describe('PTOCalendarUtils', () => {
     });
   });
 
-  describe('calculateTotalPTOHours', () => {
+  describe('calculateAnnualPTOHours', () => {
     it('should return 168 hours for less than 5 years of service', () => {
-      expect(PTOCalendarUtils.calculateTotalPTOHours(0)).toBe(168);
-      expect(PTOCalendarUtils.calculateTotalPTOHours(2)).toBe(168);
-      expect(PTOCalendarUtils.calculateTotalPTOHours(4)).toBe(168);
+      expect(PTOCalendarUtils.calculateAnnualPTOHours(0)).toBe(168);
+      expect(PTOCalendarUtils.calculateAnnualPTOHours(2)).toBe(168);
+      expect(PTOCalendarUtils.calculateAnnualPTOHours(4)).toBe(168);
     });
 
     it('should return 208 hours for 5 or more years of service', () => {
-      expect(PTOCalendarUtils.calculateTotalPTOHours(5)).toBe(208);
-      expect(PTOCalendarUtils.calculateTotalPTOHours(10)).toBe(208);
-      expect(PTOCalendarUtils.calculateTotalPTOHours(25)).toBe(208);
+      expect(PTOCalendarUtils.calculateAnnualPTOHours(5)).toBe(208);
+      expect(PTOCalendarUtils.calculateAnnualPTOHours(10)).toBe(208);
+      expect(PTOCalendarUtils.calculateAnnualPTOHours(25)).toBe(208);
+    });
+  });
+
+  describe('calculateTotalPTOHours (multi-day)', () => {
+    it('should calculate hours for single weekday', () => {
+      // Monday (single day)
+      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-07', '2025-01-07', 8);
+      expect(result).toBe(8); // 1 weekday * 8 hours
+    });
+
+    it('should calculate hours for weekdays only (Mon-Fri)', () => {
+      // Monday to Friday (5 weekdays, no weekends)
+      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-07', '2025-01-11', 8);
+      expect(result).toBe(40); // 5 weekdays * 8 hours
+    });
+
+    it('should exclude weekends from calculation (Mon-Sun)', () => {
+      // Monday to Sunday (5 weekdays + 2 weekend days)
+      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-07', '2025-01-13', 8);
+      expect(result).toBe(40); // 5 weekdays * 8 hours (weekends excluded)
+    });
+
+    it('should handle partial day requests', () => {
+      // Monday to Friday with 4 hours per day
+      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-07', '2025-01-11', 4);
+      expect(result).toBe(20); // 5 weekdays * 4 hours
+    });
+
+    it('should handle 2-hour partial days', () => {
+      // Monday to Wednesday with 2 hours per day
+      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-07', '2025-01-09', 2);
+      expect(result).toBe(6); // 3 weekdays * 2 hours
+    });
+
+    it('should return 0 hours for weekend-only selection', () => {
+      // Saturday to Sunday (weekend only)
+      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-05', '2025-01-06', 8);
+      expect(result).toBe(0); // 0 weekdays * 8 hours
     });
   });
 
@@ -146,9 +184,9 @@ describe('PTOCalendarUtils', () => {
 
   describe('calculateRemainingPTO', () => {
     const entries: PTOEntry[] = [
-      { date: '2025-01-15', hours: 8 },
-      { date: '2025-02-10', hours: 4 },
-      { date: '2025-03-05', hours: 2 }
+      { startDate: '2025-01-15', endDate: '2025-01-15', hoursPerDay: 8, totalHours: 8 },
+      { startDate: '2025-02-10', endDate: '2025-02-10', hoursPerDay: 4, totalHours: 4 },
+      { startDate: '2025-03-05', endDate: '2025-03-05', hoursPerDay: 2, totalHours: 2 }
     ];
 
     it('should calculate remaining PTO correctly', () => {
@@ -170,8 +208,8 @@ describe('PTOCalendarUtils', () => {
     };
 
     const entries: PTOEntry[] = [
-      { date: '2025-01-15', hours: 8, name: 'Vacation' },
-      { date: '2025-02-10', hours: 4, name: 'Personal' }
+      { startDate: '2025-01-15', endDate: '2025-01-15', hoursPerDay: 8, totalHours: 8, name: 'Vacation' },
+      { startDate: '2025-02-10', endDate: '2025-02-10', hoursPerDay: 4, totalHours: 4, name: 'Personal' }
     ];
 
     it('should calculate comprehensive PTO summary', () => {

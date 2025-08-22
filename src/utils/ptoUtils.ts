@@ -3,6 +3,8 @@
  * Mathematical precision functions for PTO calculation and validation
  */
 
+import { isWeekend } from 'date-fns';
+
 export interface PTOEntry {
   id?: string;         // Unique identifier for the entry
   startDate: string;   // ISO date format (YYYY-MM-DD)
@@ -128,7 +130,7 @@ export class PTOCalendarUtils {
    * @param startDate Start date in ISO format
    * @param endDate End date in ISO format  
    * @param hoursPerDay Hours per day (2, 4, or 8)
-   * @returns Total hours for the PTO entry
+   * @returns Total hours for the PTO entry (excluding weekends)
    */
   static calculateTotalPTOHours(
     startDate: string,
@@ -137,8 +139,19 @@ export class PTOCalendarUtils {
   ): number {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const days = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-    return days * hoursPerDay;
+    
+    // Count only weekdays between start and end dates (inclusive)
+    let workDays = 0;
+    const current = new Date(start);
+    
+    while (current <= end) {
+      if (!isWeekend(current)) {
+        workDays++;
+      }
+      current.setDate(current.getDate() + 1);
+    }
+    
+    return workDays * hoursPerDay;
   }
 
   /**

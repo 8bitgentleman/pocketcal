@@ -9,6 +9,7 @@ import {
 	isSameDay,
 	differenceInDays,
 	addDays,
+	isWeekend,
 } from "date-fns";
 import LZString from "lz-string";
 import { PTOEntry, PTOConfig, PTOCalendarUtils } from "./utils/ptoUtils";
@@ -94,6 +95,7 @@ interface AppState {
 		remainingDays: number;
 		accrualRate: number;
 	} | null;
+	cleanupWeekendPTOEntries: () => void;
 	// Helper methods
 	getSelectedGroupPTOConfig: () => PTOConfig | null;
 	getSelectedGroupPTOEntries: () => PTOEntry[];
@@ -506,10 +508,19 @@ export const useStore = create<AppState>((set, get) => ({
 								...(group.ptoEntries || []).filter(e => !(e.startDate === entry.startDate && e.endDate === entry.endDate)),
 								{ ...entry, id: `${entry.startDate}-${entry.endDate}-${Date.now()}` }
 							],
-							// Also add as regular event range for visual consistency
+							// Also add as regular event ranges for visual consistency (weekdays only)
 							ranges: [
 								...group.ranges.filter(r => !(r.start === entry.startDate && r.end === entry.endDate)),
-								{ start: entry.startDate, end: entry.endDate }
+								// Create individual ranges for each weekday in the PTO entry
+								...eachDayOfInterval({ 
+									start: parseISO(entry.startDate), 
+									end: parseISO(entry.endDate) 
+								})
+								.filter(date => !isWeekend(date))
+								.map(date => ({
+									start: formatISO(date, { representation: "date" }),
+									end: formatISO(date, { representation: "date" })
+								}))
 							]
 						}
 						: group
@@ -537,15 +548,30 @@ export const useStore = create<AppState>((set, get) => ({
 							ptoEntries: (group.ptoEntries || []).map((entry) =>
 								entry.id === entryId ? updatedEntry : entry
 							),
-							// Update corresponding calendar ranges
+							// Update corresponding calendar ranges (weekdays only)
 							ranges: [
-								// Remove old range
-								...group.ranges.filter(r => !(
-									r.start === existingEntry.startDate && 
-									r.end === existingEntry.endDate
-								)),
-								// Add new range
-								{ start: updatedEntry.startDate, end: updatedEntry.endDate }
+								// Remove old ranges for all days in old entry
+								...group.ranges.filter(r => {
+									const oldDays = eachDayOfInterval({ 
+										start: parseISO(existingEntry.startDate), 
+										end: parseISO(existingEntry.endDate) 
+									}).filter(date => !isWeekend(date));
+									
+									return !oldDays.some(date => {
+										const dayStr = formatISO(date, { representation: "date" });
+										return r.start === dayStr && r.end === dayStr;
+									});
+								}),
+								// Add new ranges for weekdays only
+								...eachDayOfInterval({ 
+									start: parseISO(updatedEntry.startDate), 
+									end: parseISO(updatedEntry.endDate) 
+								})
+								.filter(date => !isWeekend(date))
+								.map(date => ({
+									start: formatISO(date, { representation: "date" }),
+									end: formatISO(date, { representation: "date" })
+								}))
 							]
 						}
 						: group
@@ -566,9 +592,19 @@ export const useStore = create<AppState>((set, get) => ({
 							...group,
 							// Remove PTO entry
 							ptoEntries: (group.ptoEntries || []).filter((entry) => entry.id !== entryId),
-							// Also remove corresponding regular event range
+							// Also remove corresponding regular event ranges (all weekdays in the PTO entry)
 							ranges: ptoEntry 
-								? group.ranges.filter(r => !(r.start === ptoEntry.startDate && r.end === ptoEntry.endDate))
+								? group.ranges.filter(r => {
+									const ptoWeekdays = eachDayOfInterval({ 
+										start: parseISO(ptoEntry.startDate), 
+										end: parseISO(ptoEntry.endDate) 
+									}).filter(date => !isWeekend(date));
+									
+									return !ptoWeekdays.some(date => {
+										const dayStr = formatISO(date, { representation: "date" });
+										return r.start === dayStr && r.end === dayStr;
+									});
+								})
 								: group.ranges
 						}
 						: group
@@ -652,6 +688,58 @@ export const useStore = create<AppState>((set, get) => ({
 		const state = get();
 		const group = state.eventGroups.find(g => g.id === groupId);
 		return group?.ptoConfig?.isEnabled ?? false;
+	},
+
+	cleanupWeekendPTOEntries: () => {
+		set((state) => {
+			let hasChanges = false;
+			const updatedGroups = state.eventGroups.map((group) => {
+				if (!group.ptoConfig?.isEnabled || !group.ptoEntries) {
+					return group;
+				}
+
+				// Filter out PTO entries that fall on weekends
+				const validPTOEntries = group.ptoEntries.filter((entry) => {
+					const startDate = parseISO(entry.startDate);
+					const endDate = parseISO(entry.endDate);
+					
+					// Check if any day in the entry range is a weekend
+					const dates = eachDayOfInterval({ start: startDate, end: endDate });
+					const hasWeekendDays = dates.some(date => isWeekend(date));
+					
+					if (hasWeekendDays) {
+						console.log(`Removing PTO entry with weekend days: ${entry.startDate} - ${entry.endDate}`);
+						hasChanges = true;
+						return false; // Remove this entry
+					}
+					return true; // Keep this entry
+				});
+
+				// Also remove corresponding calendar ranges for deleted PTO entries
+				const validRanges = group.ranges.filter((range) => {
+					// Keep the range if there's a corresponding valid PTO entry
+					return validPTOEntries.some(entry => 
+						entry.startDate === range.start && entry.endDate === range.end
+					) || 
+					// Or if this range doesn't correspond to any PTO entry (regular calendar entry)
+					!(group.ptoEntries || []).some(entry => 
+						entry.startDate === range.start && entry.endDate === range.end
+					);
+				});
+
+				return hasChanges ? {
+					...group,
+					ptoEntries: validPTOEntries,
+					ranges: validRanges
+				} : group;
+			});
+
+			if (hasChanges) {
+				console.log('Cleaned up weekend PTO entries');
+				return { eventGroups: updatedGroups };
+			}
+			return state;
+		});
 	},
 
 	// Display helpers that merge holidays with eventGroups

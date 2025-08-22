@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import XIcon from "./icons/XIcon";
 import { useStore } from "../store";
 import { PTOEntry, PTOCalendarUtils } from "../utils/ptoUtils";
-import { format, parseISO, addDays } from "date-fns";
+import { format, parseISO, addDays, isWeekend, eachDayOfInterval } from "date-fns";
 import { getHolidayFromISODate } from "../constants/holidays";
 import "./Modal.css";
 
@@ -42,24 +42,26 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, ini
 			setDescription(existingEntry.name ?? "");
 			setIsMultiDay(existingEntry.startDate !== existingEntry.endDate);
 			setEndDate(existingEntry.endDate);
-			// Calculate duration
-			const start = parseISO(existingEntry.startDate);
-			const end = parseISO(existingEntry.endDate);
-			const dayDiff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-			setDuration(dayDiff);
+			// Calculate duration (weekdays only)
+			const weekdayCount = countWeekdays(existingEntry.startDate, existingEntry.endDate);
+			setDuration(weekdayCount);
 		} else {
 			setSelectedHours(8);
 			setDescription("");
-			// If initialEndDate prop is provided, this is a multi-day selection from drag
-			const isMultiDayFromDrag = initialEndDate && initialEndDate !== selectedDate;
-			setIsMultiDay(isMultiDayFromDrag);
-			setEndDate(initialEndDate || selectedDate || "");
-			if (isMultiDayFromDrag && initialEndDate) {
-				const start = parseISO(selectedDate);
-				const end = parseISO(initialEndDate);
-				const dayDiff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-				setDuration(dayDiff);
+			
+			// Determine if this is multi-day by comparing actual dates
+			const finalEndDate = initialEndDate || selectedDate || "";
+			const isActuallyMultiDay = selectedDate !== finalEndDate;
+			
+			setIsMultiDay(isActuallyMultiDay);
+			setEndDate(finalEndDate);
+			
+			if (isActuallyMultiDay) {
+				// Calculate weekdays for multi-day selection
+				const weekdayCount = countWeekdays(selectedDate, finalEndDate);
+				setDuration(weekdayCount);
 			} else {
+				// Single day selection
 				setDuration(1);
 			}
 		}
@@ -74,17 +76,36 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, ini
 	const parsedDate = parseISO(selectedDate);
 	const formattedDate = format(parsedDate, "EEEE, MMMM d, yyyy");
 
-	// Calculate end date from duration
-	const calculateEndDate = (startDate: string, days: number): string => {
+	// Helper function to count weekdays between two dates
+	const countWeekdays = (startDate: string, endDate: string): number => {
 		const start = parseISO(startDate);
-		const end = addDays(start, days - 1);
-		return format(end, "yyyy-MM-dd");
+		const end = parseISO(endDate);
+		const dates = eachDayOfInterval({ start, end });
+		return dates.filter(date => !isWeekend(date)).length;
 	};
 
-	// Handle duration change
-	const handleDurationChange = (days: number) => {
-		setDuration(days);
-		setEndDate(calculateEndDate(selectedDate, days));
+	// Calculate end date from weekday count
+	const calculateEndDate = (startDate: string, weekdayCount: number): string => {
+		let current = parseISO(startDate);
+		let weekdaysFound = 0;
+		
+		// Keep adding days until we find the required number of weekdays
+		while (weekdaysFound < weekdayCount) {
+			if (!isWeekend(current)) {
+				weekdaysFound++;
+			}
+			if (weekdaysFound < weekdayCount) {
+				current = addDays(current, 1);
+			}
+		}
+		
+		return format(current, "yyyy-MM-dd");
+	};
+
+	// Handle duration change (days = weekdays)
+	const handleDurationChange = (weekdays: number) => {
+		setDuration(weekdays);
+		setEndDate(calculateEndDate(selectedDate, weekdays));
 	};
 
 	const handleSubmit = () => {

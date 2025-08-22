@@ -281,7 +281,7 @@ function Sidebar({
 					/>
 				</div>
 				<div className="setting-item">
-					<label htmlFor="include-weekends">Include Weekends:</label>
+					<label htmlFor="include-weekends">Show Weekends:</label>
 					<input
 						type="checkbox"
 						id="include-weekends"
@@ -305,7 +305,7 @@ function Sidebar({
 						<h4>🏝️ PTO Settings - {getAllDisplayGroups().find(g => g.id === selectedGroupId)?.name}</h4>
 						<p className="sidebar-help-text">Configure vacation/PTO policy for this person/team.</p>
 						<div className="setting-item">
-							<label htmlFor="pto-enabled">Enable PTO:</label>
+							<label htmlFor="pto-enabled">Enable PTO Calculation:</label>
 							<input
 								type="checkbox"
 								id="pto-enabled"
