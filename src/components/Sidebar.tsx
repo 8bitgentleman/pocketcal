@@ -10,6 +10,7 @@ import SettingsIcon from "./icons/SettingsIcon";
 import HelpIcon from "./icons/HelpIcon";
 import CopyIcon from "./icons/CopyIcon";
 import PTOSummaryDashboard from "./PTOSummaryDashboard";
+import DarkModeToggle from "./DarkModeToggle";
 
 import "./Sidebar.css";
 
@@ -145,10 +146,13 @@ function Sidebar({
 
 	return (
 		<div className="sidebar">
-			<h1 className="logo">
-				<span className="logo-cal">Unispace</span> PTO Calculator{" "}
-				{isProUser && <span className="pro-badge">Pro</span>}
-			</h1>
+			<div className="sidebar-header">
+				<h1 className="logo">
+					<span className="logo-cal">Unispace</span> PTO Calculator{" "}
+					{isProUser && <span className="pro-badge">Pro</span>}
+				</h1>
+				<DarkModeToggle />
+			</div>
 
 			<h3>
 				<CalIcon height={20} />

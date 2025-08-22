@@ -1,20 +1,28 @@
 import React from "react";
 import { useStore } from "../store";
+import { PTOCalendarUtils } from "../utils/ptoUtils";
 import "./PTOSummaryDashboard.css";
 
 const PTOSummaryDashboard: React.FC = () => {
-	const { selectedGroupId, getPTOSummary, getSelectedGroupPTOConfig, getSelectedGroupPTOEntries } = useStore();
+	// Subscribe directly to the parts of state we need
+	const selectedGroupId = useStore(state => state.selectedGroupId);
+	const selectedGroup = useStore(state => 
+		state.selectedGroupId ? state.eventGroups.find(g => g.id === state.selectedGroupId) : null
+	);
 	
-	// Subscribe to PTO entries to trigger re-renders when they change
-	const ptoEntries = getSelectedGroupPTOEntries();
-
-	const ptoConfig = getSelectedGroupPTOConfig();
+	// Calculate summary directly from the selected group data
+	const summary = React.useMemo(() => {
+		if (!selectedGroup?.ptoConfig?.isEnabled) return null;
+		
+		return PTOCalendarUtils.calculatePTOSummary(
+			selectedGroup.ptoEntries || [],
+			selectedGroup.ptoConfig
+		);
+	}, [selectedGroup?.ptoEntries, selectedGroup?.ptoConfig, selectedGroupId]);
 	
-	if (!selectedGroupId || !ptoConfig?.isEnabled) {
+	if (!selectedGroupId || !selectedGroup?.ptoConfig?.isEnabled) {
 		return null;
 	}
-
-	const summary = getPTOSummary(selectedGroupId);
 	
 	if (!summary) {
 		return null;
@@ -75,18 +83,18 @@ const PTOSummaryDashboard: React.FC = () => {
 			<div className="pto-config-details">
 				<div className="config-item">
 					<span className="config-label">Years of Service:</span>
-					<span className="config-value">{ptoConfig.yearsOfService} years</span>
+					<span className="config-value">{selectedGroup.ptoConfig.yearsOfService} years</span>
 				</div>
 				<div className="config-item">
 					<span className="config-label">Annual Allowance:</span>
 					<span className="config-value">
-						{summary.totalHours - ptoConfig.rolloverHours}h ({(summary.totalHours - ptoConfig.rolloverHours) / 8} days)
+						{summary.totalHours - selectedGroup.ptoConfig.rolloverHours}h ({(summary.totalHours - selectedGroup.ptoConfig.rolloverHours) / 8} days)
 					</span>
 				</div>
-				{ptoConfig.rolloverHours > 0 && (
+				{selectedGroup.ptoConfig.rolloverHours > 0 && (
 					<div className="config-item">
 						<span className="config-label">Rollover Hours:</span>
-						<span className="config-value">{ptoConfig.rolloverHours}h ({ptoConfig.rolloverHours / 8} days)</span>
+						<span className="config-value">{selectedGroup.ptoConfig.rolloverHours}h ({selectedGroup.ptoConfig.rolloverHours / 8} days)</span>
 					</div>
 				)}
 				<div className="config-item">

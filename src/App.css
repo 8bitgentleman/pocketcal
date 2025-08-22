@@ -1,3 +1,90 @@
+:root {
+	/* Light mode colors */
+	--bg-color: #f9f9f9;
+	--text-color: #333;
+	--border-color: #ccc;
+	--border-light-color: #eee;
+	--card-bg-color: #fff;
+	--hover-bg-color: #f0f0f0;
+	--input-bg-color: #fff;
+	--button-bg-color: #f0f0f0;
+	--button-hover-bg-color: #e0e0e0;
+	--button-active-bg-color: #d0d0d0;
+	--help-text-color: #666;
+	--sidebar-toggle-bg: #f9f9f9;
+	--warning-bg: #fff3cd;
+	--warning-border: #ffeaa7;
+	--warning-text: #856404;
+}
+
+:root.dark {
+	/* Dark mode colors */
+	--bg-color: #1a1a1a;
+	--text-color: #e0e0e0;
+	--border-color: #444;
+	--border-light-color: #333;
+	--card-bg-color: #2a2a2a;
+	--hover-bg-color: #333;
+	--input-bg-color: #2a2a2a;
+	--button-bg-color: #333;
+	--button-hover-bg-color: #404040;
+	--button-active-bg-color: #555;
+	--help-text-color: #aaa;
+	--sidebar-toggle-bg: #2a2a2a;
+	--warning-bg: #3d3d00;
+	--warning-border: #666600;
+	--warning-text: #ffdd00;
+}
+
+/* Dark mode specific adjustments */
+:root.dark input[type="month"]::-webkit-calendar-picker-indicator {
+	filter: brightness(0) invert(1);
+}
+
+/* Scrollbar styling for dark mode */
+:root {
+	--scrollbar-bg: #f1f1f1;
+	--scrollbar-thumb: #c1c1c1;
+	--scrollbar-thumb-hover: #a8a8a8;
+}
+
+:root.dark {
+	--scrollbar-bg: #2a2a2a;
+	--scrollbar-thumb: #555;
+	--scrollbar-thumb-hover: #777;
+}
+
+/* Webkit scrollbars */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--scrollbar-bg);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--scrollbar-thumb);
+	border-radius: 4px;
+	transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-corner {
+	background: var(--scrollbar-bg);
+}
+
+/* Firefox scrollbars */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+}
+
 #root {
 	max-width: none;
 	margin: 0;
@@ -7,6 +94,8 @@
 	height: 100vh;
 	position: relative;
 	isolation: isolate;
+	background-color: var(--bg-color);
+	color: var(--text-color);
 }
 
 .app-container {
@@ -15,7 +104,7 @@
 	height: 100vh;
 	width: 100%;
 	position: relative;
-	background-color: #f9f9f9;
+	background-color: var(--bg-color);
 }
 
 /* Responsive layout */
@@ -37,8 +126,8 @@
 	z-index: 200;
 	padding: 8px 8px 4px;
 	border-radius: 50%;
-	background: #f9f9f9;
-	border: 1px solid #ccc;
+	background: var(--sidebar-toggle-bg);
+	border: 1px solid var(--border-color);
 	cursor: pointer;
 	display: none;
 	transition: transform 0.3s ease;

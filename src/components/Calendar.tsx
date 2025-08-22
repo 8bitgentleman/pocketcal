@@ -24,6 +24,7 @@ import {
 	addDays,
 } from "date-fns";
 import { getHolidayFromISODate } from "../constants/holidays";
+import { PTOCalendarUtils } from "../utils/ptoUtils";
 import "./Calendar.css";
 
 const Calendar: React.FC = () => {
@@ -38,6 +39,8 @@ const Calendar: React.FC = () => {
 		// PTO state
 		getSelectedGroupPTOEntries,
 		isPTOEnabledForGroup,
+		deletePTOEntry,
+		addPTOEntry,
 		// Display helpers
 		getAllDisplayGroups,
 		getHolidaysGroup,
@@ -79,6 +82,50 @@ const Calendar: React.FC = () => {
 
 	const handleContainerBlur = () => {
 		setIsContainerFocused(false);
+	};
+
+	const handlePTODayDeletion = (date: Date) => {
+		if (!selectedGroupId) return;
+
+		const ptoEntries = getSelectedGroupPTOEntries();
+		const dateStr = formatISO(date, { representation: "date" });
+		const ptoEntry = ptoEntries.find(entry => 
+			dateStr >= entry.startDate && dateStr <= entry.endDate
+		);
+
+		if (!ptoEntry || !ptoEntry.id) return;
+
+		// Delete the original PTO entry
+		deletePTOEntry(selectedGroupId, ptoEntry.id);
+
+		// If it's a multi-day entry, create new entries for the remaining days
+		if (ptoEntry.startDate !== ptoEntry.endDate) {
+			const entryStart = parseISO(ptoEntry.startDate);
+			const entryEnd = parseISO(ptoEntry.endDate);
+			const clickedDate = parseISO(dateStr);
+
+			// Create entry for days before the clicked date
+			if (isBefore(entryStart, clickedDate)) {
+				const beforeEntry = PTOCalendarUtils.createMultiDayEntry(
+					formatISO(entryStart, { representation: "date" }),
+					formatISO(subDays(clickedDate, 1), { representation: "date" }),
+					ptoEntry.hoursPerDay,
+					ptoEntry.name
+				);
+				addPTOEntry(selectedGroupId, beforeEntry);
+			}
+
+			// Create entry for days after the clicked date
+			if (isAfter(entryEnd, clickedDate)) {
+				const afterEntry = PTOCalendarUtils.createMultiDayEntry(
+					formatISO(addDays(clickedDate, 1), { representation: "date" }),
+					formatISO(entryEnd, { representation: "date" }),
+					ptoEntry.hoursPerDay,
+					ptoEntry.name
+				);
+				addPTOEntry(selectedGroupId, afterEntry);
+			}
+		}
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -155,6 +202,11 @@ const Calendar: React.FC = () => {
 		// Check if the date is already in a range for this group
 		const existingRange = findRangeForDate(date, selectedGroup);
 		if (existingRange) {
+			// If this is a PTO-enabled group, handle PTO entry deletion/splitting
+			if (isPTOEnabledForGroup(selectedGroupId)) {
+				handlePTODayDeletion(date);
+			}
+			
 			deleteDateRange(selectedGroupId, existingRange);
 
 			// Create two new ranges if needed - one before and one after the clicked date
@@ -215,6 +267,11 @@ const Calendar: React.FC = () => {
 		// Check if the date is already in a range for this group
 		const existingRange = findRangeForDate(date, selectedGroup);
 		if (existingRange) {
+			// If this is a PTO-enabled group, handle PTO entry deletion/splitting
+			if (isPTOEnabledForGroup(selectedGroupId)) {
+				handlePTODayDeletion(date);
+			}
+			
 			deleteDateRange(selectedGroupId, existingRange);
 
 			// Create two new ranges if needed - one before and one after the clicked date

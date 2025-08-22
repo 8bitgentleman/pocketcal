@@ -21,6 +21,7 @@ function App() {
 	const validateLicenseKey = useStore((state) => state.validateLicenseKey);
 	const licenseKey = useStore((state) => state.licenseKey);
 	const getSelectedGroupPTOConfig = useStore((state) => state.getSelectedGroupPTOConfig);
+	const isDarkMode = useStore((state) => state.isDarkMode);
 
 	// Select individual state pieces needed for the URL
 	const startDate = useStore((state) => state.startDate);
@@ -46,6 +47,16 @@ function App() {
 			}
 		}
 	}, [getAppStateFromUrl, validateLicenseKey, licenseKey]);
+
+	// Apply dark mode class to document root
+	useEffect(() => {
+		const root = document.documentElement;
+		if (isDarkMode) {
+			root.classList.add("dark");
+		} else {
+			root.classList.remove("dark");
+		}
+	}, [isDarkMode]);
 
 	// Handle PTO date selection from Calendar
 	const handlePTODateSelection = (dateStr: string, endDateStr?: string) => {

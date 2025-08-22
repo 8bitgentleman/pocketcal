@@ -26,7 +26,7 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, ini
 	const [selectedHours, setSelectedHours] = useState<number>(8);
 	const [description, setDescription] = useState<string>("");
 	const [isMultiDay, setIsMultiDay] = useState<boolean>(false);
-	const [endDate, setEndDate] = useState<string>(selectedDate);
+	const [endDate, setEndDate] = useState<string>(selectedDate || "");
 	const [duration, setDuration] = useState<number>(1);
 	
 	// Find existing PTO entry for this date
@@ -39,7 +39,7 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, ini
 	React.useEffect(() => {
 		if (existingEntry) {
 			setSelectedHours(existingEntry.hoursPerDay);
-			setDescription(existingEntry.name || "");
+			setDescription(existingEntry.name ?? "");
 			setIsMultiDay(existingEntry.startDate !== existingEntry.endDate);
 			setEndDate(existingEntry.endDate);
 			// Calculate duration
@@ -53,8 +53,8 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, ini
 			// If initialEndDate prop is provided, this is a multi-day selection from drag
 			const isMultiDayFromDrag = initialEndDate && initialEndDate !== selectedDate;
 			setIsMultiDay(isMultiDayFromDrag);
-			setEndDate(initialEndDate || selectedDate);
-			if (isMultiDayFromDrag) {
+			setEndDate(initialEndDate || selectedDate || "");
+			if (isMultiDayFromDrag && initialEndDate) {
 				const start = parseISO(selectedDate);
 				const end = parseISO(initialEndDate);
 				const dayDiff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
@@ -117,9 +117,13 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, ini
 	};
 
 	const handleDelete = () => {
+		console.log('handleDelete called:', { existingEntry, selectedGroupId });
 		if (existingEntry && existingEntry.id) {
+			console.log('Calling deletePTOEntry with:', selectedGroupId, existingEntry.id);
 			deletePTOEntry(selectedGroupId, existingEntry.id);
 			onClose();
+		} else {
+			console.log('No existing entry or ID to delete');
 		}
 	};
 

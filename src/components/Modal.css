@@ -12,13 +12,14 @@
 }
 
 .modal-content {
-	background: white;
+	background: var(--card-bg-color);
 	border-radius: 8px;
 	padding: 24px;
 	max-width: 500px;
 	max-height: 80vh;
 	overflow-y: auto;
 	position: relative;
+	color: var(--text-color);
 }
 
 .modal-content a {
@@ -77,11 +78,13 @@ button.btn[disabled] {
 
 input[type="text"] {
 	padding: 8px;
-	border: 1px solid #ccc;
+	border: 1px solid var(--border-color);
 	border-radius: 4px;
 	margin-top: 8px;
 	width: 100%;
 	box-sizing: border-box;
+	background-color: var(--input-bg-color);
+	color: var(--text-color);
 }
 input[type="text"]:focus {
 	border-color: #8a35de;
@@ -114,13 +117,14 @@ p.license-active {
 }
 
 pre.license-key-display {
-	background-color: #f5f5f5;
-	border: 1px solid #ccc;
+	background-color: var(--hover-bg-color);
+	border: 1px solid var(--border-color);
 	border-radius: 4px;
 	padding: 8px;
 	overflow-x: auto;
 	font-family: monospace;
 	margin-top: 8px;
+	color: var(--text-color);
 }
 
 /* PTO Modal Styles */
@@ -130,17 +134,17 @@ pre.license-key-display {
 
 .pto-date-info h3 {
 	margin: 0 0 16px 0;
-	color: #333;
+	color: var(--text-color);
 	font-size: 18px;
 }
 
 .holiday-warning {
-	background-color: #fff3cd;
-	border: 1px solid #ffeaa7;
+	background-color: var(--warning-bg);
+	border: 1px solid var(--warning-border);
 	border-radius: 4px;
 	padding: 12px;
 	margin-bottom: 16px;
-	color: #856404;
+	color: var(--warning-text);
 }
 
 .holiday-warning p {
@@ -156,7 +160,7 @@ pre.license-key-display {
 	display: block;
 	margin-bottom: 8px;
 	font-weight: 600;
-	color: #333;
+	color: var(--text-color);
 }
 
 .hours-buttons {
@@ -167,19 +171,20 @@ pre.license-key-display {
 
 .hour-button {
 	padding: 12px 16px;
-	border: 2px solid #ddd;
+	border: 2px solid var(--border-color);
 	border-radius: 6px;
-	background: white;
+	background: var(--card-bg-color);
 	cursor: pointer;
 	transition: all 0.2s ease;
 	font-size: 14px;
 	flex: 1;
 	min-width: 120px;
+	color: var(--text-color);
 }
 
 .hour-button:hover {
 	border-color: #8a35de;
-	background-color: #f8f4ff;
+	background-color: var(--hover-bg-color);
 }
 
 .hour-button.selected {
@@ -196,11 +201,11 @@ pre.license-key-display {
 	display: block;
 	margin-bottom: 8px;
 	font-weight: 600;
-	color: #333;
+	color: var(--text-color);
 }
 
 .pto-balance-info {
-	background-color: #f8f9fa;
+	background-color: var(--hover-bg-color);
 	border-radius: 6px;
 	padding: 16px;
 	margin-bottom: 24px;
@@ -208,7 +213,7 @@ pre.license-key-display {
 
 .pto-balance-info h4 {
 	margin: 0 0 12px 0;
-	color: #333;
+	color: var(--text-color);
 	font-size: 16px;
 }
 
@@ -225,12 +230,12 @@ pre.license-key-display {
 
 .balance-label {
 	font-weight: 500;
-	color: #666;
+	color: var(--help-text-color);
 }
 
 .balance-value {
 	font-weight: 600;
-	color: #333;
+	color: var(--text-color);
 }
 
 .pto-modal-actions {

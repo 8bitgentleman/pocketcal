@@ -6,7 +6,6 @@
       "Bash(npm run test:run:*)",
       "Bash(node:*)",
       "Bash(npm run build:*)",
-      "Bash(npm run dev:*)",
       "Bash(npm test)",
       "Bash(npx tsc:*)",
       "Bash(npx vite:*)"

@@ -177,6 +177,10 @@ export const useStore = create<AppState>((set, get) => ({
 	setIncludeWeekends: (include) => set({ includeWeekends: include }),
 	setShowToday: (show) => set({ showToday: show }),
 	setShowHelpModal: (show) => set({ showHelpModal: show }),
+	setIsDarkMode: (isDark) => {
+		localStorage.setItem("pocketcal_dark_mode", isDark.toString());
+		set({ isDarkMode: isDark });
+	},
 
 	setLicenseKey: (key) => {
 		if (key) {
@@ -515,18 +519,39 @@ export const useStore = create<AppState>((set, get) => ({
 	},
 
 	updatePTOEntry: (groupId, entryId, updates) =>
-		set((state) => ({
-			eventGroups: state.eventGroups.map((group) =>
-				group.id === groupId
-					? {
-						...group,
-						ptoEntries: (group.ptoEntries || []).map((entry) =>
-							entry.id === entryId ? { ...entry, ...updates } : entry
-						),
-					}
-					: group
-			),
-		})),
+		set((state) => {
+			// Find the existing PTO entry to get old dates for range removal
+			const group = state.eventGroups.find(g => g.id === groupId);
+			const existingEntry = (group?.ptoEntries || []).find(entry => entry.id === entryId);
+			
+			if (!existingEntry) return state;
+			
+			const updatedEntry = { ...existingEntry, ...updates };
+			
+			return {
+				eventGroups: state.eventGroups.map((group) =>
+					group.id === groupId
+						? {
+							...group,
+							// Update PTO entry
+							ptoEntries: (group.ptoEntries || []).map((entry) =>
+								entry.id === entryId ? updatedEntry : entry
+							),
+							// Update corresponding calendar ranges
+							ranges: [
+								// Remove old range
+								...group.ranges.filter(r => !(
+									r.start === existingEntry.startDate && 
+									r.end === existingEntry.endDate
+								)),
+								// Add new range
+								{ start: updatedEntry.startDate, end: updatedEntry.endDate }
+							]
+						}
+						: group
+				),
+			};
+		}),
 
 	deletePTOEntry: (groupId, entryId) =>
 		set((state) => {

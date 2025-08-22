@@ -4,12 +4,19 @@
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
-	background-color: #f9f9f9;
-	color: #333;
+	background-color: var(--bg-color);
+	color: var(--text-color);
 	overflow-y: auto;
 	overflow-x: hidden;
 	transition: max-height 0.3s ease;
 	box-sizing: border-box;
+}
+
+.sidebar-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
 }
 
 .sidebar h1 {
@@ -17,6 +24,7 @@
 	font-size: 1.5em;
 	margin: 0;
 	padding: 0;
+	flex: 1;
 }
 
 .sidebar h3 {
@@ -27,7 +35,7 @@
 
 .sidebar h1,
 .sidebar h3 {
-	border-bottom: 1px solid #eee;
+	border-bottom: 1px solid var(--border-light-color);
 	padding-bottom: 5px;
 	font-weight: 500;
 }
@@ -74,9 +82,10 @@ h2 {
 .setting-item select {
 	max-width: 50%;
 	padding: 4px;
-	border: 1px solid #ddd;
+	border: 1px solid var(--border-color);
 	border-radius: 4px;
-	background-color: white;
+	background-color: var(--input-bg-color);
+	color: var(--text-color);
 }
 
 .setting-item input[type="number"] {
@@ -86,7 +95,7 @@ h2 {
 .setting-help {
 	display: block;
 	font-size: 12px;
-	color: #666;
+	color: var(--help-text-color);
 	margin-top: 4px;
 	font-style: italic;
 }
@@ -101,10 +110,10 @@ h2 {
 	display: flex;
 	align-items: center;
 	padding: 8px;
-	border: 1px solid #ddd;
+	border: 1px solid var(--border-color);
 	border-radius: 4px;
 	cursor: pointer;
-	background-color: #fff;
+	background-color: var(--card-bg-color);
 	gap: 8px;
 	min-height: 30px;
 }
@@ -130,10 +139,10 @@ h2 {
 }
 
 .event-group-item.selected {
-	background: linear-gradient(90deg, #ffffff, rgba(138, 53, 222, 0.05));
+	background: linear-gradient(90deg, var(--card-bg-color), rgba(138, 53, 222, 0.15));
 	background-size: 120% 120%;
 	animation: gradient-animation 2s ease infinite;
-	box-shadow: 0 0 0 2px rgba(138, 53, 222, 0.25);
+	box-shadow: 0 0 0 2px rgba(138, 53, 222, 0.4);
 }
 
 @keyframes gradient-animation {
@@ -149,7 +158,7 @@ h2 {
 }
 
 .event-group-item:hover {
-	background-color: #f0f0f0;
+	background-color: var(--hover-bg-color);
 }
 
 .color-indicator {
@@ -158,7 +167,7 @@ h2 {
 	height: 15px;
 	border-radius: 50%;
 	margin-right: 8px;
-	border: 1px solid #ccc;
+	border: 1px solid var(--border-color);
 	flex-shrink: 0;
 }
 
@@ -184,27 +193,27 @@ h2 {
 	width: 100%;
 	box-sizing: border-box;
 	background: transparent;
-	color: #333;
+	color: var(--text-color);
 	font-size: 0.85em;
 }
 
 .add-group-button:hover {
-	background-color: #f0f0f0;
+	background-color: var(--hover-bg-color);
 	border-color: transparent;
 	transition: background-color 0.3s ease;
 }
 
 .add-group-button:disabled {
-	background-color: #f0f0f0;
-	color: #ccc;
+	background-color: var(--hover-bg-color);
+	color: var(--help-text-color);
 	cursor: not-allowed;
 }
 
 input {
-	background-color: #fff;
-	border: 1px solid #ccc;
+	background-color: var(--input-bg-color);
+	border: 1px solid var(--border-color);
 	border-radius: 4px;
-	color: #000;
+	color: var(--text-color);
 	font-size: 1em;
 }
 
@@ -221,7 +230,7 @@ input.group-name-input {
 
 .sidebar-help-text {
 	font-size: 0.85em;
-	color: #666;
+	color: var(--help-text-color);
 	margin: 5px 0 15px 0;
 	line-height: 1.3;
 	font-style: italic;
@@ -272,8 +281,8 @@ input.group-name-input {
 .footer-button {
 	flex: 1;
 	padding: 8px 12px;
-	background-color: #f0f0f0;
-	border: 1px solid #ddd;
+	background-color: var(--button-bg-color);
+	border: 1px solid var(--border-color);
 	border-radius: 4px;
 	cursor: pointer;
 	font-size: 14px;
@@ -282,12 +291,35 @@ input.group-name-input {
 	justify-content: center;
 	gap: 4px;
 	transition: background-color 0.2s;
+	color: var(--text-color);
 }
 
 .footer-button:hover {
-	background-color: #e0e0e0;
+	background-color: var(--button-hover-bg-color);
 }
 
 .footer-button:active {
-	background-color: #d0d0d0;
+	background-color: var(--button-active-bg-color);
+}
+
+.dark-mode-toggle {
+	padding: 8px;
+	background-color: transparent;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.2s ease;
+	color: var(--text-color);
+	flex-shrink: 0;
+}
+
+.dark-mode-toggle:hover {
+	background-color: var(--hover-bg-color);
+}
+
+.dark-mode-toggle:active {
+	background-color: var(--button-active-bg-color);
 }
