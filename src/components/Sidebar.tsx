@@ -140,7 +140,7 @@ function Sidebar({
 		);
 
 		return isProUser
-			? [<React.Fragment key="help">{helpAndCopyButtons}</React.Fragment>, <React.Fragment key="pro">{proButton}</React.Fragment>]
+			? [<React.Fragment key="help">{helpAndCopyButtons}</React.Fragment>]
 			: [<React.Fragment key="help">{helpAndCopyButtons}</React.Fragment>];
 	};
 

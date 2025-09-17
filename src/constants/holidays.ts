@@ -33,7 +33,7 @@ export const HOLIDAYS_2025: Record<number, string> = {
   1128: "Day after Thanksgiving",
   1225: "Christmas",
   1226: "Unispace Gift Day",
-  1227: "Unispace Gift Day",
+  1229: "Unispace Gift Day",
   1230: "Unispace Gift Day",
   1231: "Unispace Gift Day"
 };
@@ -41,6 +41,17 @@ export const HOLIDAYS_2025: Record<number, string> = {
 export const HOLIDAYS_2026: Record<number, string> = {
   ...STANDARD_HOLIDAYS,
   // 2026 Unispace Gift Days (example)
+  101: "New Year's Day",
+  119: "MLK Jr. Day",
+  525: "Memorial Day",
+  619: "Juneteenth",
+  703: "Independence Day Eve",
+  704: "Independence Day", 
+  907: "Labor Day",
+  1012: "Indigenous People's Day",
+  1126: "Thanksgiving",
+  1127: "Day after Thanksgiving",
+  1225: "Christmas",
 };
 
 /**
