@@ -100,16 +100,40 @@ const Calendar: React.FC = () => {
 
 		const ptoEntries = getSelectedGroupPTOEntries();
 		const dateStr = formatISO(date, { representation: "date" });
+
+		console.log('[PTO Toggle] Clicked:', {
+			dateStr,
+			entriesFound: ptoEntries.length,
+			allEntries: ptoEntries.map(e => ({
+				id: e.id,
+				start: e.startDate,
+				end: e.endDate,
+				hours: e.hoursPerDay
+			}))
+		});
+
 		// Find entry that contains this date (handles both new single-day and old multi-day)
 		const ptoEntry = ptoEntries.find(entry =>
 			dateStr >= entry.startDate && dateStr <= entry.endDate
 		);
 
+		console.log('[PTO Toggle] Entry match:', {
+			found: !!ptoEntry,
+			entry: ptoEntry ? {
+				id: ptoEntry.id,
+				start: ptoEntry.startDate,
+				end: ptoEntry.endDate,
+				hours: ptoEntry.hoursPerDay
+			} : null
+		});
+
 		if (ptoEntry && ptoEntry.id) {
 			// Remove existing PTO for this day
+			console.log('[PTO Toggle] Calling deletePTOEntry with:', { groupId: selectedGroupId, entryId: ptoEntry.id });
 			deletePTOEntry(selectedGroupId, ptoEntry.id);
 		} else {
 			// Add 8h PTO for this day
+			console.log('[PTO Toggle] Adding new entry for:', dateStr);
 			const newEntry = PTOCalendarUtils.createSingleDayEntry(dateStr, 8);
 			addPTOEntry(selectedGroupId, newEntry);
 		}
