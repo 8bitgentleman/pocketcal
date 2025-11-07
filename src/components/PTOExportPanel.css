@@ -1,0 +1,130 @@
+.pto-export-panel {
+	margin-top: 20px;
+	padding: 15px;
+	background-color: var(--hover-bg-color);
+	border-radius: 8px;
+	border: 1px solid var(--border-light-color);
+}
+
+.pto-export-panel h4 {
+	margin: 0 0 12px 0;
+	color: var(--text-color);
+	font-size: 0.9em;
+	font-weight: 600;
+}
+
+.export-message {
+	padding: 8px 12px;
+	border-radius: 4px;
+	margin-bottom: 12px;
+	font-size: 0.85em;
+	font-weight: 500;
+}
+
+.export-message.success {
+	background-color: #d1fae5;
+	color: #065f46;
+	border: 1px solid #10b981;
+}
+
+.export-message.error {
+	background-color: #fee2e2;
+	color: #991b1b;
+	border: 1px solid #ef4444;
+}
+
+.export-options {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	gap: 8px;
+	margin-bottom: 16px;
+}
+
+.export-btn {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	padding: 10px 8px;
+	border: 1px solid var(--border-light-color);
+	border-radius: 6px;
+	background-color: var(--card-bg-color);
+	color: var(--text-color);
+	font-size: 0.8em;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.export-btn:hover:not(:disabled) {
+	background-color: var(--hover-bg-color);
+	border-color: #8a35de;
+	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.export-btn:active:not(:disabled) {
+	transform: translateY(0);
+}
+
+.export-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.export-icon {
+	font-size: 1.5em;
+}
+
+.export-label {
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.import-section {
+	padding-top: 12px;
+	border-top: 1px solid var(--border-light-color);
+}
+
+.import-section h4 {
+	margin: 0 0 10px 0;
+}
+
+.import-file-label {
+	display: block;
+	margin-bottom: 8px;
+}
+
+.import-file-input {
+	display: none;
+}
+
+.import-file-button {
+	display: inline-block;
+	padding: 8px 16px;
+	background-color: var(--card-bg-color);
+	color: var(--text-color);
+	border: 1px solid var(--border-light-color);
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.85em;
+	font-weight: 500;
+	transition: all 0.2s ease;
+}
+
+.import-file-button:hover {
+	background-color: var(--hover-bg-color);
+	border-color: #8a35de;
+}
+
+.import-help-text {
+	margin: 8px 0 0 0;
+	font-size: 0.75em;
+	color: var(--help-text-color);
+}
+
+/* Mobile responsive */
+@media (max-width: 530px) {
+	.export-options {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}

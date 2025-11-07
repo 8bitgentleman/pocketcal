@@ -85,6 +85,7 @@ interface AppState {
 	addPTOEntry: (groupId: string, entry: PTOEntry) => void;
 	updatePTOEntry: (groupId: string, entryId: string, updates: Partial<PTOEntry>) => void;
 	deletePTOEntry: (groupId: string, entryId: string) => void;
+	clearPTOEntries: (groupId: string) => void;
 	validatePTOEntry: (groupId: string, entry: PTOEntry) => { isValid: boolean; warning?: string };
 	getPTOSummary: (groupId: string) => {
 		totalHours: number;
@@ -584,7 +585,7 @@ export const useStore = create<AppState>((set, get) => ({
 			// Find the PTO entry to get its dates for removing the corresponding range
 			const group = state.eventGroups.find(g => g.id === groupId);
 			const ptoEntry = (group?.ptoEntries || []).find(entry => entry.id === entryId);
-			
+
 			return {
 				eventGroups: state.eventGroups.map((group) =>
 					group.id === groupId
@@ -593,13 +594,13 @@ export const useStore = create<AppState>((set, get) => ({
 							// Remove PTO entry
 							ptoEntries: (group.ptoEntries || []).filter((entry) => entry.id !== entryId),
 							// Also remove corresponding regular event ranges (all weekdays in the PTO entry)
-							ranges: ptoEntry 
+							ranges: ptoEntry
 								? group.ranges.filter(r => {
-									const ptoWeekdays = eachDayOfInterval({ 
-										start: parseISO(ptoEntry.startDate), 
-										end: parseISO(ptoEntry.endDate) 
+									const ptoWeekdays = eachDayOfInterval({
+										start: parseISO(ptoEntry.startDate),
+										end: parseISO(ptoEntry.endDate)
 									}).filter(date => !isWeekend(date));
-									
+
 									return !ptoWeekdays.some(date => {
 										const dayStr = formatISO(date, { representation: "date" });
 										return r.start === dayStr && r.end === dayStr;
@@ -611,6 +612,20 @@ export const useStore = create<AppState>((set, get) => ({
 				),
 			};
 		}),
+
+	clearPTOEntries: (groupId) =>
+		set((state) => ({
+			eventGroups: state.eventGroups.map((group) =>
+				group.id === groupId
+					? {
+						...group,
+						ptoEntries: [],
+						// Clear all PTO-related ranges by filtering out ranges that have PTO entries
+						ranges: []
+					}
+					: group
+			),
+		})),
 
 	validatePTOEntry: (groupId, entry) => {
 		const state = get();

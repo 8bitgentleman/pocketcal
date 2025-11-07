@@ -1,6 +1,7 @@
 import React from "react";
 import { useStore } from "../store";
 import { PTOCalendarUtils } from "../utils/ptoUtils";
+import PTOExportPanel from "./PTOExportPanel";
 import "./PTOSummaryDashboard.css";
 
 const PTOSummaryDashboard: React.FC = () => {
@@ -114,6 +115,9 @@ const PTOSummaryDashboard: React.FC = () => {
 					<span className="stat-label">Days Used</span>
 				</div>
 			</div>
+
+			{/* Export Panel */}
+			<PTOExportPanel />
 		</div>
 	);
 };

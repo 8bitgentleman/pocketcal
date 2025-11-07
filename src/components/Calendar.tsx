@@ -521,6 +521,25 @@ const Calendar: React.FC = () => {
 			className += " focused";
 		}
 
+		// Add PTO-specific visual classes
+		if (selectedGroupId && isPTOEnabledForGroup(selectedGroupId)) {
+			const dateStr = formatISO(date, { representation: "date" });
+			const ptoEntries = getSelectedGroupPTOEntries();
+			const ptoEntry = ptoEntries.find(entry =>
+				dateStr >= entry.startDate && dateStr <= entry.endDate
+			);
+
+			if (ptoEntry) {
+				if (ptoEntry.hoursPerDay === 8) {
+					className += " pto-full-day";
+				} else if (ptoEntry.hoursPerDay === 4) {
+					className += " pto-half-day";
+				} else if (ptoEntry.hoursPerDay === 2) {
+					className += " pto-quarter-day";
+				}
+			}
+		}
+
 		// Remove hard-coded holiday styling - holidays are now handled as a regular calendar
 
 		if (isDragging && dragStartDate && dragEndDate) {
@@ -623,6 +642,16 @@ const Calendar: React.FC = () => {
 								const isSelected = getAllDisplayGroups().some((group) =>
 									isDateInRange(date, group)
 								);
+
+								// Get PTO entry for this date if applicable
+								let ptoEntry = null;
+								if (selectedGroupId && isPTOEnabledForGroup(selectedGroupId)) {
+									const ptoEntries = getSelectedGroupPTOEntries();
+									ptoEntry = ptoEntries.find(entry =>
+										dateStr >= entry.startDate && dateStr <= entry.endDate
+									) || null;
+								}
+
 								return (
 									<div
 										key={dateStr}
@@ -644,6 +673,11 @@ const Calendar: React.FC = () => {
 										<span className="day-number" aria-hidden="true">
 											{getDate(date)}
 										</span>
+										{ptoEntry && (
+											<div className="pto-indicator" aria-hidden="true">
+												{ptoEntry.hoursPerDay}h
+											</div>
+										)}
 										<div className="range-indicators" aria-hidden="true">
 											{getRangeStyles(date).map((style, index) => (
 												<div
