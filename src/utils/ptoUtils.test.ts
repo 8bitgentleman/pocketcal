@@ -15,15 +15,15 @@ describe('PTOCalendarUtils', () => {
 
     it('should calculate accrued PTO correctly for mid-year (July 1st)', () => {
       const result = PTOCalendarUtils.calculateAccruedPTO(701, 0, 168);
-      // July 1st is day 181 of year (180 days elapsed)
-      const expected = Math.floor(180 * (168 / 365));
+      // July 1st is day 182 of year (181 days elapsed from Jan 1)
+      const expected = Math.floor(181 * (168 / 365));
       expect(result).toBe(expected);
     });
 
     it('should include rollover hours in calculation', () => {
       const rollover = 40;
       const result = PTOCalendarUtils.calculateAccruedPTO(701, rollover, 168);
-      const basePTO = Math.floor(180 * (168 / 365));
+      const basePTO = Math.floor(181 * (168 / 365));
       expect(result).toBe(basePTO + rollover);
     });
 
@@ -104,31 +104,31 @@ describe('PTOCalendarUtils', () => {
 
     it('should calculate hours for weekdays only (Mon-Fri)', () => {
       // Monday to Friday (5 weekdays, no weekends)
-      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-07', '2025-01-11', 8);
+      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-06', '2025-01-10', 8);
       expect(result).toBe(40); // 5 weekdays * 8 hours
     });
 
     it('should exclude weekends from calculation (Mon-Sun)', () => {
       // Monday to Sunday (5 weekdays + 2 weekend days)
-      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-07', '2025-01-13', 8);
+      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-06', '2025-01-12', 8);
       expect(result).toBe(40); // 5 weekdays * 8 hours (weekends excluded)
     });
 
     it('should handle partial day requests', () => {
       // Monday to Friday with 4 hours per day
-      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-07', '2025-01-11', 4);
+      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-06', '2025-01-10', 4);
       expect(result).toBe(20); // 5 weekdays * 4 hours
     });
 
     it('should handle 2-hour partial days', () => {
       // Monday to Wednesday with 2 hours per day
-      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-07', '2025-01-09', 2);
+      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-06', '2025-01-08', 2);
       expect(result).toBe(6); // 3 weekdays * 2 hours
     });
 
     it('should return 0 hours for weekend-only selection', () => {
       // Saturday to Sunday (weekend only)
-      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-05', '2025-01-06', 8);
+      const result = PTOCalendarUtils.calculateTotalPTOHours('2025-01-11', '2025-01-12', 8);
       expect(result).toBe(0); // 0 weekdays * 8 hours
     });
   });

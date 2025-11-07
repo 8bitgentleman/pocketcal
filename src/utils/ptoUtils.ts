@@ -35,7 +35,21 @@ export class PTOCalendarUtils {
   ): number {
     const start = new Date(2025, 0, 1);
     const target = new Date(2025, Math.floor(date / 100) - 1, date % 100);
-    const days = Math.floor((target.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Calculate days that have completed (not including current day)
+    // For July 1, we want days from Jan 1 through June 30 (180 days)
+    const dayBefore = new Date(target);
+    dayBefore.setDate(dayBefore.getDate() - 1);
+
+    // If target is Jan 1, dayBefore is Dec 31 prev year, so return 0
+    if (dayBefore < start) {
+      return Math.floor(rollover);
+    }
+
+    // Use UTC to avoid DST issues affecting day count
+    const days = Math.floor((Date.UTC(dayBefore.getFullYear(), dayBefore.getMonth(), dayBefore.getDate()) -
+                             Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) /
+                            (1000 * 60 * 60 * 24)) + 1;
     return Math.floor(rollover + (days * (totalHours / 365)));
   }
 
