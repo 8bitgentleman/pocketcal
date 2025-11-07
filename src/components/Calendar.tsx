@@ -94,13 +94,16 @@ const Calendar: React.FC = () => {
 		setIsContainerFocused(false);
 	};
 
-	// Simplified PTO toggle - no more multi-day splitting
+	// Simplified PTO toggle - handles both single-day and legacy multi-day entries
 	const handlePTOToggle = (date: Date) => {
 		if (!selectedGroupId) return;
 
 		const ptoEntries = getSelectedGroupPTOEntries();
 		const dateStr = formatISO(date, { representation: "date" });
-		const ptoEntry = ptoEntries.find(entry => entry.startDate === dateStr);
+		// Find entry that contains this date (handles both new single-day and old multi-day)
+		const ptoEntry = ptoEntries.find(entry =>
+			dateStr >= entry.startDate && dateStr <= entry.endDate
+		);
 
 		if (ptoEntry && ptoEntry.id) {
 			// Remove existing PTO for this day
