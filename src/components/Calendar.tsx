@@ -55,7 +55,8 @@ const Calendar: React.FC = () => {
 	const [dragEndDate, setDragEndDate] = useState<Date | null>(null);
 	const [focusedDate, setFocusedDate] = useState<Date | null>(null);
 	const [isContainerFocused, setIsContainerFocused] = useState(false);
-	// Long press state for PTO custom hours - use ref for timer to avoid async state issues
+	// PTO click state - use refs for synchronous access
+	const ptoClickedDateRef = useRef<Date | null>(null);
 	const longPressTimerRef = useRef<number | null>(null);
 	const [isLongPress, setIsLongPress] = useState(false);
 	// Tooltip state
@@ -241,16 +242,15 @@ const Calendar: React.FC = () => {
 		const isPTOEnabled = isPTOEnabledForGroup(selectedGroupId);
 
 		if (isPTOEnabled) {
-			// PTO mode: long-press detection
+			// PTO mode: click-to-toggle with long-press for custom hours
 			// Block PTO creation on weekends
 			if (isWeekend(date)) {
 				alert("PTO cannot be requested on weekends.");
 				return;
 			}
 
-			// Set dragStartDate so handleMouseUp knows what was clicked
-			setDragStartDate(date);
-			setDragEndDate(date);
+			// Store clicked date for handleMouseUp
+			ptoClickedDateRef.current = date;
 
 			// Clear any existing timer
 			if (longPressTimerRef.current) {
@@ -343,6 +343,7 @@ const Calendar: React.FC = () => {
 		// If this was a long press, don't do anything (modal already opened)
 		if (isLongPress) {
 			setIsLongPress(false);
+			ptoClickedDateRef.current = null;
 			return;
 		}
 
@@ -351,11 +352,10 @@ const Calendar: React.FC = () => {
 
 		if (isPTOEnabled) {
 			// PTO mode: simple click = instant 8h toggle
-			if (dragStartDate && !isDragging) {
-				handlePTOToggle(dragStartDate);
+			if (ptoClickedDateRef.current) {
+				handlePTOToggle(ptoClickedDateRef.current);
+				ptoClickedDateRef.current = null;
 			}
-			setDragStartDate(null);
-			setDragEndDate(null);
 			return;
 		}
 
