@@ -55,6 +55,9 @@ const Calendar: React.FC = () => {
 	const [dragEndDate, setDragEndDate] = useState<Date | null>(null);
 	const [focusedDate, setFocusedDate] = useState<Date | null>(null);
 	const [isContainerFocused, setIsContainerFocused] = useState(false);
+	// Long press state for PTO custom hours
+	const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+	const [isLongPress, setIsLongPress] = useState(false);
 	// Tooltip state
 	const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number } | null>(null);
 	const calendarGridRef = useRef<HTMLDivElement>(null);
@@ -90,47 +93,21 @@ const Calendar: React.FC = () => {
 		setIsContainerFocused(false);
 	};
 
-	const handlePTODayDeletion = (date: Date) => {
+	// Simplified PTO toggle - no more multi-day splitting
+	const handlePTOToggle = (date: Date) => {
 		if (!selectedGroupId) return;
 
 		const ptoEntries = getSelectedGroupPTOEntries();
 		const dateStr = formatISO(date, { representation: "date" });
-		const ptoEntry = ptoEntries.find(entry => 
-			dateStr >= entry.startDate && dateStr <= entry.endDate
-		);
+		const ptoEntry = ptoEntries.find(entry => entry.startDate === dateStr);
 
-		if (!ptoEntry || !ptoEntry.id) return;
-
-		// Delete the original PTO entry
-		deletePTOEntry(selectedGroupId, ptoEntry.id);
-
-		// If it's a multi-day entry, create new entries for the remaining days
-		if (ptoEntry.startDate !== ptoEntry.endDate) {
-			const entryStart = parseISO(ptoEntry.startDate);
-			const entryEnd = parseISO(ptoEntry.endDate);
-			const clickedDate = parseISO(dateStr);
-
-			// Create entry for days before the clicked date
-			if (isBefore(entryStart, clickedDate)) {
-				const beforeEntry = PTOCalendarUtils.createMultiDayEntry(
-					formatISO(entryStart, { representation: "date" }),
-					formatISO(subDays(clickedDate, 1), { representation: "date" }),
-					ptoEntry.hoursPerDay,
-					ptoEntry.name
-				);
-				addPTOEntry(selectedGroupId, beforeEntry);
-			}
-
-			// Create entry for days after the clicked date
-			if (isAfter(entryEnd, clickedDate)) {
-				const afterEntry = PTOCalendarUtils.createMultiDayEntry(
-					formatISO(addDays(clickedDate, 1), { representation: "date" }),
-					formatISO(entryEnd, { representation: "date" }),
-					ptoEntry.hoursPerDay,
-					ptoEntry.name
-				);
-				addPTOEntry(selectedGroupId, afterEntry);
-			}
+		if (ptoEntry && ptoEntry.id) {
+			// Remove existing PTO for this day
+			deletePTOEntry(selectedGroupId, ptoEntry.id);
+		} else {
+			// Add 8h PTO for this day
+			const newEntry = PTOCalendarUtils.createSingleDayEntry(dateStr, 8);
+			addPTOEntry(selectedGroupId, newEntry);
 		}
 	};
 
@@ -262,71 +239,71 @@ const Calendar: React.FC = () => {
 
 		// Check if PTO is enabled for this group
 		const isPTOEnabled = isPTOEnabledForGroup(selectedGroupId);
-		
-		// Block PTO creation on weekends only
-		if (isPTOEnabled && isWeekend(date)) {
-			alert("PTO cannot be requested on weekends.");
-			return;
+
+		if (isPTOEnabled) {
+			// PTO mode: long-press detection
+			// Block PTO creation on weekends
+			if (isWeekend(date)) {
+				alert("PTO cannot be requested on weekends.");
+				return;
+			}
+
+			// Start long-press timer (500ms)
+			setIsLongPress(false);
+			const timer = setTimeout(() => {
+				setIsLongPress(true);
+				// Open modal for custom hours
+				const ptoSelectEvent = new CustomEvent('ptoDateSelect', {
+					detail: {
+						date: formatISO(date, { representation: "date" }),
+						endDate: formatISO(date, { representation: "date" })
+					}
+				});
+				window.dispatchEvent(ptoSelectEvent);
+			}, 500);
+			setLongPressTimer(timer);
+		} else {
+			// Regular calendar mode: use existing drag logic
+			const existingRange = findRangeForDate(date, selectedGroup);
+			if (existingRange) {
+				deleteDateRange(selectedGroupId, existingRange);
+
+				// Create two new ranges if needed - one before and one after the clicked date
+				const startDate = parseISO(existingRange.start);
+				const endDate = parseISO(existingRange.end);
+
+				if (isBefore(startDate, date)) {
+					const beforeRange: DateRange = {
+						start: formatISO(startDate, { representation: "date" }),
+						end: formatISO(subDays(date, 1), { representation: "date" }),
+					};
+					addDateRange(selectedGroupId, beforeRange);
+				}
+
+				if (isAfter(endDate, date)) {
+					const afterRange: DateRange = {
+						start: formatISO(addDays(date, 1), { representation: "date" }),
+						end: formatISO(endDate, { representation: "date" }),
+					};
+					addDateRange(selectedGroupId, afterRange);
+				}
+				return;
+			}
+
+			setIsDragging(true);
+			setDragStartDate(date);
+			setDragEndDate(date);
 		}
-
-		// For both PTO and regular calendars, start drag detection
-		// Check if the date is already in a range for this group
-		const existingRange = findRangeForDate(date, selectedGroup);
-		if (existingRange) {
-			// If this is a PTO-enabled group, handle PTO entry deletion/splitting
-			if (isPTOEnabledForGroup(selectedGroupId)) {
-				handlePTODayDeletion(date);
-			}
-			
-			deleteDateRange(selectedGroupId, existingRange);
-
-			// Create two new ranges if needed - one before and one after the clicked date
-			const startDate = parseISO(existingRange.start);
-			const endDate = parseISO(existingRange.end);
-
-			// Only create new ranges if there are dates to include
-			if (isBefore(startDate, date)) {
-				const beforeRange: DateRange = {
-					start: formatISO(startDate, { representation: "date" }),
-					end: formatISO(subDays(date, 1), { representation: "date" }),
-				};
-				addDateRange(selectedGroupId, beforeRange);
-			}
-
-			if (isAfter(endDate, date)) {
-				const afterRange: DateRange = {
-					start: formatISO(addDays(date, 1), { representation: "date" }),
-					end: formatISO(endDate, { representation: "date" }),
-				};
-				addDateRange(selectedGroupId, afterRange);
-			}
-			return;
-		}
-
-		setIsDragging(true);
-		setDragStartDate(date);
-		setDragEndDate(date);
 	};
 
 	const handleMouseMove = (date: Date) => {
-		if (!isDragging || !dragStartDate) return;
-		
-		// For PTO-enabled groups, skip weekends during drag
-		const isPTOEnabled = selectedGroupId ? isPTOEnabledForGroup(selectedGroupId) : false;
-		if (isPTOEnabled && isWeekend(date)) {
-			// Find the nearest weekday in the direction of the drag
-			const dragDirection = isAfter(date, dragStartDate) ? 1 : -1;
-			let nearestWeekday = new Date(date);
-			
-			// Keep moving in the drag direction until we find a weekday
-			while (isWeekend(nearestWeekday)) {
-				nearestWeekday.setDate(nearestWeekday.getDate() + dragDirection);
-			}
-			
-			setDragEndDate(nearestWeekday);
-			return;
+		// Cancel long-press if mouse moves (user is dragging, not long-pressing)
+		if (longPressTimer) {
+			clearTimeout(longPressTimer);
+			setLongPressTimer(null);
 		}
-		
+
+		if (!isDragging || !dragStartDate) return;
 		setDragEndDate(date);
 	};
 
@@ -347,13 +324,39 @@ const Calendar: React.FC = () => {
 	};
 
 	const handleMouseUp = useCallback(() => {
-		if (!isDragging || !dragStartDate || !dragEndDate || !selectedGroupId)
-			return;
+		// Clear long-press timer if it's still running
+		if (longPressTimer) {
+			clearTimeout(longPressTimer);
+			setLongPressTimer(null);
+		}
 
-		setIsDragging(false);
+		// If this was a long press, don't do anything (modal already opened)
+		if (isLongPress) {
+			setIsLongPress(false);
+			return;
+		}
 
 		// Check if PTO is enabled for this group
-		const isPTOEnabled = isPTOEnabledForGroup(selectedGroupId);
+		const isPTOEnabled = selectedGroupId ? isPTOEnabledForGroup(selectedGroupId) : false;
+
+		if (isPTOEnabled) {
+			// PTO mode: simple click = instant 8h toggle
+			if (dragStartDate && !isDragging) {
+				handlePTOToggle(dragStartDate);
+			}
+			setDragStartDate(null);
+			setDragEndDate(null);
+			return;
+		}
+
+		// Regular calendar mode: existing drag logic
+		if (!isDragging || !dragStartDate || !dragEndDate || !selectedGroupId) {
+			setDragStartDate(null);
+			setDragEndDate(null);
+			return;
+		}
+
+		setIsDragging(false);
 
 		// Ensure start is before end
 		const finalStartDate = isBefore(dragStartDate, dragEndDate)
@@ -363,51 +366,17 @@ const Calendar: React.FC = () => {
 			? dragEndDate
 			: dragStartDate;
 
-		if (isPTOEnabled) {
-			// For PTO calendars, filter out weekends from the date range
-			let ptoStartDate = new Date(finalStartDate);
-			let ptoEndDate = new Date(finalEndDate);
-			
-			// Find first weekday in the range
-			while (ptoStartDate <= finalEndDate && isWeekend(ptoStartDate)) {
-				ptoStartDate = addDays(ptoStartDate, 1);
-			}
-			
-			// Find last weekday in the range
-			while (ptoEndDate >= finalStartDate && isWeekend(ptoEndDate)) {
-				ptoEndDate = subDays(ptoEndDate, 1);
-			}
-			
-			// If no weekdays found in range, don't create PTO
-			if (ptoStartDate > ptoEndDate) {
-				alert("PTO cannot be requested on weekends only.");
-				return;
-			}
-			
-			const startDateStr = formatISO(ptoStartDate, { representation: "date" });
-			const endDateStr = formatISO(ptoEndDate, { representation: "date" });
-			
-			// Always send both dates for PTO - let modal handle single vs multi-day logic
-			const ptoSelectEvent = new CustomEvent('ptoDateSelect', {
-				detail: { 
-					date: startDateStr,
-					endDate: endDateStr  // Always send endDate, let modal decide
-				}
-			});
-			window.dispatchEvent(ptoSelectEvent);
-		} else {
-			// For regular calendars, create the date range directly
-			const newRange: DateRange = {
-				start: formatISO(finalStartDate, { representation: "date" }),
-				end: formatISO(finalEndDate, { representation: "date" }),
-			};
+		// For regular calendars, create the date range directly
+		const newRange: DateRange = {
+			start: formatISO(finalStartDate, { representation: "date" }),
+			end: formatISO(finalEndDate, { representation: "date" }),
+		};
 
-			addDateRange(selectedGroupId, newRange);
-		}
+		addDateRange(selectedGroupId, newRange);
 
 		setDragStartDate(null);
 		setDragEndDate(null);
-	}, [isDragging, dragStartDate, dragEndDate, selectedGroupId, addDateRange, isPTOEnabledForGroup, checkSameDay]);
+	}, [isDragging, dragStartDate, dragEndDate, selectedGroupId, longPressTimer, isLongPress, addDateRange, isPTOEnabledForGroup, handlePTOToggle]);
 
 	useEffect(() => {
 		const handleGlobalMouseUp = () => {
