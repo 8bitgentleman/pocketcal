@@ -248,6 +248,10 @@ const Calendar: React.FC = () => {
 				return;
 			}
 
+			// Set dragStartDate so handleMouseUp knows what was clicked
+			setDragStartDate(date);
+			setDragEndDate(date);
+
 			// Clear any existing timer
 			if (longPressTimerRef.current) {
 				clearTimeout(longPressTimerRef.current);
