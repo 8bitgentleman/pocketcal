@@ -521,8 +521,8 @@ const Calendar: React.FC = () => {
 			className += " focused";
 		}
 
-		// Add PTO-specific visual classes
-		if (selectedGroupId && isPTOEnabledForGroup(selectedGroupId)) {
+		// Add PTO-specific visual classes (only on weekdays)
+		if (selectedGroupId && isPTOEnabledForGroup(selectedGroupId) && !isWeekend(date)) {
 			const dateStr = formatISO(date, { representation: "date" });
 			const ptoEntries = getSelectedGroupPTOEntries();
 			const ptoEntry = ptoEntries.find(entry =>
@@ -643,9 +643,9 @@ const Calendar: React.FC = () => {
 									isDateInRange(date, group)
 								);
 
-								// Get PTO entry for this date if applicable
+								// Get PTO entry for this date if applicable (only on weekdays)
 								let ptoEntry = null;
-								if (selectedGroupId && isPTOEnabledForGroup(selectedGroupId)) {
+								if (selectedGroupId && isPTOEnabledForGroup(selectedGroupId) && !isWeekend(date)) {
 									const ptoEntries = getSelectedGroupPTOEntries();
 									ptoEntry = ptoEntries.find(entry =>
 										dateStr >= entry.startDate && dateStr <= entry.endDate

@@ -535,11 +535,20 @@ export const useStore = create<AppState>((set, get) => ({
 			// Find the existing PTO entry to get old dates for range removal
 			const group = state.eventGroups.find(g => g.id === groupId);
 			const existingEntry = (group?.ptoEntries || []).find(entry => entry.id === entryId);
-			
+
 			if (!existingEntry) return state;
-			
+
 			const updatedEntry = { ...existingEntry, ...updates };
-			
+
+			// Recalculate totalHours if dates or hoursPerDay changed
+			if (updates.startDate || updates.endDate || updates.hoursPerDay) {
+				updatedEntry.totalHours = PTOCalendarUtils.calculateTotalPTOHours(
+					updatedEntry.startDate,
+					updatedEntry.endDate,
+					updatedEntry.hoursPerDay
+				);
+			}
+
 			return {
 				eventGroups: state.eventGroups.map((group) =>
 					group.id === groupId
