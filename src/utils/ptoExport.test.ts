@@ -57,9 +57,9 @@ beforeEach(() => {
 
 describe('PTO Export Functions', () => {
   const mockPTOEntries: PTOEntry[] = [
-    { date: '2025-01-15', hours: 8, name: 'Vacation Day' },
-    { date: '2025-02-10', hours: 4, name: 'Doctor Appointment' },
-    { date: '2025-03-05', hours: 2 }
+    { startDate: '2025-01-15', endDate: '2025-01-15', hoursPerDay: 8, totalHours: 8, name: 'Vacation Day' },
+    { startDate: '2025-02-10', endDate: '2025-02-10', hoursPerDay: 4, totalHours: 4, name: 'Doctor Appointment' },
+    { startDate: '2025-03-05', endDate: '2025-03-05', hoursPerDay: 2, totalHours: 2 }
   ];
 
   const mockPTOConfig: PTOConfig = {
@@ -183,11 +183,11 @@ describe('PTO Export Functions', () => {
     it('should reject invalid PTO hours', async () => {
       const invalidData = {
         ...mockValidData,
-        ptoEntries: [{ date: '2025-01-01', hours: 6 }] // Invalid hours
+        ptoEntries: [{ startDate: '2025-01-01', endDate: '2025-01-01', hoursPerDay: 6, totalHours: 6 }] // Invalid hours (must be 2, 4, or 8)
       };
-      
+
       const mockFile = new File([JSON.stringify(invalidData)], 'test.json');
-      
+
       await expect(importPTODataFromJSON(mockFile)).rejects.toThrow('Invalid PTO hours');
     });
 

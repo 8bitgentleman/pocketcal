@@ -11,6 +11,17 @@ const STANDARD_HOLIDAYS: Record<number, string> = {
 // Year-specific holidays (like Unispace gift days that may vary)
 export const HOLIDAYS_2024: Record<number, string> = {
   ...STANDARD_HOLIDAYS,
+  101: "New Year's Day",
+  115: "MLK Jr. Day",
+  527: "Memorial Day",
+  619: "Juneteenth",
+  703: "Independence Day Eve",
+  704: "Independence Day",
+  902: "Labor Day",
+  1014: "Indigenous People's Day",
+  1128: "Thanksgiving",
+  1129: "Day after Thanksgiving",
+  1225: "Christmas",
   // 2024 Unispace Gift Days
   1223: "Unispace Gift Day",
   1224: "Unispace Gift Day",
@@ -33,7 +44,7 @@ export const HOLIDAYS_2025: Record<number, string> = {
   1128: "Day after Thanksgiving",
   1225: "Christmas",
   1226: "Unispace Gift Day",
-  1229: "Unispace Gift Day",
+  1227: "Unispace Gift Day",
   1230: "Unispace Gift Day",
   1231: "Unispace Gift Day"
 };
