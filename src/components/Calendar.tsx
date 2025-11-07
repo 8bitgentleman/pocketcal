@@ -55,8 +55,8 @@ const Calendar: React.FC = () => {
 	const [dragEndDate, setDragEndDate] = useState<Date | null>(null);
 	const [focusedDate, setFocusedDate] = useState<Date | null>(null);
 	const [isContainerFocused, setIsContainerFocused] = useState(false);
-	// Long press state for PTO custom hours
-	const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+	// Long press state for PTO custom hours - use ref for timer to avoid async state issues
+	const longPressTimerRef = useRef<number | null>(null);
 	const [isLongPress, setIsLongPress] = useState(false);
 	// Tooltip state
 	const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number } | null>(null);
@@ -248,10 +248,16 @@ const Calendar: React.FC = () => {
 				return;
 			}
 
+			// Clear any existing timer
+			if (longPressTimerRef.current) {
+				clearTimeout(longPressTimerRef.current);
+			}
+
 			// Start long-press timer (500ms)
 			setIsLongPress(false);
-			const timer = setTimeout(() => {
+			longPressTimerRef.current = window.setTimeout(() => {
 				setIsLongPress(true);
+				longPressTimerRef.current = null;
 				// Open modal for custom hours
 				const ptoSelectEvent = new CustomEvent('ptoDateSelect', {
 					detail: {
@@ -261,7 +267,6 @@ const Calendar: React.FC = () => {
 				});
 				window.dispatchEvent(ptoSelectEvent);
 			}, 500);
-			setLongPressTimer(timer);
 		} else {
 			// Regular calendar mode: use existing drag logic
 			const existingRange = findRangeForDate(date, selectedGroup);
@@ -298,9 +303,10 @@ const Calendar: React.FC = () => {
 
 	const handleMouseMove = (date: Date) => {
 		// Cancel long-press if mouse moves (user is dragging, not long-pressing)
-		if (longPressTimer) {
-			clearTimeout(longPressTimer);
-			setLongPressTimer(null);
+		if (longPressTimerRef.current) {
+			clearTimeout(longPressTimerRef.current);
+			longPressTimerRef.current = null;
+			setIsLongPress(false);
 		}
 
 		if (!isDragging || !dragStartDate) return;
@@ -325,9 +331,9 @@ const Calendar: React.FC = () => {
 
 	const handleMouseUp = useCallback(() => {
 		// Clear long-press timer if it's still running
-		if (longPressTimer) {
-			clearTimeout(longPressTimer);
-			setLongPressTimer(null);
+		if (longPressTimerRef.current) {
+			clearTimeout(longPressTimerRef.current);
+			longPressTimerRef.current = null;
 		}
 
 		// If this was a long press, don't do anything (modal already opened)
@@ -376,7 +382,7 @@ const Calendar: React.FC = () => {
 
 		setDragStartDate(null);
 		setDragEndDate(null);
-	}, [isDragging, dragStartDate, dragEndDate, selectedGroupId, longPressTimer, isLongPress, addDateRange, isPTOEnabledForGroup, handlePTOToggle]);
+	}, [isDragging, dragStartDate, dragEndDate, selectedGroupId, isLongPress, addDateRange, isPTOEnabledForGroup, handlePTOToggle]);
 
 	useEffect(() => {
 		const handleGlobalMouseUp = () => {
