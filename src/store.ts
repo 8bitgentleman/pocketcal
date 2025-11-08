@@ -85,6 +85,7 @@ interface AppState {
 	addPTOEntry: (groupId: string, entry: PTOEntry) => void;
 	updatePTOEntry: (groupId: string, entryId: string, updates: Partial<PTOEntry>) => void;
 	deletePTOEntry: (groupId: string, entryId: string) => void;
+	clearPTOEntries: (groupId: string) => void;
 	validatePTOEntry: (groupId: string, entry: PTOEntry) => { isValid: boolean; warning?: string };
 	getPTOSummary: (groupId: string) => {
 		totalHours: number;
@@ -497,16 +498,45 @@ export const useStore = create<AppState>((set, get) => ({
 				console.warn(`Invalid PTO hours per day: ${entry.hoursPerDay}`);
 				return state;
 			}
-			
+
+			// Always recalculate totalHours to ensure accuracy
+			const totalHours = PTOCalendarUtils.calculateTotalPTOHours(
+				entry.startDate,
+				entry.endDate,
+				entry.hoursPerDay
+			);
+
+			// Don't create entries with 0 hours (weekend-only spans)
+			if (totalHours === 0) {
+				console.warn('[PTO] Skipping entry with 0 hours (weekend-only span):', {
+					startDate: entry.startDate,
+					endDate: entry.endDate,
+					hoursPerDay: entry.hoursPerDay
+				});
+				return state;
+			}
+
+			console.log('[PTO] Adding entry:', {
+				startDate: entry.startDate,
+				endDate: entry.endDate,
+				hoursPerDay: entry.hoursPerDay,
+				calculatedTotalHours: totalHours,
+				providedTotalHours: entry.totalHours
+			});
+
 			return {
 				eventGroups: state.eventGroups.map((group) =>
 					group.id === groupId
-						? { 
-							...group, 
-							// Add PTO entry
+						? {
+							...group,
+							// Add PTO entry with recalculated totalHours
 							ptoEntries: [
 								...(group.ptoEntries || []).filter(e => !(e.startDate === entry.startDate && e.endDate === entry.endDate)),
-								{ ...entry, id: `${entry.startDate}-${entry.endDate}-${Date.now()}` }
+								{
+									...entry,
+									id: `${entry.startDate}-${entry.endDate}-${Date.now()}`,
+									totalHours
+								}
 							],
 							// Also add as regular event ranges for visual consistency (weekdays only)
 							ranges: [
@@ -534,11 +564,33 @@ export const useStore = create<AppState>((set, get) => ({
 			// Find the existing PTO entry to get old dates for range removal
 			const group = state.eventGroups.find(g => g.id === groupId);
 			const existingEntry = (group?.ptoEntries || []).find(entry => entry.id === entryId);
-			
+
 			if (!existingEntry) return state;
-			
+
 			const updatedEntry = { ...existingEntry, ...updates };
-			
+
+			// Recalculate totalHours if dates or hoursPerDay changed
+			if (updates.startDate || updates.endDate || updates.hoursPerDay) {
+				const oldTotalHours = updatedEntry.totalHours;
+				updatedEntry.totalHours = PTOCalendarUtils.calculateTotalPTOHours(
+					updatedEntry.startDate,
+					updatedEntry.endDate,
+					updatedEntry.hoursPerDay
+				);
+				console.log('[PTO] Updating entry with recalculation:', {
+					id: entryId,
+					oldRange: `${existingEntry.startDate} to ${existingEntry.endDate}`,
+					newRange: `${updatedEntry.startDate} to ${updatedEntry.endDate}`,
+					oldTotalHours,
+					newTotalHours: updatedEntry.totalHours
+				});
+			} else {
+				console.log('[PTO] Updating entry (no date/hours change):', {
+					id: entryId,
+					updates: Object.keys(updates)
+				});
+			}
+
 			return {
 				eventGroups: state.eventGroups.map((group) =>
 					group.id === groupId
@@ -584,7 +636,18 @@ export const useStore = create<AppState>((set, get) => ({
 			// Find the PTO entry to get its dates for removing the corresponding range
 			const group = state.eventGroups.find(g => g.id === groupId);
 			const ptoEntry = (group?.ptoEntries || []).find(entry => entry.id === entryId);
-			
+
+			if (ptoEntry) {
+				console.log('[PTO] Deleting entry:', {
+					id: entryId,
+					startDate: ptoEntry.startDate,
+					endDate: ptoEntry.endDate,
+					totalHours: ptoEntry.totalHours
+				});
+			} else {
+				console.warn('[PTO] Entry not found for deletion:', entryId);
+			}
+
 			return {
 				eventGroups: state.eventGroups.map((group) =>
 					group.id === groupId
@@ -593,13 +656,13 @@ export const useStore = create<AppState>((set, get) => ({
 							// Remove PTO entry
 							ptoEntries: (group.ptoEntries || []).filter((entry) => entry.id !== entryId),
 							// Also remove corresponding regular event ranges (all weekdays in the PTO entry)
-							ranges: ptoEntry 
+							ranges: ptoEntry
 								? group.ranges.filter(r => {
-									const ptoWeekdays = eachDayOfInterval({ 
-										start: parseISO(ptoEntry.startDate), 
-										end: parseISO(ptoEntry.endDate) 
+									const ptoWeekdays = eachDayOfInterval({
+										start: parseISO(ptoEntry.startDate),
+										end: parseISO(ptoEntry.endDate)
 									}).filter(date => !isWeekend(date));
-									
+
 									return !ptoWeekdays.some(date => {
 										const dayStr = formatISO(date, { representation: "date" });
 										return r.start === dayStr && r.end === dayStr;
@@ -611,6 +674,20 @@ export const useStore = create<AppState>((set, get) => ({
 				),
 			};
 		}),
+
+	clearPTOEntries: (groupId) =>
+		set((state) => ({
+			eventGroups: state.eventGroups.map((group) =>
+				group.id === groupId
+					? {
+						...group,
+						ptoEntries: [],
+						// Clear all PTO-related ranges by filtering out ranges that have PTO entries
+						ranges: []
+					}
+					: group
+			),
+		})),
 
 	validatePTOEntry: (groupId, entry) => {
 		const state = get();
@@ -658,13 +735,16 @@ export const useStore = create<AppState>((set, get) => ({
 	getPTOSummary: (groupId) => {
 		const state = get();
 		const group = state.eventGroups.find(g => g.id === groupId);
-		
+
 		if (!group?.ptoConfig?.isEnabled) {
 			return null;
 		}
 
+		// Filter out any entries with 0 hours (shouldn't exist but safety check)
+		const validEntries = (group.ptoEntries || []).filter(entry => entry.totalHours > 0);
+
 		return PTOCalendarUtils.calculatePTOSummary(
-			group.ptoEntries || [],
+			validEntries,
 			group.ptoConfig
 		);
 	},
@@ -681,7 +761,8 @@ export const useStore = create<AppState>((set, get) => ({
 		const state = get();
 		if (!state.selectedGroupId) return [];
 		const group = state.eventGroups.find(g => g.id === state.selectedGroupId);
-		return group?.ptoEntries || [];
+		// Filter out any entries with 0 hours (shouldn't exist but safety check)
+		return (group?.ptoEntries || []).filter(entry => entry.totalHours > 0);
 	},
 
 	isPTOEnabledForGroup: (groupId) => {
