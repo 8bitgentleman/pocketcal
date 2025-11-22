@@ -32,7 +32,6 @@ const Calendar: React.FC = () => {
 		startDate,
 		includeWeekends,
 		showToday,
-		eventGroups,
 		selectedGroupId,
 		addDateRange,
 		deleteDateRange,
@@ -44,7 +43,6 @@ const Calendar: React.FC = () => {
 		cleanupWeekendPTOEntries,
 		// Display helpers
 		getAllDisplayGroups,
-		getHolidaysGroup,
 	} = useStore();
 
 	const calendarDates = getCalendarDates(startDate);

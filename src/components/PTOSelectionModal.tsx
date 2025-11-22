@@ -216,10 +216,9 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, ini
 											value={endDate}
 											onChange={(e) => {
 												setEndDate(e.target.value);
-												const start = parseISO(selectedDate);
-												const end = parseISO(e.target.value);
-												const dayDiff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-												setDuration(Math.max(1, dayDiff));
+												// Calculate weekdays correctly (not total days including weekends)
+												const weekdayCount = countWeekdays(selectedDate, e.target.value);
+												setDuration(Math.max(1, weekdayCount));
 											}}
 										/>
 									</div>

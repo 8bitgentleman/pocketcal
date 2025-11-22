@@ -40,7 +40,6 @@ function Sidebar({
 		isPTOEnabledForGroup,
 		// Display helpers
 		getAllDisplayGroups,
-		getHolidaysGroup,
 	} = useStore();
 	const maxGroups = getMaxGroups(isProUser);
 	const [newEventName, setNewEventName] = useState("");
@@ -109,18 +108,7 @@ function Sidebar({
 	};
 
 	const footerGroups = () => {
-		let proButton = (
-			<div className="sidebar-footer-buttons">
-				<button
-					className="footer-button"
-					onClick={() => setShowLicenseModal(true)}
-					aria-label="Show license modal"
-				>
-					{isProUser ? "Thanks for going Pro!" : "Go Pro"}
-				</button>
-			</div>
-		);
-		let helpAndCopyButtons = (
+		const helpAndCopyButtons = (
 			<div className="sidebar-footer-buttons">
 				<button
 					className="footer-button"
@@ -136,12 +124,19 @@ function Sidebar({
 				>
 					<CopyIcon color="#000" /> Copy URL
 				</button>
+				{!isProUser && (
+					<button
+						className="footer-button pro-button"
+						onClick={() => setShowLicenseModal(true)}
+						aria-label="Go Pro"
+					>
+						Go Pro
+					</button>
+				)}
 			</div>
 		);
 
-		return isProUser
-			? [<React.Fragment key="help">{helpAndCopyButtons}</React.Fragment>]
-			: [<React.Fragment key="help">{helpAndCopyButtons}</React.Fragment>];
+		return [<React.Fragment key="help">{helpAndCopyButtons}</React.Fragment>];
 	};
 
 	return (

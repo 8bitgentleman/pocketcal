@@ -34,7 +34,7 @@ beforeEach(() => {
     click: mockClick
   });
   
-  global.document = {
+  globalThis.document = {
     createElement: mockCreateElement,
     body: {
       appendChild: mockAppendChild,
@@ -43,13 +43,13 @@ beforeEach(() => {
   } as any;
 
   // Mock URL APIs
-  global.URL = {
+  globalThis.URL = {
     createObjectURL: mockCreateObjectURL.mockReturnValue('mock-blob-url'),
     revokeObjectURL: mockRevokeObjectURL
   } as any;
 
   // Mock Blob
-  global.Blob = vi.fn().mockImplementation((content, options) => ({
+  globalThis.Blob = vi.fn().mockImplementation((content, options) => ({
     content,
     type: options?.type
   })) as any;
@@ -72,7 +72,7 @@ describe('PTO Export Functions', () => {
     it('should create proper JSON export data', () => {
       exportPTODataAsJSON(mockPTOEntries, mockPTOConfig);
 
-      expect(global.Blob).toHaveBeenCalledWith(
+      expect(globalThis.Blob).toHaveBeenCalledWith(
         [expect.stringContaining('"ptoEntries"')],
         { type: 'application/json' }
       );
@@ -84,7 +84,7 @@ describe('PTO Export Functions', () => {
     it('should include all required fields in export data', () => {
       exportPTODataAsJSON(mockPTOEntries, mockPTOConfig);
 
-      const blobCall = (global.Blob as any).mock.calls[0];
+      const blobCall = (globalThis.Blob as any).mock.calls[0];
       const jsonData = JSON.parse(blobCall[0][0]);
 
       expect(jsonData).toHaveProperty('ptoEntries');
@@ -106,7 +106,7 @@ describe('PTO Export Functions', () => {
     it('should create proper CSV format', () => {
       exportPTODataAsCSV(mockPTOEntries, mockPTOConfig);
 
-      expect(global.Blob).toHaveBeenCalledWith(
+      expect(globalThis.Blob).toHaveBeenCalledWith(
         [expect.stringContaining('Date,Hours,Description,Day Fraction')],
         { type: 'text/csv;charset=utf-8;' }
       );
@@ -115,7 +115,7 @@ describe('PTO Export Functions', () => {
     it('should include all entries with proper formatting', () => {
       exportPTODataAsCSV(mockPTOEntries, mockPTOConfig);
 
-      const blobCall = (global.Blob as any).mock.calls[0];
+      const blobCall = (globalThis.Blob as any).mock.calls[0];
       const csvContent = blobCall[0][0];
 
       expect(csvContent).toContain('"2025-01-15","8","Vacation Day","1"');
@@ -135,7 +135,7 @@ describe('PTO Export Functions', () => {
     it('should create ADP-compatible format', () => {
       exportForADP(mockPTOEntries);
 
-      const blobCall = (global.Blob as any).mock.calls[0];
+      const blobCall = (globalThis.Blob as any).mock.calls[0];
       const csvContent = blobCall[0][0];
 
       expect(csvContent).toContain('Pay Code,Date,Hours,Comments');
@@ -252,7 +252,7 @@ describe('PTO Export Functions', () => {
     it('should create HTML blob and trigger download', () => {
       exportPTOSummaryReportAsHTML(mockPTOEntries, mockPTOConfig);
 
-      expect(global.Blob).toHaveBeenCalledWith(
+      expect(globalThis.Blob).toHaveBeenCalledWith(
         [expect.stringContaining('PTO Summary Report')],
         { type: 'text/html' }
       );
@@ -274,7 +274,7 @@ describe('PTO Export Functions', () => {
       exportPTODataAsJSON(mockPTOEntries, mockPTOConfig);
       
       // Get the exported JSON
-      const blobCall = (global.Blob as any).mock.calls[0];
+      const blobCall = (globalThis.Blob as any).mock.calls[0];
       const exportedJson = blobCall[0][0];
       
       // Import the data back
