@@ -7,6 +7,9 @@ import ChevronIcon from "./components/icons/ChevronIcon";
 import HelpModal from "./components/HelpModal";
 import LicenseModal from "./components/LicenseModal";
 import PTOSelectionModal from "./components/PTOSelectionModal";
+import WelcomeModal from "./components/WelcomeModal";
+
+const WELCOME_DISMISSED_KEY = "pocketcal_welcome_dismissed";
 
 function App() {
 	const [isSidebarHidden, setIsSidebarHidden] = useState(false);
@@ -14,6 +17,7 @@ function App() {
 	const [showPTOModal, setShowPTOModal] = useState(false);
 	const [selectedPTODate, setSelectedPTODate] = useState<string>("");
 	const [selectedPTOEndDate, setSelectedPTOEndDate] = useState<string | undefined>();
+	const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 	const getAppStateFromUrl = useStore((state) => state.getAppStateFromUrl);
 	const generateShareableUrl = useStore((state) => state.generateShareableUrl);
 	const showHelpModal = useStore((state) => state.showHelpModal);
@@ -46,7 +50,23 @@ function App() {
 				useStore.setState({ isProUser: true });
 			}
 		}
+
+		// Show welcome modal for first-time visitors
+		const welcomeDismissed = localStorage.getItem(WELCOME_DISMISSED_KEY);
+		if (!welcomeDismissed) {
+			setShowWelcomeModal(true);
+		}
 	}, [getAppStateFromUrl, validateLicenseKey, licenseKey]);
+
+	// Handle dismissing the welcome modal permanently
+	const handleDismissWelcome = () => {
+		localStorage.setItem(WELCOME_DISMISSED_KEY, "true");
+	};
+
+	// Allow re-opening the welcome modal (for the info button)
+	const handleShowWelcome = () => {
+		setShowWelcomeModal(true);
+	};
 
 	// Apply dark mode class to document root
 	useEffect(() => {
@@ -115,21 +135,30 @@ function App() {
 			>
 				<ChevronIcon color="black" />
 			</button>
-			<Sidebar setShowLicenseModal={setShowLicenseModal} />
+			<Sidebar
+				setShowLicenseModal={setShowLicenseModal}
+				onShowWelcome={handleShowWelcome}
+			/>
 			<Calendar />
 			{showHelpModal && <HelpModal onClose={() => setShowHelpModal(false)} />}
 			{showLicenseModal && (
 				<LicenseModal onClose={() => setShowLicenseModal(false)} />
 			)}
 			{showPTOModal && selectedPTODate && (
-				<PTOSelectionModal 
+				<PTOSelectionModal
 					selectedDate={selectedPTODate}
 					initialEndDate={selectedPTOEndDate}
 					onClose={() => {
 						setShowPTOModal(false);
 						setSelectedPTODate("");
 						setSelectedPTOEndDate(undefined);
-					}} 
+					}}
+				/>
+			)}
+			{showWelcomeModal && (
+				<WelcomeModal
+					onClose={() => setShowWelcomeModal(false)}
+					onDontShowAgain={handleDismissWelcome}
 				/>
 			)}
 		</div>

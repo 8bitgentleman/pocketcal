@@ -9,16 +9,19 @@ import PlusIcon from "./icons/PlusIcon";
 import SettingsIcon from "./icons/SettingsIcon";
 import HelpIcon from "./icons/HelpIcon";
 import CopyIcon from "./icons/CopyIcon";
+import InfoIcon from "./icons/InfoIcon";
 import PTOSummaryDashboard from "./PTOSummaryDashboard";
 import DarkModeToggle from "./DarkModeToggle";
+import Tooltip from "./Tooltip";
 
 import "./Sidebar.css";
 
-function Sidebar({
-	setShowLicenseModal,
-}: {
+interface SidebarProps {
 	setShowLicenseModal: (show: boolean) => void;
-}) {
+	onShowWelcome: () => void;
+}
+
+function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 	const {
 		startDate,
 		includeWeekends,
@@ -110,28 +113,43 @@ function Sidebar({
 	const footerGroups = () => {
 		const helpAndCopyButtons = (
 			<div className="sidebar-footer-buttons">
-				<button
-					className="footer-button"
-					onClick={() => setShowHelpModal(true)}
-					aria-label="Show instructions"
-				>
-					<HelpIcon color="#000" /> Help
-				</button>
-				<button
-					className="footer-button"
-					onClick={handleCopyUrl}
-					aria-label="Copy URL to clipboard"
-				>
-					<CopyIcon color="#000" /> Copy URL
-				</button>
-				{!isProUser && (
+				<Tooltip content="View the getting started guide">
 					<button
-						className="footer-button pro-button"
-						onClick={() => setShowLicenseModal(true)}
-						aria-label="Go Pro"
+						className="footer-button"
+						onClick={onShowWelcome}
+						aria-label="Show getting started guide"
 					>
-						Go Pro
+						<InfoIcon color="#000" /> Guide
 					</button>
+				</Tooltip>
+				<Tooltip content="View keyboard shortcuts and features">
+					<button
+						className="footer-button"
+						onClick={() => setShowHelpModal(true)}
+						aria-label="Show instructions"
+					>
+						<HelpIcon color="#000" /> Help
+					</button>
+				</Tooltip>
+				<Tooltip content="Copy URL to share your calendar">
+					<button
+						className="footer-button"
+						onClick={handleCopyUrl}
+						aria-label="Copy URL to clipboard"
+					>
+						<CopyIcon color="#000" /> Copy URL
+					</button>
+				</Tooltip>
+				{!isProUser && (
+					<Tooltip content="Unlock more calendars and features">
+						<button
+							className="footer-button pro-button"
+							onClick={() => setShowLicenseModal(true)}
+							aria-label="Go Pro"
+						>
+							Go Pro
+						</button>
+					</Tooltip>
 				)}
 			</div>
 		);
@@ -265,7 +283,9 @@ function Sidebar({
 					<SettingsIcon height={20} /> Settings
 				</h3>
 				<div className="setting-item">
-					<label htmlFor="start-date">Start Year:</label>
+					<Tooltip content="The calendar will display 12 months starting from January of this year.">
+						<label htmlFor="start-date">Start Year:</label>
+					</Tooltip>
 					<input
 						type="number"
 						id="start-date"
@@ -276,7 +296,9 @@ function Sidebar({
 					/>
 				</div>
 				<div className="setting-item">
-					<label htmlFor="include-weekends">Show Weekends:</label>
+					<Tooltip content="Show or hide Saturday and Sunday columns in the calendar grid.">
+						<label htmlFor="include-weekends">Show Weekends:</label>
+					</Tooltip>
 					<input
 						type="checkbox"
 						id="include-weekends"
@@ -285,7 +307,9 @@ function Sidebar({
 					/>
 				</div>
 				<div className="setting-item">
-					<label htmlFor="show-today">Highlight Today:</label>
+					<Tooltip content="Show a visual indicator on today's date in the calendar.">
+						<label htmlFor="show-today">Highlight Today:</label>
+					</Tooltip>
 					<input
 						type="checkbox"
 						id="show-today"
@@ -300,7 +324,9 @@ function Sidebar({
 						<h4>🏝️ PTO Settings - {getAllDisplayGroups().find(g => g.id === selectedGroupId)?.name}</h4>
 						<p className="sidebar-help-text">Configure vacation/PTO policy for this person/team.</p>
 						<div className="setting-item">
-							<label htmlFor="pto-enabled">Enable PTO Calculation:</label>
+							<Tooltip content="Turn on to track PTO hours and days for this calendar. Click dates on the calendar to log time off.">
+								<label htmlFor="pto-enabled">Enable PTO Calculation:</label>
+							</Tooltip>
 							<input
 								type="checkbox"
 								id="pto-enabled"
@@ -308,11 +334,13 @@ function Sidebar({
 								onChange={(e) => setPTOConfig(selectedGroupId, { isEnabled: e.target.checked })}
 							/>
 						</div>
-						
+
 						{isPTOEnabledForGroup(selectedGroupId) && (
 							<>
 								<div className="setting-item">
-									<label htmlFor="years-of-service">Years of Service:</label>
+									<Tooltip content="How long you've worked at the company. Employees with 5+ years get 26 PTO days/year instead of 21.">
+										<label htmlFor="years-of-service">Years of Service:</label>
+									</Tooltip>
 									<select
 										id="years-of-service"
 										value={getSelectedGroupPTOConfig()?.yearsOfService || 2}
@@ -327,7 +355,9 @@ function Sidebar({
 									</select>
 								</div>
 								<div className="setting-item">
-									<label htmlFor="rollover-hours">Rollover Hours:</label>
+									<Tooltip content="Unused PTO hours from last year that were carried over. Enter 0 if you're starting fresh.">
+										<label htmlFor="rollover-hours">Rollover Hours:</label>
+									</Tooltip>
 									<input
 										type="number"
 										id="rollover-hours"
