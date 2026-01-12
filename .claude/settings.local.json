@@ -11,7 +11,8 @@
       "Bash(npx vite:*)",
       "Skill(frontend-design)",
       "Bash(ls:*)",
-      "Bash(start unispace-design-mockup.html)"
+      "Bash(start unispace-design-mockup.html)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": [],

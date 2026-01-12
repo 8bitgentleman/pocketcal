@@ -1,170 +1,251 @@
+/* Import Crimson Pro font */
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&display=swap');
+
+/* Calendar Grid Layout */
 .calendar-container {
 	flex: 1;
-	padding: 10px;
+	padding: 16px;
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-	gap: 10px;
+	grid-template-columns: repeat(4, 250px);
+	gap: 12px;
 	align-content: start;
 	background-color: var(--bg-color);
 	overflow-y: auto;
 	height: 100%;
 	box-sizing: border-box;
 	max-width: 100%;
+	justify-content: center;
 }
 
-@media (max-width: 768px) {
+/* Responsive Breakpoints */
+@media (max-width: 1400px) {
 	.calendar-container {
-		padding: 10px;
+		grid-template-columns: repeat(3, 250px);
 	}
 }
 
-@media (max-width: 530px) {
+@media (max-width: 1000px) {
 	.calendar-container {
-		grid-template-columns: repeat(auto-fit, 100%);
-		width: 100%;
+		grid-template-columns: repeat(2, 250px);
 	}
 }
 
+@media (max-width: 600px) {
+	.calendar-container {
+		grid-template-columns: repeat(1, 250px);
+		padding: 16px;
+	}
+}
+
+/* Month Card */
 .calendar-month {
-	border: 1px solid var(--border-light-color);
-	padding: 8px;
-	border-radius: 6px;
-	background-color: var(--card-bg-color);
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+	background: var(--card-dark, #1a1a1a);
+	border: 1px solid var(--border-color, #2a2a2a);
+	border-radius: 8px;
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 	min-width: 0;
+	width: 250px;
+	transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Month Header */
 .calendar-month h3 {
 	text-align: center;
-	margin: 0 0 8px 0;
-	color: var(--text-color);
-	font-size: 0.9em;
+	margin: 0;
+	color: #ffffff;
+	font-family: 'Crimson Pro', serif;
+	font-size: 13px;
 	font-weight: 600;
+	letter-spacing: 0.5px;
 }
 
+/* Calendar Grid */
 .calendar-grid {
 	display: grid;
 	grid-template-columns: repeat(7, 1fr);
-	gap: 1px;
-	background-color: var(--border-light-color);
-	padding: 1px;
-	border-radius: 4px;
-	font-size: 0.8em;
+	gap: 2px;
+	font-size: 11px;
 }
 
 .calendar-grid.weekends-hidden {
 	grid-template-columns: repeat(5, 1fr);
 }
 
+/* Weekday Headers */
 .weekday-header {
 	text-align: center;
 	font-weight: 600;
-	font-size: 0.7em;
-	padding: 2px;
-	background-color: var(--hover-bg-color);
-	color: var(--help-text-color);
+	font-size: 9px;
+	text-transform: uppercase;
+	padding: 2px 0;
+	color: var(--text-secondary, #a0a0a0);
+	letter-spacing: 0.5px;
 }
 
+/* Day Cells Base */
 .calendar-day {
-	background-color: var(--card-bg-color);
+	background-color: transparent;
 	border: 1px solid transparent;
-	min-height: 24px;
-	height: 24px;
+	border-radius: 4px;
+	min-height: 28px;
+	height: 28px;
 	padding: 2px;
 	position: relative;
 	cursor: pointer;
 	user-select: none;
-	transition: background-color 0.5s ease;
+	transition: all 0.2s ease;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: var(--text-color);
+	color: var(--text-secondary, #a0a0a0);
 }
 
+/* Day Cell Hover */
 .calendar-day:hover {
-	background-color: var(--hover-bg-color);
+	background-color: rgba(0, 212, 255, 0.1);
+	color: white;
 }
 
+/* Empty cells */
 .calendar-day.empty {
 	background-color: transparent;
 	cursor: default;
 }
 
+.calendar-day.empty:hover {
+	background-color: transparent;
+}
+
+/* Weekend Hidden */
 .calendar-day.weekend-hidden {
 	display: none;
 }
 
-.calendar-day.weekend {
-	background-color: var(--hover-bg-color);
+/* Other Month Days */
+.calendar-day.other-month {
+	opacity: 0.4;
 }
 
-.calendar-day.today .day-number {
-	color: var(--text-color);
-	font-weight: bold;
-	border: 2px solid #eb4888;
-	border-radius: 50%;
-	box-sizing: border-box;
-	width: 20px;
-	height: 20px;
-	padding: 11px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+/* Today */
+.calendar-day.today {
+	background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(139, 92, 246, 0.15));
+	border: 1px solid #00d4ff;
+	color: white;
+	font-weight: 600;
 }
 
-.calendar-day:has(.range-indicator).today .day-number {
-	color: var(--text-color);
-	background-color: var(--card-bg-color);
-	border-color: transparent;
-	text-shadow: none;
-}
-
-.calendar-day.dragging {
-	background-color: #e3f2fd;
-	border: 1px dashed #2196f3;
-}
-
+/* Day Number */
 .day-number {
-	font-size: 0.9em;
-	color: var(--text-color);
-	width: 20px;
-	height: 20px;
+	font-size: 11px;
+	font-weight: 500;
+	color: inherit;
+	width: 100%;
+	height: 100%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	position: relative;
 	z-index: 2;
-	transition: font-weight 0.5s ease;
+	transition: font-weight 0.2s ease;
 }
 
-/* When the calendar day has range indicators, make the number white and bold */
-.calendar-day:has(.range-indicator) .day-number {
-	color: white;
-	font-weight: bold;
-	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+/* PTO States - Single Person */
+.calendar-day.pto-single {
+	background: linear-gradient(135deg, #00d4ff, #8b5cf6);
+	color: #0a0a0a;
+	font-weight: 600;
+	border: 1px solid transparent;
 }
 
+.calendar-day.pto-single .day-number {
+	color: #0a0a0a;
+	font-weight: 600;
+}
+
+/* PTO States - Two People Split */
+.calendar-day.pto-double {
+	background: linear-gradient(180deg, #00d4ff 0%, #00d4ff 50%, #ff6b35 50%, #ff6b35 100%);
+	color: #0a0a0a;
+	font-weight: 600;
+	border: 1px solid transparent;
+}
+
+.calendar-day.pto-double .day-number {
+	color: #0a0a0a;
+	font-weight: 600;
+}
+
+/* PTO States - Three People Triple */
+.calendar-day.pto-triple {
+	background: linear-gradient(180deg, #00d4ff 0%, #00d4ff 33%, #8b5cf6 33%, #8b5cf6 66%, #ff006e 66%, #ff006e 100%);
+	color: #0a0a0a;
+	font-weight: 600;
+	border: 1px solid transparent;
+}
+
+.calendar-day.pto-triple .day-number {
+	color: #0a0a0a;
+	font-weight: 600;
+}
+
+/* Holiday */
+.calendar-day.holiday {
+	background: rgba(255, 107, 53, 0.15);
+	color: #ff6b35;
+	font-weight: 600;
+	border: 1px solid transparent;
+}
+
+.calendar-day.holiday .day-number {
+	color: #ff6b35;
+	font-weight: 600;
+}
+
+.calendar-day.holiday:hover {
+	background: rgba(255, 107, 53, 0.25);
+	color: #ff6b35;
+}
+
+/* Range Indicators (for backward compatibility) */
 .range-indicators {
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
 	z-index: 1;
+	border-radius: 4px;
+	overflow: hidden;
 }
 
 .range-indicator {
 	position: absolute;
 	left: 0;
 	right: 0;
-	border-radius: 2px;
-	transition: opacity 0.5s ease;
+	transition: opacity 0.2s ease;
 }
 
-.range-indicator:hover {
-	opacity: 0.9;
+/* When the calendar day has range indicators, adjust styling */
+.calendar-day:has(.range-indicator) {
+	background-color: transparent;
 }
 
+.calendar-day:has(.range-indicator) .day-number {
+	color: white;
+	font-weight: 600;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* Dragging State */
+.calendar-day.dragging {
+	background-color: rgba(0, 212, 255, 0.2);
+	border: 1px dashed #00d4ff;
+}
+
+/* Focus States */
 .calendar-container:focus {
-	outline: 2px solid rgba(138, 53, 222, 0.5);
+	outline: 2px solid rgba(0, 212, 255, 0.5);
 	outline-offset: 2px;
 }
 
@@ -173,23 +254,7 @@
 }
 
 .calendar-day.focused {
-	outline: 2px solid rgba(138, 53, 222, 0.8);
+	outline: 2px solid rgba(0, 212, 255, 0.8);
 	outline-offset: -2px;
 	z-index: 3;
-}
-
-/* Holiday styling when PTO mode is enabled */
-.calendar-day.holiday {
-	background-color: #ffebee;
-	border-color: #f44336;
-	cursor: not-allowed;
-}
-
-.calendar-day.holiday:hover {
-	background-color: #ffcdd2;
-}
-
-.calendar-day.holiday .day-number {
-	color: #d32f2f;
-	font-weight: bold;
 }

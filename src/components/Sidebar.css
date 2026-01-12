@@ -1,11 +1,13 @@
 .sidebar {
-	min-width: 324px;
-	padding: 16px;
+	width: 280px;
+	min-width: 280px;
+	padding: 20px 16px;
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
-	background-color: var(--bg-color);
-	color: var(--text-color);
+	gap: 12px;
+	background-color: var(--card-dark, #1a1a1a);
+	border-right: 1px solid var(--border-color, #2a2a2a);
+	color: #ffffff;
 	overflow-y: auto;
 	overflow-x: hidden;
 	transition: max-height 0.3s ease;
@@ -19,25 +21,27 @@
 	gap: 16px;
 }
 
-.sidebar h1 {
-	display: block;
-	font-size: 1.5em;
-	margin: 0;
-	padding: 0;
+.logo {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
 	flex: 1;
 }
 
 .sidebar h3 {
 	display: flex;
 	align-items: center;
-	margin: 10px 0 0 0;
+	margin: 16px 0 8px 0;
+	border-bottom: 1px solid var(--border-light-color);
+	padding-bottom: 8px;
+	font-weight: 600;
+	font-size: 15px;
+	color: #ffffff;
 }
 
-.sidebar h1,
-.sidebar h3 {
-	border-bottom: 1px solid var(--border-light-color);
-	padding-bottom: 5px;
-	font-weight: 500;
+.sidebar h3:first-of-type {
+	margin-top: 0;
 }
 
 h2 {
@@ -45,8 +49,25 @@ h2 {
 }
 
 .logo-cal {
-	color: rgb(138, 53, 222);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	background: linear-gradient(135deg, #00d4ff, #8b5cf6);
+	border-radius: 8px;
+	color: #0a0a0a;
 	font-weight: 700;
+	font-size: 18px;
+	margin-right: 8px;
+}
+
+.logo-text {
+	text-transform: uppercase;
+	font-size: 14px;
+	font-weight: 600;
+	color: #a0a0a0;
+	letter-spacing: 0.5px;
 }
 
 .sidebar h3 svg {
@@ -64,15 +85,20 @@ h2 {
 		position: relative;
 		z-index: 10;
 	}
-	.sidebar h1 {
-		border-bottom: none;
-	}
 }
 
 .setting-item {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	gap: 8px;
+	margin-bottom: 10px;
+}
+
+.setting-item label {
+	font-size: 13px;
+	font-weight: 500;
+	color: #e0e0e0;
 }
 
 .setting-item input {
@@ -85,7 +111,8 @@ h2 {
 	border: 1px solid var(--border-color);
 	border-radius: 4px;
 	background-color: var(--input-bg-color);
-	color: var(--text-color);
+	color: #ffffff;
+	font-size: 12px;
 }
 
 .setting-item input[type="number"] {
@@ -94,10 +121,50 @@ h2 {
 
 .setting-help {
 	display: block;
-	font-size: 12px;
+	font-size: 11px;
 	color: var(--help-text-color);
-	margin-top: 4px;
+	margin-top: 2px;
 	font-style: italic;
+	line-height: 1.3;
+}
+
+/* PTO Settings Section - Compact Layout */
+.pto-settings-section {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 0;
+}
+
+.pto-settings-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+
+.pto-settings-header label {
+	font-size: 13px;
+	font-weight: 600;
+	margin: 0;
+}
+
+/* Compact PTO section heading */
+.sidebar h4 {
+	font-size: 13px;
+	font-weight: 600;
+	margin: 16px 0 8px 0;
+	padding: 0;
+	color: #e0e0e0;
+}
+
+/* Tighter spacing for PTO-specific help text */
+.pto-settings-section + .sidebar-help-text,
+.sidebar h4 + .sidebar-help-text {
+	font-size: 11px;
+	margin: 2px 0 8px 0;
+	line-height: 1.3;
 }
 
 .event-groups-list {
@@ -109,15 +176,27 @@ h2 {
 .event-group-item {
 	display: flex;
 	align-items: center;
-	padding: 8px;
-	border: 1px solid var(--border-color);
-	border-radius: 4px;
+	padding: 0px 4px;
+	border: 1px solid transparent;
+	border-radius: 8px;
 	cursor: pointer;
-	background-color: var(--card-bg-color);
+	background-color: transparent;
 	gap: 8px;
 	min-height: 30px;
+	font-size: 14px;
+	font-weight: 500;
+	color: #a0a0a0;
+	transition: all 0.2s ease;
 }
-
+.event-group-item .delete-button {
+	background:transparent !important;
+}
+.event-group-item[aria-label="Event group: Unispace Holidays"]:hover  {
+	background:inherit !important;
+	border:none !important;
+	color:inherit !important;
+	cursor:default !important;
+}
 .event-group-item .group-name {
 	flex-grow: 1;
 	overflow: hidden;
@@ -139,10 +218,9 @@ h2 {
 }
 
 .event-group-item.selected {
-	background: linear-gradient(90deg, var(--card-bg-color), rgba(138, 53, 222, 0.15));
-	background-size: 120% 120%;
-	animation: gradient-animation 2s ease infinite;
-	box-shadow: 0 0 0 2px rgba(138, 53, 222, 0.4);
+	background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(139, 92, 246, 0.1));
+	border: 1px solid #00d4ff;
+	color: #00d4ff;
 }
 
 @keyframes gradient-animation {
@@ -158,7 +236,9 @@ h2 {
 }
 
 .event-group-item:hover {
-	background-color: var(--hover-bg-color);
+	background: rgba(0, 212, 255, 0.05);
+	border: 1px solid #00d4ff;
+	color: #00d4ff;
 }
 
 .color-indicator {
@@ -178,42 +258,55 @@ h2 {
 	background-color: transparent;
 	border: none;
 	cursor: pointer;
+	transition: opacity 0.2s ease;
 }
 
-.event-group-item button:hover svg {
+.event-group-item button:hover {
 	opacity: 0.7;
+}
+
+.event-group-item button:disabled {
+	opacity: 0.3;
+	cursor: not-allowed;
 }
 
 .add-group-button {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 5px;
-	padding: 8px 12px;
+	gap: 8px;
+	padding: 10px 16px;
 	width: 100%;
 	box-sizing: border-box;
-	background: transparent;
-	color: var(--text-color);
-	font-size: 0.85em;
+	background: linear-gradient(135deg, #00d4ff, #8b5cf6, #ff6b35);
+	border: none;
+	border-radius: 10px;
+	color: #0a0a0a;
+	font-size: 14px;
+	font-weight: 600;
+	box-shadow: 0 8px 24px rgba(0, 212, 255, 0.2);
+	transition: all 0.3s ease;
+	cursor: pointer;
 }
 
 .add-group-button:hover {
-	background-color: var(--hover-bg-color);
-	border-color: transparent;
-	transition: background-color 0.3s ease;
+	transform: translateY(-2px);
+	box-shadow: 0 12px 32px rgba(0, 212, 255, 0.3);
 }
 
 .add-group-button:disabled {
-	background-color: var(--hover-bg-color);
-	color: var(--help-text-color);
+	background: #2a2a2a;
+	color: #a0a0a0;
 	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
 }
 
 input {
 	background-color: var(--input-bg-color);
 	border: 1px solid var(--border-color);
 	border-radius: 4px;
-	color: var(--text-color);
+	color: #ffffff;
 	font-size: 1em;
 }
 
@@ -229,10 +322,10 @@ input.group-name-input {
 }
 
 .sidebar-help-text {
-	font-size: 0.85em;
+	font-size: 12px;
 	color: var(--help-text-color);
-	margin: 5px 0 15px 0;
-	line-height: 1.3;
+	margin: 0 0 12px 0;
+	line-height: 1.4;
 	font-style: italic;
 }
 
@@ -270,16 +363,19 @@ input.group-name-input {
 
 .sidebar-footer {
 	margin-top: auto;
+	padding-top: 16px;
 }
 
 .sidebar-footer-buttons {
 	display: flex;
 	gap: 8px;
 	margin-bottom: 8px;
+	flex-wrap: nowrap;
 }
 
 .footer-button {
 	flex: 1;
+	min-width: 0;
 	padding: 8px 12px;
 	background-color: var(--button-bg-color);
 	border: 1px solid var(--border-color);
@@ -291,7 +387,9 @@ input.group-name-input {
 	justify-content: center;
 	gap: 4px;
 	transition: background-color 0.2s;
-	color: var(--text-color);
+	color: #ffffff;
+	box-sizing: border-box;
+	white-space: nowrap;
 }
 
 .footer-button:hover {
@@ -312,7 +410,7 @@ input.group-name-input {
 	align-items: center;
 	justify-content: center;
 	transition: background-color 0.2s ease;
-	color: var(--text-color);
+	color: #ffffff;
 	flex-shrink: 0;
 }
 

@@ -128,7 +128,7 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 						onClick={() => setShowHelpModal(true)}
 						aria-label="Show instructions"
 					>
-						<HelpIcon color="#000" /> Help
+						<HelpIcon width={16} height={16} color="#000" /> Help
 					</button>
 				</Tooltip>
 				<Tooltip content="Copy URL to share your calendar">
@@ -137,20 +137,9 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 						onClick={handleCopyUrl}
 						aria-label="Copy URL to clipboard"
 					>
-						<CopyIcon color="#000" /> Copy URL
+						<CopyIcon width={16} height={16} color="#000" /> URL
 					</button>
 				</Tooltip>
-				{!isProUser && (
-					<Tooltip content="Unlock more calendars and features">
-						<button
-							className="footer-button pro-button"
-							onClick={() => setShowLicenseModal(true)}
-							aria-label="Go Pro"
-						>
-							Go Pro
-						</button>
-					</Tooltip>
-				)}
 			</div>
 		);
 
@@ -160,18 +149,18 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 	return (
 		<div className="sidebar">
 			<div className="sidebar-header">
-				<h1 className="logo">
-					<span className="logo-cal">Unispace</span> PTO Calculator{" "}
-					{isProUser && <span className="pro-badge">Pro</span>}
-				</h1>
-				<DarkModeToggle />
+				<div className="logo">
+					<div className="logo-cal">U</div>
+					<div className="logo-text">UNISPACE</div>
+					{/* <DarkModeToggle /> */}
+				</div>
+				
 			</div>
 
 			<h3>
 				<CalIcon height={20} />
 				People/Teams ({eventGroups.length}/{maxGroups})
 			</h3>
-			<p className="sidebar-help-text">Each group represents a person or team with their own calendar and PTO settings.</p>
 			<div className="event-groups-list" role="list">
 				{getAllDisplayGroups().map((group) => (
 					<div
@@ -219,7 +208,7 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 										className="save-button"
 										aria-label="Save group name"
 									>
-										<SaveIcon color="#000" />
+										<SaveIcon width={16} height={16} color="var(--text-secondary)" />
 									</button>
 									<button
 										onClick={(e) => {
@@ -229,7 +218,7 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 										className="cancel-button"
 										aria-label="Cancel editing"
 									>
-										<XIcon color="#000" />
+										<XIcon width={16} height={16} color="var(--text-secondary)" />
 									</button>
 								</div>
 							</>
@@ -247,7 +236,7 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 											className="edit-button"
 											aria-label={`Edit ${group.name}`}
 										>
-											<PencilIcon color="#000" />
+											<PencilIcon width={16} color="var(--text-secondary)" />
 										</button>
 										<button
 											onClick={(e) => {
@@ -258,7 +247,7 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 											className="delete-button"
 											aria-label={`Delete ${group.name}`}
 										>
-											<TrashIcon color="#000" />
+											<TrashIcon width={16} color="var(--text-secondary)" />
 										</button>
 									</div>
 								)}
@@ -282,7 +271,7 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 				<h3>
 					<SettingsIcon height={20} /> Settings
 				</h3>
-				<div className="setting-item">
+				{/* <div className="setting-item">
 					<Tooltip content="The calendar will display 12 months starting from January of this year.">
 						<label htmlFor="start-date">Start Year:</label>
 					</Tooltip>
@@ -294,7 +283,7 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 						value={startDate.getFullYear()}
 						onChange={handleStartDateChange}
 					/>
-				</div>
+				</div> */}
 				<div className="setting-item">
 					<Tooltip content="Show or hide Saturday and Sunday columns in the calendar grid.">
 						<label htmlFor="include-weekends">Show Weekends:</label>
@@ -321,8 +310,8 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 				{/* Per-Group PTO Settings */}
 				{selectedGroupId && !getAllDisplayGroups().find(g => g.id === selectedGroupId)?.isSpecial && (
 					<>
-						<h4>🏝️ PTO Settings - {getAllDisplayGroups().find(g => g.id === selectedGroupId)?.name}</h4>
-						<p className="sidebar-help-text">Configure vacation/PTO policy for this person/team.</p>
+						<h4>PTO Settings - {getAllDisplayGroups().find(g => g.id === selectedGroupId)?.name}</h4>
+						{/* <p className="sidebar-help-text">Configure vacation/PTO policy for this person/team.</p> */}
 						<div className="setting-item">
 							<Tooltip content="Turn on to track PTO hours and days for this calendar. Click dates on the calendar to log time off.">
 								<label htmlFor="pto-enabled">Enable PTO Calculation:</label>

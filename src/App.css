@@ -2,6 +2,8 @@
 	/* Light mode colors */
 	--bg-color: #f9f9f9;
 	--text-color: #333;
+	--text-primary: #333;
+	--text-secondary: #666;
 	--border-color: #ccc;
 	--border-light-color: #eee;
 	--card-bg-color: #fff;
@@ -15,13 +17,30 @@
 	--warning-bg: #fff3cd;
 	--warning-border: #ffeaa7;
 	--warning-text: #856404;
+
+	/* Base colors */
+	--bg-dark: #0a0a0a;
+	--card-dark: #1a1a1a;
+
+	/* Unispace gradients */
+	--cyan: #00d4ff;
+	--purple: #8b5cf6;
+	--orange: #ff6b35;
+	--pink: #ff006e;
+
+	/* Gradient definitions */
+	--gradient-primary: linear-gradient(135deg, var(--cyan), var(--purple));
+	--gradient-cta: linear-gradient(135deg, var(--cyan), var(--purple), var(--orange));
+	--gradient-button: linear-gradient(135deg, var(--orange), var(--pink));
 }
 
 :root.dark {
 	/* Dark mode colors */
-	--bg-color: #1a1a1a;
+	--bg-color: #0a0a0a;
 	--text-color: #e0e0e0;
-	--border-color: #444;
+	--text-primary: #ffffff;
+	--text-secondary: #a0a0a0;
+	--border-color: #2a2a2a;
 	--border-light-color: #333;
 	--card-bg-color: #2a2a2a;
 	--hover-bg-color: #333;
@@ -61,28 +80,26 @@
 }
 
 ::-webkit-scrollbar-track {
-	background: var(--scrollbar-bg);
-	border-radius: 4px;
+	background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-	background: var(--scrollbar-thumb);
+	background: var(--border-color, #2a2a2a);
 	border-radius: 4px;
-	transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: var(--scrollbar-thumb-hover);
+	background: rgba(139, 92, 246, 0.6);
 }
 
 ::-webkit-scrollbar-corner {
-	background: var(--scrollbar-bg);
+	background: transparent;
 }
 
 /* Firefox scrollbars */
 * {
 	scrollbar-width: thin;
-	scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+	scrollbar-color: var(--border-color, #2a2a2a) transparent;
 }
 
 #root {
@@ -95,7 +112,7 @@
 	position: relative;
 	isolation: isolate;
 	background-color: var(--bg-color);
-	color: var(--text-color);
+	color: var(--text-primary);
 }
 
 .app-container {
@@ -147,4 +164,47 @@
 	max-width: 1200px;
 	margin: 0 auto;
 	padding: 20px;
+}
+
+/* Custom Checkbox Styling */
+input[type="checkbox"] {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 18px;
+	height: 18px;
+	border: 2px solid var(--border-color, #2a2a2a);
+	border-radius: 4px;
+	background-color: transparent;
+	cursor: pointer;
+	position: relative;
+	transition: all 0.2s ease;
+	vertical-align: middle;
+	margin: 0;
+}
+
+input[type="checkbox"]:hover {
+	border-color: #00d4ff;
+	background-color: rgba(0, 212, 255, 0.05);
+}
+
+input[type="checkbox"]:checked {
+	background: linear-gradient(135deg, #00d4ff, #8b5cf6);
+	border-color: #00d4ff;
+}
+
+input[type="checkbox"]:checked::after {
+	content: '✓';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	color: #0a0a0a;
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1;
+}
+
+input[type="checkbox"]:focus {
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
 }

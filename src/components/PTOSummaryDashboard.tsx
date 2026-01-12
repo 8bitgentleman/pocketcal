@@ -6,24 +6,24 @@ import "./PTOSummaryDashboard.css";
 const PTOSummaryDashboard: React.FC = () => {
 	// Subscribe directly to the parts of state we need
 	const selectedGroupId = useStore(state => state.selectedGroupId);
-	const selectedGroup = useStore(state => 
+	const selectedGroup = useStore(state =>
 		state.selectedGroupId ? state.eventGroups.find(g => g.id === state.selectedGroupId) : null
 	);
-	
+
 	// Calculate summary directly from the selected group data
 	const summary = React.useMemo(() => {
 		if (!selectedGroup?.ptoConfig?.isEnabled) return null;
-		
+
 		return PTOCalendarUtils.calculatePTOSummary(
 			selectedGroup.ptoEntries || [],
 			selectedGroup.ptoConfig
 		);
 	}, [selectedGroup?.ptoEntries, selectedGroup?.ptoConfig, selectedGroupId]);
-	
+
 	if (!selectedGroupId || !selectedGroup?.ptoConfig?.isEnabled) {
 		return null;
 	}
-	
+
 	if (!summary) {
 		return null;
 	}
@@ -42,23 +42,19 @@ const PTOSummaryDashboard: React.FC = () => {
 	return (
 		<div className="pto-summary-dashboard">
 			<h3>PTO Summary</h3>
-			
+
 			{/* Main Balance Display */}
 			<div className="pto-balance-overview">
 				<div className="balance-card">
-					<div className="balance-header">
-						<span className="balance-title">Available Balance</span>
-						<span className="balance-main">{summary.remainingHours}h</span>
-					</div>
-					<div className="balance-subtitle">{summary.remainingDays} days remaining</div>
+					<span className="balance-title">Available Balance</span>
+					<span className="balance-main">{summary.remainingHours}h</span>
+					<span className="balance-subtitle">{summary.remainingDays} days remaining</span>
 				</div>
 
 				<div className="balance-card">
-					<div className="balance-header">
-						<span className="balance-title">Used This Year</span>
-						<span className="balance-main">{summary.usedHours}h</span>
-					</div>
-					<div className="balance-subtitle">{summary.usedDays} days used</div>
+					<span className="balance-title">Used This Year</span>
+					<span className="balance-main">{summary.usedHours}h</span>
+					<span className="balance-subtitle">{summary.usedDays} days used</span>
 				</div>
 			</div>
 
@@ -69,7 +65,7 @@ const PTOSummaryDashboard: React.FC = () => {
 					<span>{summary.usedHours}h / {summary.totalHours}h</span>
 				</div>
 				<div className="progress-bar">
-					<div 
+					<div
 						className="progress-fill"
 						style={{
 							width: `${getProgressBarWidth(summary.usedHours, summary.totalHours)}%`,

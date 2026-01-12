@@ -2,22 +2,28 @@
 	background-color: var(--hover-bg-color);
 	border: 1px solid var(--border-color);
 	border-radius: 8px;
-	padding: 16px;
+	padding: 14px 12px;
+	margin-top: 16px;
 	margin-bottom: 16px;
 }
 
 .pto-summary-dashboard h3 {
-	margin: 0 0 16px 0;
-	color: var(--text-color);
-	font-size: 18px;
-	border-bottom: 2px solid #8a35de;
+	margin: 0 0 12px 0;
+	color: #ffffff;
+	font-size: 15px;
+	font-weight: 600;
+	border-bottom: 2px solid transparent;
+	background: linear-gradient(90deg, var(--hover-bg-color), var(--hover-bg-color)) padding-box,
+	            linear-gradient(90deg, #ff6b35, #ff006e) border-box;
+	border-bottom: 2px solid;
+	border-image-slice: 1;
 	padding-bottom: 8px;
 }
 
 .pto-summary-dashboard h4 {
-	margin: 16px 0 8px 0;
-	color: var(--text-color);
-	font-size: 14px;
+	margin: 12px 0 8px 0;
+	color: #ffffff;
+	font-size: 13px;
 	font-weight: 600;
 }
 
@@ -25,46 +31,50 @@
 .pto-balance-overview {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: 12px;
-	margin-bottom: 16px;
+	gap: 10px;
+	margin-bottom: 12px;
 }
 
 .balance-card {
 	background: var(--card-bg-color);
 	border: 1px solid var(--border-color);
 	border-radius: 6px;
-	padding: 12px;
-}
-
-.balance-header {
+	padding: 10px;
 	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 4px;
+	flex-direction: column;
+	gap: 4px;
 }
 
 .balance-title {
-	font-size: 12px;
+	font-size: 11px;
 	color: var(--help-text-color);
 	font-weight: 500;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
+	display: block;
 }
 
 .balance-main {
-	font-size: 20px;
+	font-size: 28px;
 	font-weight: 700;
-	color: #8a35de;
+	background: linear-gradient(135deg, #ff6b35, #ff006e);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	line-height: 1.1;
+	display: block;
+	margin: 2px 0;
 }
 
 .balance-subtitle {
 	font-size: 12px;
 	color: var(--help-text-color);
+	display: block;
 }
 
 /* Progress Bar */
 .pto-progress-section {
-	margin-bottom: 16px;
+	margin-bottom: 12px;
 }
 
 .progress-header {
@@ -74,7 +84,7 @@
 	margin-bottom: 8px;
 	font-size: 14px;
 	font-weight: 500;
-	color: var(--text-color);
+	color: #ffffff;
 }
 
 .progress-bar {
@@ -86,6 +96,7 @@
 
 .progress-fill {
 	height: 100%;
+	background: linear-gradient(90deg, #ff6b35, #ff006e);
 	border-radius: 4px;
 	transition: width 0.3s ease;
 }
@@ -95,8 +106,8 @@
 	background: var(--card-bg-color);
 	border: 1px solid var(--border-color);
 	border-radius: 6px;
-	padding: 12px;
-	margin-bottom: 16px;
+	padding: 10px;
+	margin-bottom: 12px;
 }
 
 .config-item {
@@ -117,13 +128,13 @@
 }
 
 .config-value {
-	color: var(--text-color);
+	color: #ffffff;
 	font-weight: 600;
 }
 
 /* Recent PTO Section */
 .recent-pto-section {
-	margin-bottom: 16px;
+	margin-bottom: 12px;
 }
 
 .recent-pto-list {
@@ -158,12 +169,15 @@
 }
 
 .pto-item-hours {
-	color: #8a35de;
+	background: linear-gradient(135deg, #ff6b35, #ff006e);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
 	font-weight: 600;
 }
 
 .pto-item-name {
-	color: var(--text-color);
+	color: #ffffff;
 	font-style: italic;
 	max-width: 100px;
 	overflow: hidden;
@@ -190,7 +204,10 @@
 	display: block;
 	font-size: 18px;
 	font-weight: 700;
-	color: #8a35de;
+	background: linear-gradient(135deg, #ff6b35, #ff006e);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
 	line-height: 1;
 }
 
@@ -208,13 +225,7 @@
 	.pto-quick-stats {
 		grid-template-columns: 1fr;
 	}
-	
-	.balance-header {
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 4px;
-	}
-	
+
 	.pto-item-details {
 		flex-direction: column;
 		align-items: flex-end;

@@ -1,33 +1,58 @@
+@keyframes slideUp {
+	from {
+		transform: translateY(20px);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
 .modal-overlay {
 	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background-color: rgba(0, 0, 0, 0.5);
+	background: rgba(10, 10, 10, 0.8);
+	backdrop-filter: blur(4px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	z-index: 1000;
+	transition: all 0.3s ease;
 }
 
 .modal-content {
-	background: var(--card-bg-color);
-	border-radius: 8px;
-	padding: 24px;
-	max-width: 500px;
+	background: rgba(26, 26, 26, 0.95);
+	border: 1px solid #2a2a2a;
+	border-radius: 16px;
+	padding: 32px;
+	max-width: 400px;
 	max-height: 80vh;
 	overflow-y: auto;
 	position: relative;
-	color: var(--text-color);
+	color: #ffffff;
+	backdrop-filter: blur(10px);
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+	animation: slideUp 0.3s ease;
 }
 
 .modal-content a {
-	color: #8a35de;
+	color: #00d4ff;
+	transition: color 0.2s ease;
+}
+
+.modal-content a:hover {
+	color: #ff6b35;
 }
 
 .modal-content h2 {
 	margin-top: -10px;
+	font-family: 'Crimson Pro', serif;
+	font-size: 22px;
+	font-weight: 600;
 }
 
 .modal-content h2,
@@ -63,32 +88,51 @@
 }
 
 button.btn {
-	background-color: #8a35de;
-	color: white;
+	padding: 8px 12px;
+	border-radius: 8px;
+	background: linear-gradient(135deg, #ff6b35, #ff006e);
 	border: none;
-	border-radius: 4px;
-	padding: 8px 16px;
+	color: #0a0a0a;
+	font-weight: 600;
 	cursor: pointer;
+	transition: all 0.2s ease;
+	font-family: 'Archivo', sans-serif;
+}
+
+button.btn:hover:not([disabled]) {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
 button.btn[disabled] {
-	background-color: #8a35de99;
+	opacity: 0.5;
 	cursor: not-allowed;
 }
 
-input[type="text"] {
-	padding: 8px;
-	border: 1px solid var(--border-color);
-	border-radius: 4px;
+input[type="text"],
+textarea {
+	padding: 10px 12px;
+	border: 1px solid #2a2a2a;
+	border-radius: 8px;
 	margin-top: 8px;
 	width: 100%;
 	box-sizing: border-box;
-	background-color: var(--input-bg-color);
-	color: var(--text-color);
+	background: rgba(255, 255, 255, 0.05);
+	color: white;
+	font-family: 'Archivo', sans-serif;
+	transition: all 0.2s ease;
 }
-input[type="text"]:focus {
-	border-color: #8a35de;
+input[type="text"]:focus,
+textarea:focus {
+	border-color: #00d4ff;
+	background: rgba(0, 212, 255, 0.05);
+	box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
 	outline: none;
+}
+
+textarea {
+	resize: vertical;
+	min-height: 80px;
 }
 
 .error-message {
@@ -124,7 +168,7 @@ pre.license-key-display {
 	overflow-x: auto;
 	font-family: monospace;
 	margin-top: 8px;
-	color: var(--text-color);
+	color: #ffffff;
 }
 
 /* PTO Modal Styles */
@@ -134,8 +178,10 @@ pre.license-key-display {
 
 .pto-date-info h3 {
 	margin: 0 0 16px 0;
-	color: var(--text-color);
+	color: #ffffff;
 	font-size: 18px;
+	font-family: 'Crimson Pro', serif;
+	font-weight: 600;
 }
 
 .holiday-warning {
@@ -160,7 +206,7 @@ pre.license-key-display {
 	display: block;
 	margin-bottom: 8px;
 	font-weight: 600;
-	color: var(--text-color);
+	color: #ffffff;
 }
 
 .hours-buttons {
@@ -179,18 +225,19 @@ pre.license-key-display {
 	font-size: 14px;
 	flex: 1;
 	min-width: 120px;
-	color: var(--text-color);
+	color: #ffffff;
 }
 
 .hour-button:hover {
-	border-color: #8a35de;
-	background-color: var(--hover-bg-color);
+	border-color: #00d4ff;
+	background-color: rgba(0, 212, 255, 0.05);
 }
 
 .hour-button.selected {
-	border-color: #8a35de;
-	background-color: #8a35de;
-	color: white;
+	border-color: #00d4ff;
+	background: linear-gradient(135deg, #ff6b35, #ff006e);
+	color: #0a0a0a;
+	font-weight: 600;
 }
 
 .pto-description {
@@ -201,7 +248,7 @@ pre.license-key-display {
 	display: block;
 	margin-bottom: 8px;
 	font-weight: 600;
-	color: var(--text-color);
+	color: #ffffff;
 }
 
 .pto-balance-info {
@@ -213,8 +260,10 @@ pre.license-key-display {
 
 .pto-balance-info h4 {
 	margin: 0 0 12px 0;
-	color: var(--text-color);
+	color: #ffffff;
 	font-size: 16px;
+	font-family: 'Crimson Pro', serif;
+	font-weight: 600;
 }
 
 .balance-grid {
@@ -235,7 +284,7 @@ pre.license-key-display {
 
 .balance-value {
 	font-weight: 600;
-	color: var(--text-color);
+	color: #ffffff;
 }
 
 .pto-modal-actions {
@@ -252,37 +301,46 @@ pre.license-key-display {
 }
 
 .cancel-button, .submit-button, .delete-button {
-	padding: 10px 20px;
-	border-radius: 4px;
-	border: none;
+	padding: 8px 12px;
+	border-radius: 8px;
 	cursor: pointer;
 	font-weight: 500;
-	transition: background-color 0.2s ease;
+	transition: all 0.2s ease;
+	font-family: 'Archivo', sans-serif;
+	font-size: 12px;
 }
 
 .cancel-button {
-	background-color: #6c757d;
+	border: 1px solid #2a2a2a;
+	background: transparent;
 	color: white;
 }
 
 .cancel-button:hover {
-	background-color: #5a6268;
+	border-color: #a0a0a0;
+	background: rgba(255, 255, 255, 0.05);
 }
 
 .submit-button {
-	background-color: #8a35de;
-	color: white;
+	background: linear-gradient(135deg, #ff6b35, #ff006e);
+	border: none;
+	color: #0a0a0a;
+	font-weight: 600;
 }
 
 .submit-button:hover {
-	background-color: #7429c7;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
 .delete-button {
-	background-color: #dc3545;
+	background: linear-gradient(135deg, #ff006e, #dc3545);
+	border: none;
 	color: white;
+	font-weight: 600;
 }
 
 .delete-button:hover {
-	background-color: #c82333;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }

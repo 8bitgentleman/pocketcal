@@ -359,7 +359,11 @@ export const useStore = create<AppState>((set, get) => ({
 				if (decodedState.startDate || decodedState.s) {
 					if (decodedState.s) {
 						const parsedDate = parseISO(decodedState.s);
-						const startDate = new Date(parsedDate.getFullYear(), 0, 1);
+						const savedYear = parsedDate.getFullYear();
+						const currentYear = new Date().getFullYear();
+						// Use current year if saved year is in the past
+						const yearToUse = savedYear < currentYear ? currentYear : savedYear;
+						const startDate = new Date(yearToUse, 0, 1);
 						const usedColorIndices = new Set<number>();
 
 						const validGroups = (decodedState.g || []).filter((g: any) => {
@@ -442,13 +446,25 @@ export const useStore = create<AppState>((set, get) => ({
 									? eventGroups
 									: [createDefaultEventGroup()],
 							selectedGroupId: eventGroups[0]?.id ?? null,
+							holidays: createHolidaysCalendar(yearToUse), // Update holidays to match the year
 						});
 					} else {
 						const eventGroups = decodedState.eventGroups ?? [
 							createDefaultEventGroup(),
 						];
 						set({
-							startDate: new Date(parseISO(decodedState.startDate).getFullYear(), 0, 1),
+							startDate: (() => {
+							const savedYear = parseISO(decodedState.startDate).getFullYear();
+							const currentYear = new Date().getFullYear();
+							const yearToUse = savedYear < currentYear ? currentYear : savedYear;
+							return new Date(yearToUse, 0, 1);
+						})(),
+						holidays: (() => {
+							const savedYear = parseISO(decodedState.startDate).getFullYear();
+							const currentYear = new Date().getFullYear();
+							const yearToUse = savedYear < currentYear ? currentYear : savedYear;
+							return createHolidaysCalendar(yearToUse);
+						})(),
 							includeWeekends: decodedState.includeWeekends ?? true,
 							showToday: decodedState.showToday ?? true,
 							eventGroups,

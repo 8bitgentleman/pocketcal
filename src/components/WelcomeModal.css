@@ -17,8 +17,10 @@
 
 .welcome-modal h2 {
 	margin: 0 0 16px 0;
-	color: var(--text-color);
+	color: #ffffff;
 	font-size: 22px;
+	font-family: 'Crimson Pro', serif;
+	font-weight: 600;
 }
 
 .welcome-content {
@@ -28,7 +30,7 @@
 
 .welcome-content p {
 	margin: 0 0 12px 0;
-	color: var(--text-color);
+	color: #ffffff;
 }
 
 .welcome-content ul {
@@ -38,15 +40,15 @@
 
 .welcome-content li {
 	margin-bottom: 8px;
-	color: var(--text-color);
+	color: #ffffff;
 }
 
 .welcome-content .tip {
-	background-color: var(--hover-bg-color);
-	border-left: 3px solid #8a35de;
+	background: rgba(0, 212, 255, 0.05);
+	border-left: 3px solid #00d4ff;
 	padding: 12px;
 	margin-top: 16px;
-	border-radius: 0 4px 4px 0;
+	border-radius: 0 8px 8px 0;
 }
 
 .welcome-navigation {
@@ -79,7 +81,7 @@
 }
 
 .step-dot.active {
-	background-color: #8a35de;
+	background: linear-gradient(135deg, #ff6b35, #ff006e);
 }
 
 .welcome-buttons {
@@ -88,32 +90,36 @@
 }
 
 .welcome-btn {
-	padding: 10px 20px;
-	border-radius: 4px;
-	border: none;
+	padding: 8px 12px;
+	border-radius: 8px;
 	cursor: pointer;
 	font-weight: 500;
-	font-size: 14px;
-	transition: background-color 0.2s ease;
+	font-size: 12px;
+	transition: all 0.2s ease;
+	font-family: 'Archivo', sans-serif;
 }
 
 .welcome-btn.primary {
-	background-color: #8a35de;
-	color: white;
+	background: linear-gradient(135deg, #ff6b35, #ff006e);
+	border: none;
+	color: #0a0a0a;
+	font-weight: 600;
 }
 
 .welcome-btn.primary:hover {
-	background-color: #7429c7;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
 .welcome-btn.secondary {
-	background-color: var(--hover-bg-color);
-	color: var(--text-color);
-	border: 1px solid var(--border-color);
+	background: transparent;
+	color: white;
+	border: 1px solid #2a2a2a;
 }
 
 .welcome-btn.secondary:hover {
-	background-color: var(--border-color);
+	border-color: #a0a0a0;
+	background: rgba(255, 255, 255, 0.05);
 }
 
 .welcome-footer {
@@ -132,7 +138,7 @@
 }
 
 .dont-show-btn:hover {
-	color: var(--text-color);
+	color: #ffffff;
 }
 
 /* Info icon button for re-accessing welcome */
@@ -156,9 +162,9 @@
 }
 
 .info-button:hover {
-	border-color: #8a35de;
-	color: #8a35de;
-	background-color: rgba(138, 53, 222, 0.1);
+	border-color: #00d4ff;
+	color: #00d4ff;
+	background-color: rgba(0, 212, 255, 0.1);
 }
 
 /* Tooltip styles */
@@ -176,17 +182,16 @@
 .tooltip-content {
 	position: absolute;
 	bottom: calc(100% + 8px);
-	left: 50%;
-	transform: translateX(-50%);
+	left: 0;
 	background-color: rgba(0, 0, 0, 0.9);
 	color: white;
 	padding: 8px 12px;
 	border-radius: 6px;
-	font-size: 13px;
+	font-size: 12px;
 	line-height: 1.4;
 	white-space: normal;
 	width: max-content;
-	max-width: 250px;
+	max-width: 220px;
 	z-index: 1000;
 	pointer-events: none;
 	opacity: 0;
@@ -199,9 +204,8 @@
 	content: "";
 	position: absolute;
 	top: 100%;
-	left: 50%;
-	transform: translateX(-50%);
-	border: 6px solid transparent;
+	left: 16px;
+	border: 5px solid transparent;
 	border-top-color: rgba(0, 0, 0, 0.9);
 }
 

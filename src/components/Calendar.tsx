@@ -457,7 +457,7 @@ const Calendar: React.FC = () => {
 				const nameText = ptoEntry.name ? ` - ${ptoEntry.name}` : "";
 				const dayText = ptoEntry.startDate === ptoEntry.endDate ? "" : 
 								` (${ptoEntry.startDate} to ${ptoEntry.endDate})`;
-				return `🏝️ PTO: ${hourText} (${ptoEntry.hoursPerDay}h)${nameText}${dayText}`;
+				return `PTO: ${hourText} (${ptoEntry.hoursPerDay}h)${nameText}${dayText}`;
 			}
 		}
 
@@ -504,6 +504,37 @@ const Calendar: React.FC = () => {
 
 	const getDayClassName = (date: Date): string => {
 		let className = "calendar-day";
+		const dateStr = formatISO(date, { representation: "date" });
+
+		// Check for holidays first
+		const allGroups = getAllDisplayGroups();
+		const holidayGroup = allGroups.find(g => g.name === "Unispace Holidays");
+		const isHoliday = holidayGroup && isDateInRange(date, holidayGroup);
+
+		// Count PTO entries across all PTO-enabled groups for this date
+		let ptoCount = 0;
+		const ptoGroups = allGroups.filter(group =>
+			group.ptoConfig?.isEnabled &&
+			group.ptoEntries &&
+			group.ptoEntries.some(entry =>
+				dateStr >= entry.startDate && dateStr <= entry.endDate
+			)
+		);
+		ptoCount = ptoGroups.length;
+
+		// Apply PTO state classes based on count
+		if (ptoCount === 1) {
+			className += " pto-single";
+		} else if (ptoCount === 2) {
+			className += " pto-double";
+		} else if (ptoCount >= 3) {
+			className += " pto-triple";
+		}
+
+		// Apply holiday class if it's a holiday
+		if (isHoliday) {
+			className += " holiday";
+		}
 
 		if (showToday && checkSameDay(date, today)) {
 			className += " today";
@@ -518,8 +549,6 @@ const Calendar: React.FC = () => {
 		if (focusedDate && checkSameDay(date, focusedDate)) {
 			className += " focused";
 		}
-
-		// Remove hard-coded holiday styling - holidays are now handled as a regular calendar
 
 		if (isDragging && dragStartDate && dragEndDate) {
 			const currentDragStart = isBefore(dragStartDate, dragEndDate)

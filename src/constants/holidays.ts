@@ -56,13 +56,17 @@ export const HOLIDAYS_2026: Record<number, string> = {
   119: "MLK Jr. Day",
   525: "Memorial Day",
   619: "Juneteenth",
-  703: "Independence Day Eve",
-  704: "Independence Day", 
+  702: "Independence Day Eve",
+  703: "Independence Day", 
   907: "Labor Day",
   1012: "Indigenous People's Day",
   1126: "Thanksgiving",
   1127: "Day after Thanksgiving",
   1225: "Christmas",
+  1228: "Unispace Gift Day",
+  1229: "Unispace Gift Day",
+  1230: "Unispace Gift Day",
+  1231: "Unispace Gift Day"
 };
 
 /**

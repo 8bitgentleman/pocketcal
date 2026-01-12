@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pocketcal - Unispace Design Mockup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Crimson+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0a0a;
+            --card-dark: #1a1a1a;
+            --cyan: #00d4ff;
+            --purple: #8b5cf6;
+            --orange: #ff6b35;
+            --pink: #ff006e;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border-color: #2a2a2a;
+        }
+
+        body {
+            font-family: 'Archivo', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            gap: 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--card-dark);
+            border-right: 1px solid var(--border-color);
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            overflow-y: auto;
+        }
+
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--bg-dark);
+        }
+
+        .logo-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            background-color: transparent;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(0, 212, 255, 0.05);
+            color: var(--cyan);
+            border-color: var(--cyan);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(139, 92, 246, 0.1));
+            color: var(--cyan);
+            border-color: var(--cyan);
+        }
+
+        .cta-button {
+            margin-top: auto;
+            padding: 14px 20px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--cyan), var(--purple), var(--orange));
+            color: var(--bg-dark);
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.2);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Calendar */
+        .calendar-section {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(250px, 250px));
+            gap: 16px;
+            flex: 1;
+            align-content: start;
+            justify-content: start;
+        }
+
+        .calendar-month {
+            background-color: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all 0.3s ease;
+            width: 250px;
+        }
+
+        .month-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .month-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .month-nav {
+            display: none;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            margin-bottom: 2px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-size: 9px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            padding: 2px 0;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            min-height: 28px;
+        }
+
+        .day:hover {
+            background-color: rgba(0, 212, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .day.other-month {
+            color: rgba(160, 160, 160, 0.4);
+        }
+
+        .day.today {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(139, 92, 246, 0.15));
+            border-color: var(--cyan);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .day.with-event {
+            position: relative;
+        }
+
+        .day.holiday {
+            position: relative;
+            background-color: rgba(255, 107, 53, 0.15);
+            color: var(--orange);
+            font-weight: 600;
+        }
+
+        .event-indicator {
+            position: absolute;
+            bottom: 1px;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--cyan);
+        }
+
+        .day.pto {
+            position: relative;
+            background: linear-gradient(135deg, var(--cyan), var(--purple)) !important;
+            color: var(--bg-dark) !important;
+            font-weight: 600;
+        }
+
+        .day.pto:hover {
+            background: linear-gradient(135deg, var(--cyan), var(--purple)) !important;
+            opacity: 0.9;
+        }
+
+        /* Split backgrounds for multiple PTOs */
+        .day.pto-split {
+            position: relative;
+            background: linear-gradient(180deg, var(--cyan) 0%, var(--cyan) 50%, var(--orange) 50%, var(--orange) 100%) !important;
+            color: var(--bg-dark) !important;
+            font-weight: 600;
+        }
+
+        .day.pto-triple {
+            position: relative;
+            background: linear-gradient(180deg, var(--cyan) 0%, var(--cyan) 33%, var(--purple) 33%, var(--purple) 66%, var(--pink) 66%, var(--pink) 100%) !important;
+            color: var(--bg-dark) !important;
+            font-weight: 600;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            display: none;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: transparent;
+            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            border-color: var(--text-secondary);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, var(--orange), var(--pink));
+            border: none;
+            color: var(--bg-dark);
+            font-weight: 600;
+        }
+
+        .btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .modal-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .modal-body {
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-group input {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: 'Archivo', sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--cyan);
+            background-color: rgba(0, 212, 255, 0.05);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-footer .btn {
+            flex: 1;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 92, 246, 0.6);
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .calendar-section {
+                grid-template-columns: repeat(3, minmax(250px, 250px));
+            }
+        }
+
+        @media (max-width: 1000px) {
+            .calendar-section {
+                grid-template-columns: repeat(2, minmax(250px, 250px));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .calendar-section {
+                grid-template-columns: minmax(250px, 250px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <div class="logo">U</div>
+                <div class="logo-text">Unispace</div>
+            </div>
+
+            <nav class="nav-section">
+                <a href="#" class="nav-item active">Calendar</a>
+                <a href="#" class="nav-item">PTO Requests</a>
+                <a href="#" class="nav-item">Team View</a>
+                <a href="#" class="nav-item">Settings</a>
+            </nav>
+
+            <button class="cta-button" onclick="openModal()">Request PTO</button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <h1>Your Calendar</h1>
+                <p>Seamlessly manage your time and PTO</p>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="calendar-section">
+                <!-- January -->
+                <div class="calendar-month">
+                    <div class="month-header">
+                        <div class="month-title">January 2025</div>
+                        <div class="month-nav">
+                            <button>&lt;</button>
+                            <button>&gt;</button>
+                        </div>
+                    </div>
+
+                    <div class="weekdays">
+                        <div class="weekday">Sun</div>
+                        <div class="weekday">Mon</div>
+                        <div class="weekday">Tue</div>
+                        <div class="weekday">Wed</div>
+                        <div class="weekday">Thu</div>
+                        <div class="weekday">Fri</div>
+                        <div class="weekday">Sat</div>
+                    </div>
+
+                    <div class="days">
+                        <div class="day other-month">29</div>
+                        <div class="day other-month">30</div>
+                        <div class="day other-month">31</div>
+                        <div class="day">1</div>
+                        <div class="day">2</div>
+                        <div class="day">3</div>
+                        <div class="day">4</div>
+                        <div class="day">5</div>
+                        <div class="day with-event">
+                            6
+                            <div class="event-indicator"></div>
+                        </div>
+                        <div class="day">7</div>
+                        <div class="day">8</div>
+                        <div class="day pto">9</div>
+                        <div class="day pto">10</div>
+                        <div class="day pto">11</div>
+                        <div class="day">12</div>
+                        <div class="day today">13</div>
+                        <div class="day">14</div>
+                        <div class="day">15</div>
+                        <div class="day pto-split">16</div>
+                        <div class="day">17</div>
+                        <div class="day">18</div>
+                        <div class="day pto">19</div>
+                        <div class="day pto-triple">20</div>
+                        <div class="day">21</div>
+                        <div class="day">22</div>
+                        <div class="day">23</div>
+                        <div class="day">24</div>
+                        <div class="day">25</div>
+                        <div class="day">26</div>
+                        <div class="day">27</div>
+                        <div class="day">28</div>
+                        <div class="day">29</div>
+                        <div class="day">30</div>
+                        <div class="day">31</div>
+                        <div class="day other-month">1</div>
+                        <div class="day other-month">2</div>
+                        <div class="day other-month">3</div>
+                    </div>
+
+                </div>
+
+                <!-- February -->
+                <div class="calendar-month">
+                    <div class="month-header">
+                        <div class="month-title">February 2025</div>
+                    </div>
+                    <div class="weekdays">
+                        <div class="weekday">Sun</div>
+                        <div class="weekday">Mon</div>
+                        <div class="weekday">Tue</div>
+                        <div class="weekday">Wed</div>
+                        <div class="weekday">Thu</div>
+                        <div class="weekday">Fri</div>
+                        <div class="weekday">Sat</div>
+                    </div>
+                    <div class="days">
+                        <div class="day other-month">26</div>
+                        <div class="day other-month">27</div>
+                        <div class="day other-month">28</div>
+                        <div class="day other-month">29</div>
+                        <div class="day other-month">30</div>
+                        <div class="day other-month">31</div>
+                        <div class="day">1</div>
+                        <div class="day">2</div>
+                        <div class="day">3</div>
+                        <div class="day">4</div>
+                        <div class="day">5</div>
+                        <div class="day">6</div>
+                        <div class="day">7</div>
+                        <div class="day">8</div>
+                        <div class="day">9</div>
+                        <div class="day">10</div>
+                        <div class="day pto">11</div>
+                        <div class="day pto">12</div>
+                        <div class="day pto">13</div>
+                        <div class="day pto">14</div>
+                        <div class="day">15</div>
+                        <div class="day">16</div>
+                        <div class="day">17</div>
+                        <div class="day">18</div>
+                        <div class="day">19</div>
+                        <div class="day">20</div>
+                        <div class="day">21</div>
+                        <div class="day">22</div>
+                        <div class="day">23</div>
+                        <div class="day">24</div>
+                        <div class="day">25</div>
+                        <div class="day">26</div>
+                        <div class="day">27</div>
+                        <div class="day">28</div>
+                        <div class="day other-month">1</div>
+                    </div>
+                </div>
+
+                <!-- March -->
+                <div class="calendar-month">
+                    <div class="month-header">
+                        <div class="month-title">March 2025</div>
+                    </div>
+                    <div class="weekdays">
+                        <div class="weekday">Sun</div>
+                        <div class="weekday">Mon</div>
+                        <div class="weekday">Tue</div>
+                        <div class="weekday">Wed</div>
+                        <div class="weekday">Thu</div>
+                        <div class="weekday">Fri</div>
+                        <div class="weekday">Sat</div>
+                    </div>
+                    <div class="days">
+                        <div class="day other-month">23</div>
+                        <div class="day other-month">24</div>
+                        <div class="day other-month">25</div>
+                        <div class="day other-month">26</div>
+                        <div class="day other-month">27</div>
+                        <div class="day other-month">28</div>
+                        <div class="day">1</div>
+                        <div class="day">2</div>
+                        <div class="day">3</div>
+                        <div class="day">4</div>
+                        <div class="day">5</div>
+                        <div class="day">6</div>
+                        <div class="day">7</div>
+                        <div class="day">8</div>
+                        <div class="day">9</div>
+                        <div class="day">10</div>
+                        <div class="day">11</div>
+                        <div class="day">12</div>
+                        <div class="day">13</div>
+                        <div class="day">14</div>
+                        <div class="day">15</div>
+                        <div class="day">16</div>
+                        <div class="day">17</div>
+                        <div class="day">18</div>
+                        <div class="day">19</div>
+                        <div class="day">20</div>
+                        <div class="day">21</div>
+                        <div class="day">22</div>
+                        <div class="day">23</div>
+                        <div class="day">24</div>
+                        <div class="day">25</div>
+                        <div class="day">26</div>
+                        <div class="day">27</div>
+                        <div class="day">28</div>
+                        <div class="day">29</div>
+                        <div class="day">30</div>
+                        <div class="day">31</div>
+                    </div>
+                </div>
+
+                <!-- April -->
+                <div class="calendar-month">
+                    <div class="month-header">
+                        <div class="month-title">April 2025</div>
+                    </div>
+                    <div class="weekdays">
+                        <div class="weekday">Sun</div>
+                        <div class="weekday">Mon</div>
+                        <div class="weekday">Tue</div>
+                        <div class="weekday">Wed</div>
+                        <div class="weekday">Thu</div>
+                        <div class="weekday">Fri</div>
+                        <div class="weekday">Sat</div>
+                    </div>
+                    <div class="days">
+                        <div class="day other-month">30</div>
+                        <div class="day other-month">31</div>
+                        <div class="day">1</div>
+                        <div class="day">2</div>
+                        <div class="day">3</div>
+                        <div class="day">4</div>
+                        <div class="day">5</div>
+                        <div class="day">6</div>
+                        <div class="day">7</div>
+                        <div class="day">8</div>
+                        <div class="day">9</div>
+                        <div class="day">10</div>
+                        <div class="day">11</div>
+                        <div class="day">12</div>
+                        <div class="day">13</div>
+                        <div class="day">14</div>
+                        <div class="day">15</div>
+                        <div class="day">16</div>
+                        <div class="day">17</div>
+                        <div class="day">18</div>
+                        <div class="day">19</div>
+                        <div class="day">20</div>
+                        <div class="day">21</div>
+                        <div class="day">22</div>
+                        <div class="day">23</div>
+                        <div class="day">24</div>
+                        <div class="day">25</div>
+                        <div class="day">26</div>
+                        <div class="day">27</div>
+                        <div class="day">28</div>
+                        <div class="day">29</div>
+                        <div class="day">30</div>
+                    </div>
+                </div>
+
+                <!-- May through December - simplified -->
+                <div class="calendar-month"><div class="month-header"><div class="month-title">May 2025</div></div><div class="weekdays"><div class="weekday">Sun</div><div class="weekday">Mon</div><div class="weekday">Tue</div><div class="weekday">Wed</div><div class="weekday">Thu</div><div class="weekday">Fri</div><div class="weekday">Sat</div></div><div class="days"><div class="day other-month">27</div><div class="day other-month">28</div><div class="day other-month">29</div><div class="day other-month">30</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div><div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div><div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div><div class="day pto">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div></div></div>
+
+                <div class="calendar-month"><div class="month-header"><div class="month-title">June 2025</div></div><div class="weekdays"><div class="weekday">Sun</div><div class="weekday">Mon</div><div class="weekday">Tue</div><div class="weekday">Wed</div><div class="weekday">Thu</div><div class="weekday">Fri</div><div class="weekday">Sat</div></div><div class="days"><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div><div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div><div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day pto">19</div><div class="day">20</div><div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div></div></div>
+
+                <div class="calendar-month"><div class="month-header"><div class="month-title">July 2025</div></div><div class="weekdays"><div class="weekday">Sun</div><div class="weekday">Mon</div><div class="weekday">Tue</div><div class="weekday">Wed</div><div class="weekday">Thu</div><div class="weekday">Fri</div><div class="weekday">Sat</div></div><div class="days"><div class="day other-month">29</div><div class="day other-month">30</div><div class="day">1</div><div class="day">2</div><div class="day holiday">3</div><div class="day holiday">4</div><div class="day">5</div><div class="day">6</div><div class="day with-event">7<div class="event-indicator"></div></div><div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div><div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div></div></div>
+
+                <div class="calendar-month"><div class="month-header"><div class="month-title">August 2025</div></div><div class="weekdays"><div class="weekday">Sun</div><div class="weekday">Mon</div><div class="weekday">Tue</div><div class="weekday">Wed</div><div class="weekday">Thu</div><div class="weekday">Fri</div><div class="weekday">Sat</div></div><div class="days"><div class="day other-month">27</div><div class="day other-month">28</div><div class="day other-month">29</div><div class="day other-month">30</div><div class="day other-month">31</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div><div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div><div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div></div></div>
+
+                <div class="calendar-month"><div class="month-header"><div class="month-title">September 2025</div></div><div class="weekdays"><div class="weekday">Sun</div><div class="weekday">Mon</div><div class="weekday">Tue</div><div class="weekday">Wed</div><div class="weekday">Thu</div><div class="weekday">Fri</div><div class="weekday">Sat</div></div><div class="days"><div class="day other-month">31</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day with-event">7<div class="event-indicator"></div></div><div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div><div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div></div></div>
+
+                <div class="calendar-month"><div class="month-header"><div class="month-title">October 2025</div></div><div class="weekdays"><div class="weekday">Sun</div><div class="weekday">Mon</div><div class="weekday">Tue</div><div class="weekday">Wed</div><div class="weekday">Thu</div><div class="weekday">Fri</div><div class="weekday">Sat</div></div><div class="days"><div class="day other-month">28</div><div class="day other-month">29</div><div class="day other-month">30</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div><div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div><div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div></div></div>
+
+                <div class="calendar-month"><div class="month-header"><div class="month-title">November 2025</div></div><div class="weekdays"><div class="weekday">Sun</div><div class="weekday">Mon</div><div class="weekday">Tue</div><div class="weekday">Wed</div><div class="weekday">Thu</div><div class="weekday">Fri</div><div class="weekday">Sat</div></div><div class="days"><div class="day other-month">26</div><div class="day other-month">27</div><div class="day other-month">28</div><div class="day other-month">29</div><div class="day other-month">30</div><div class="day other-month">31</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div><div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div><div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div></div></div>
+
+                <div class="calendar-month"><div class="month-header"><div class="month-title">December 2025</div></div><div class="weekdays"><div class="weekday">Sun</div><div class="weekday">Mon</div><div class="weekday">Tue</div><div class="weekday">Wed</div><div class="weekday">Thu</div><div class="weekday">Fri</div><div class="weekday">Sat</div></div><div class="days"><div class="day other-month">30</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div><div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div><div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div></div></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Request Time Off</h2>
+                <p class="modal-subtitle">Submit your PTO request with dates and details</p>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" placeholder="Select start date">
+                </div>
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" placeholder="Select end date">
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <input type="text" placeholder="e.g., Vacation, Sick Leave" value="Vacation">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal()">Cancel</button>
+                <button class="btn primary">Submit Request</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        // Close modal when clicking overlay
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
