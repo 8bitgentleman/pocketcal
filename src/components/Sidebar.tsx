@@ -8,27 +8,24 @@ import SaveIcon from "./icons/SaveIcon";
 import PlusIcon from "./icons/PlusIcon";
 import SettingsIcon from "./icons/SettingsIcon";
 import HelpIcon from "./icons/HelpIcon";
-import CopyIcon from "./icons/CopyIcon";
+import ShareIcon from "./icons/ShareIcon";
 import InfoIcon from "./icons/InfoIcon";
 import PTOSummaryDashboard from "./PTOSummaryDashboard";
-import DarkModeToggle from "./DarkModeToggle";
 import Tooltip from "./Tooltip";
 
 import "./Sidebar.css";
 
 interface SidebarProps {
-	setShowLicenseModal: (show: boolean) => void;
 	onShowWelcome: () => void;
+	onShowShareModal: () => void;
 }
 
-function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
+function Sidebar({ onShowWelcome, onShowShareModal }: SidebarProps) {
 	const {
-		startDate,
 		includeWeekends,
 		showToday,
 		eventGroups,
 		selectedGroupId,
-		setStartDate,
 		setIncludeWeekends,
 		setShowToday,
 		setShowHelpModal,
@@ -94,22 +91,6 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 		}
 	};
 
-	const handleCopyUrl = () => {
-		navigator.clipboard.writeText(window.location.href);
-	};
-
-	const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		try {
-			const year = parseInt(e.target.value);
-			if (year >= 2020 && year <= 2030) {
-				const newDate = new Date(year, 0, 1); // January 1st of the selected year
-				setStartDate(newDate);
-			}
-		} catch (error) {
-			console.error("Invalid year format", error);
-		}
-	};
-
 	const footerGroups = () => {
 		const helpAndCopyButtons = (
 			<div className="sidebar-footer-buttons">
@@ -131,13 +112,13 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 						<HelpIcon width={16} height={16} color="#000" /> Help
 					</button>
 				</Tooltip>
-				<Tooltip content="Copy URL to share your calendar">
+				<Tooltip content="Generate a shareable link for your calendar">
 					<button
 						className="footer-button"
-						onClick={handleCopyUrl}
-						aria-label="Copy URL to clipboard"
+						onClick={onShowShareModal}
+						aria-label="Share calendar"
 					>
-						<CopyIcon width={16} height={16} color="#000" /> URL
+						<ShareIcon width={16} height={16} color="#000" /> Share
 					</button>
 				</Tooltip>
 			</div>

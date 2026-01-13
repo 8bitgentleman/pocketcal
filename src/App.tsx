@@ -8,6 +8,8 @@ import HelpModal from "./components/HelpModal";
 import LicenseModal from "./components/LicenseModal";
 import PTOSelectionModal from "./components/PTOSelectionModal";
 import WelcomeModal from "./components/WelcomeModal";
+import ShareModal from "./components/ShareModal";
+import ReconciliationModal from "./components/ReconciliationModal";
 
 const WELCOME_DISMISSED_KEY = "pocketcal_welcome_dismissed";
 
@@ -17,8 +19,12 @@ function App() {
 	const [showPTOModal, setShowPTOModal] = useState(false);
 	const [selectedPTODate, setSelectedPTODate] = useState<string>("");
 	const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+	const [showShareModal, setShowShareModal] = useState(false);
+	const [showReconciliationModal, setShowReconciliationModal] = useState(false);
 	const getAppStateFromUrl = useStore((state) => state.getAppStateFromUrl);
-	const generateShareableUrl = useStore((state) => state.generateShareableUrl);
+	const checkInitializationState = useStore((state) => state.checkInitializationState);
+	const loadFromLocalStorage = useStore((state) => state.loadFromLocalStorage);
+	const loadFromUrlAndMigrate = useStore((state) => state.loadFromUrlAndMigrate);
 	const showHelpModal = useStore((state) => state.showHelpModal);
 	const setShowHelpModal = useStore((state) => state.setShowHelpModal);
 	const validateLicenseKey = useStore((state) => state.validateLicenseKey);
@@ -26,15 +32,23 @@ function App() {
 	const getSelectedGroupPTOConfig = useStore((state) => state.getSelectedGroupPTOConfig);
 	const isDarkMode = useStore((state) => state.isDarkMode);
 
-	// Select individual state pieces needed for the URL
-	const startDate = useStore((state) => state.startDate);
-	const includeWeekends = useStore((state) => state.includeWeekends);
-	const showToday = useStore((state) => state.showToday);
-	const eventGroups = useStore((state) => state.eventGroups);
-
-	// Load state from URL on initial mount
+	// Load state on initial mount - handle 4 cases
 	useEffect(() => {
-		getAppStateFromUrl();
+		const { hasLocalStorage, hasUrlHash } = checkInitializationState();
+
+		if (hasLocalStorage && hasUrlHash) {
+			// Case 1: Both exist - show reconciliation modal
+			setShowReconciliationModal(true);
+		} else if (hasLocalStorage && !hasUrlHash) {
+			// Case 2: Only localStorage - load from it
+			loadFromLocalStorage();
+		} else if (!hasLocalStorage && hasUrlHash) {
+			// Case 3: Only URL hash - load from URL and migrate to localStorage
+			loadFromUrlAndMigrate();
+		} else {
+			// Case 4: Neither - use default state
+			getAppStateFromUrl();
+		}
 
 		// Check license validity on load (with cache)
 		if (licenseKey) {
@@ -55,7 +69,7 @@ function App() {
 		if (!welcomeDismissed) {
 			setShowWelcomeModal(true);
 		}
-	}, [getAppStateFromUrl, validateLicenseKey, licenseKey]);
+	}, [checkInitializationState, loadFromLocalStorage, loadFromUrlAndMigrate, getAppStateFromUrl, validateLicenseKey, licenseKey]);
 
 	// Handle dismissing the welcome modal permanently
 	const handleDismissWelcome = () => {
@@ -65,6 +79,19 @@ function App() {
 	// Allow re-opening the welcome modal (for the info button)
 	const handleShowWelcome = () => {
 		setShowWelcomeModal(true);
+	};
+
+	// Handle reconciliation modal choices
+	const handleUseLocalStorage = () => {
+		loadFromLocalStorage();
+		// Clear URL hash
+		window.history.replaceState(null, "", window.location.pathname + window.location.search);
+		setShowReconciliationModal(false);
+	};
+
+	const handleUseUrl = () => {
+		loadFromUrlAndMigrate();
+		setShowReconciliationModal(false);
 	};
 
 	// Apply dark mode class to document root
@@ -96,18 +123,6 @@ function App() {
 		return () => window.removeEventListener('ptoDateSelect' as any, handlePTODateSelect);
 	}, [getSelectedGroupPTOConfig]);
 
-	// Update URL whenever relevant state pieces change
-	useEffect(() => {
-		const newUrl = generateShareableUrl();
-		window.history.replaceState(null, "", newUrl);
-	}, [
-		startDate,
-		includeWeekends,
-		showToday,
-		eventGroups,
-		generateShareableUrl,
-	]);
-
 	const toggleSidebar = () => {
 		const sidebar = document.querySelector(".sidebar");
 
@@ -134,8 +149,8 @@ function App() {
 				<ChevronIcon color="black" />
 			</button>
 			<Sidebar
-				setShowLicenseModal={setShowLicenseModal}
 				onShowWelcome={handleShowWelcome}
+				onShowShareModal={() => setShowShareModal(true)}
 			/>
 			<Calendar />
 			{showHelpModal && <HelpModal onClose={() => setShowHelpModal(false)} />}
@@ -155,6 +170,15 @@ function App() {
 				<WelcomeModal
 					onClose={() => setShowWelcomeModal(false)}
 					onDontShowAgain={handleDismissWelcome}
+				/>
+			)}
+			{showShareModal && (
+				<ShareModal onClose={() => setShowShareModal(false)} />
+			)}
+			{showReconciliationModal && (
+				<ReconciliationModal
+					onUseLocal={handleUseLocalStorage}
+					onUseUrl={handleUseUrl}
 				/>
 			)}
 		</div>

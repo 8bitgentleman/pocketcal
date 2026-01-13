@@ -81,6 +81,12 @@ interface AppState {
 	deleteDateRange: (groupId: string, rangeToDelete: DateRange) => void;
 	getAppStateFromUrl: () => void;
 	generateShareableUrl: () => string;
+	// localStorage persistence
+	saveToLocalStorage: () => void;
+	loadFromLocalStorage: () => boolean;
+	clearLocalStorage: () => void;
+	checkInitializationState: () => { hasLocalStorage: boolean; hasUrlHash: boolean };
+	loadFromUrlAndMigrate: () => void;
 	// Per-Group PTO Actions
 	setPTOConfig: (groupId: string, config: Partial<PTOConfig>) => void;
 	addPTOEntry: (groupId: string, entry: PTOEntry) => void;
@@ -177,9 +183,16 @@ export const useStore = create<AppState>((set, get) => ({
 			}
 			return { startDate: newStartDate };
 		});
+		get().saveToLocalStorage();
 	},
-	setIncludeWeekends: (include) => set({ includeWeekends: include }),
-	setShowToday: (show) => set({ showToday: show }),
+	setIncludeWeekends: (include) => {
+		set({ includeWeekends: include });
+		get().saveToLocalStorage();
+	},
+	setShowToday: (show) => {
+		set({ showToday: show });
+		get().saveToLocalStorage();
+	},
 	setShowHelpModal: (show) => set({ showHelpModal: show }),
 	setIsDarkMode: (isDark) => {
 		localStorage.setItem("pocketcal_dark_mode", isDark.toString());
@@ -252,6 +265,7 @@ export const useStore = create<AppState>((set, get) => ({
 				eventGroups: [...state.eventGroups, newGroup],
 			};
 		});
+		get().saveToLocalStorage();
 		return (
 			newGroup || {
 				id: "",
@@ -262,23 +276,27 @@ export const useStore = create<AppState>((set, get) => ({
 		);
 	},
 
-	updateEventGroup: (id, name) =>
+	updateEventGroup: (id, name) => {
 		set((state) => ({
 			eventGroups: state.eventGroups.map((group) =>
 				group.id === id ? { ...group, name } : group
 			),
-		})),
+		}));
+		get().saveToLocalStorage();
+	},
 
-	deleteEventGroup: (id) =>
+	deleteEventGroup: (id) => {
 		set((state) => ({
 			eventGroups: state.eventGroups.filter((group) => group.id !== id),
 			selectedGroupId:
 				state.selectedGroupId === id ? null : state.selectedGroupId,
-		})),
+		}));
+		get().saveToLocalStorage();
+	},
 
 	selectEventGroup: (id) => set({ selectedGroupId: id }),
 
-	addDateRange: (groupId, range) =>
+	addDateRange: (groupId, range) => {
 		set((state) => {
 			// Prevent adding to holidays (safety check)
 			if (groupId === state.holidays.id) {
@@ -292,9 +310,11 @@ export const useStore = create<AppState>((set, get) => ({
 						: group
 				),
 			};
-		}),
+		});
+		get().saveToLocalStorage();
+	},
 
-	updateDateRange: (groupId, oldRange, newRange) =>
+	updateDateRange: (groupId, oldRange, newRange) => {
 		set((state) => {
 			// Prevent updating holidays (safety check)
 			if (groupId === state.holidays.id) {
@@ -315,9 +335,11 @@ export const useStore = create<AppState>((set, get) => ({
 						: group
 				),
 			};
-		}),
+		});
+		get().saveToLocalStorage();
+	},
 
-	deleteDateRange: (groupId, rangeToDelete) =>
+	deleteDateRange: (groupId, rangeToDelete) => {
 		set((state) => {
 			// Prevent deleting from holidays (safety check)
 			if (groupId === state.holidays.id) {
@@ -340,7 +362,9 @@ export const useStore = create<AppState>((set, get) => ({
 						: group
 				),
 			};
-		}),
+		});
+		get().saveToLocalStorage();
+	},
 
 	getAppStateFromUrl: () => {
 		try {
@@ -488,7 +512,7 @@ export const useStore = create<AppState>((set, get) => ({
 	},
 
 	// Per-Group PTO Actions
-	setPTOConfig: (groupId, config) =>
+	setPTOConfig: (groupId, config) => {
 		set((state) => {
 			const group = state.eventGroups.find((g) => g.id === groupId);
 
@@ -594,7 +618,9 @@ export const useStore = create<AppState>((set, get) => ({
 						: g
 				),
 			};
-		}),
+		});
+		get().saveToLocalStorage();
+	},
 
 	addPTOEntry: (groupId, entry) => {
 		set((state) => {
@@ -660,9 +686,10 @@ export const useStore = create<AppState>((set, get) => ({
 				),
 			};
 		});
+		get().saveToLocalStorage();
 	},
 
-	updatePTOEntry: (groupId, entryId, updates) =>
+	updatePTOEntry: (groupId, entryId, updates) => {
 		set((state) => {
 			// Find the existing PTO entry to get old dates for range removal
 			const group = state.eventGroups.find(g => g.id === groupId);
@@ -674,13 +701,11 @@ export const useStore = create<AppState>((set, get) => ({
 
 			// Recalculate totalHours if dates or hoursPerDay changed
 			if (updates.startDate || updates.endDate || updates.hoursPerDay) {
-				const oldTotalHours = updatedEntry.totalHours;
 				updatedEntry.totalHours = PTOCalendarUtils.calculateTotalPTOHours(
 					updatedEntry.startDate,
 					updatedEntry.endDate,
 					updatedEntry.hoursPerDay
 				);
-				// Removed console.log for performance
 			}
 
 			return {
@@ -721,9 +746,11 @@ export const useStore = create<AppState>((set, get) => ({
 						: group
 				),
 			};
-		}),
+		});
+		get().saveToLocalStorage();
+	},
 
-	deletePTOEntry: (groupId, entryId) =>
+	deletePTOEntry: (groupId, entryId) => {
 		set((state) => {
 			// Find the PTO entry to get its dates for removing the corresponding range
 			const group = state.eventGroups.find(g => g.id === groupId);
@@ -754,9 +781,11 @@ export const useStore = create<AppState>((set, get) => ({
 						: group
 				),
 			};
-		}),
+		});
+		get().saveToLocalStorage();
+	},
 
-	clearPTOEntries: (groupId) =>
+	clearPTOEntries: (groupId) => {
 		set((state) => ({
 			eventGroups: state.eventGroups.map((group) =>
 				group.id === groupId
@@ -768,7 +797,9 @@ export const useStore = create<AppState>((set, get) => ({
 					}
 					: group
 			),
-		})),
+		}));
+		get().saveToLocalStorage();
+	},
 
 	validatePTOEntry: (groupId, entry) => {
 		const state = get();
@@ -968,6 +999,200 @@ export const useStore = create<AppState>((set, get) => ({
 			JSON.stringify(compressedState)
 		);
 		return `${window.location.origin}${window.location.pathname}#${compressed}`;
+	},
+
+	saveToLocalStorage: () => {
+		try {
+			const state = get();
+			const startDate = state.startDate;
+
+			// Use same compressed format as URL sharing
+			const compressedState: {
+				s: string;
+				w?: boolean;
+				t?: boolean;
+				g?: any[];
+			} = {
+				s: formatISO(startDate, { representation: "date" }),
+				w: state.includeWeekends ? undefined : false,
+				t: state.showToday ? undefined : false,
+				g: state.eventGroups.map((group) => {
+					const compressedGroup: any = {
+						n: group.name === `My PTO` ? undefined : group.name,
+						c: GROUP_COLORS.findIndex((c) => c.hex === group.color),
+						r: group.ranges.map((range) => [
+							differenceInDays(parseISO(range.start), startDate),
+							differenceInDays(parseISO(range.end), startDate),
+						]),
+						pto: group.ptoConfig ? {
+							y: group.ptoConfig.yearsOfService,
+							r: group.ptoConfig.rolloverHours,
+							e: group.ptoConfig.isEnabled
+						} : undefined,
+						ptoEntries: (group.ptoEntries && group.ptoEntries.length > 0) ?
+							group.ptoEntries.map(entry => ({
+								sd: differenceInDays(parseISO(entry.startDate), startDate),
+								ed: differenceInDays(parseISO(entry.endDate), startDate),
+								hpd: entry.hoursPerDay,
+								n: entry.name
+							})) : undefined
+					};
+					// Clean up undefined values
+					Object.keys(compressedGroup).forEach(
+						(key) =>
+							compressedGroup[key] === undefined && delete compressedGroup[key]
+					);
+					return compressedGroup;
+				}),
+			};
+
+			// Remove default values
+			if (compressedState.w === undefined) delete compressedState.w;
+			if (compressedState.t === undefined) delete compressedState.t;
+			if (compressedState.g?.length === 0) delete compressedState.g;
+
+			const compressed = LZString.compressToEncodedURIComponent(
+				JSON.stringify(compressedState)
+			);
+			localStorage.setItem("pocketcal_calendar_state_v1", compressed);
+		} catch (error) {
+			// Handle quota exceeded or other localStorage errors
+			console.error("Failed to save to localStorage:", error);
+		}
+	},
+
+	loadFromLocalStorage: () => {
+		try {
+			const stored = localStorage.getItem("pocketcal_calendar_state_v1");
+			if (!stored) return false;
+
+			// Decompress and parse (reuse same logic as getAppStateFromUrl)
+			const decompressed = LZString.decompressFromEncodedURIComponent(stored);
+			if (!decompressed) {
+				console.error("Failed to decompress localStorage data");
+				return false;
+			}
+
+			const decodedState = JSON.parse(decompressed);
+			if (!decodedState.s) return false;
+
+			// Parse the state using same logic as URL parsing
+			const parsedDate = parseISO(decodedState.s);
+			const savedYear = parsedDate.getFullYear();
+			const currentYear = new Date().getFullYear();
+			const yearToUse = savedYear < currentYear ? currentYear : savedYear;
+			const startDate = new Date(yearToUse, 0, 1);
+			const usedColorIndices = new Set<number>();
+
+			const validGroups = (decodedState.g || []).filter((g: any) => {
+				return g.c !== undefined && g.c >= 0 && g.c < GROUP_COLORS.length;
+			});
+
+			validGroups.forEach((g: any) => {
+				usedColorIndices.add(g.c);
+			});
+
+			const eventGroups = (decodedState.g || []).map(
+				(g: any, index: number) => {
+					let colorIndex = g.c;
+
+					if (
+						colorIndex === undefined ||
+						colorIndex < 0 ||
+						colorIndex >= GROUP_COLORS.length
+					) {
+						for (let i = 0; i < GROUP_COLORS.length; i++) {
+							if (!usedColorIndices.has(i)) {
+								colorIndex = i;
+								usedColorIndices.add(i);
+								break;
+							}
+						}
+						if (colorIndex === undefined) {
+							colorIndex = index % GROUP_COLORS.length;
+						}
+					}
+
+					const ptoConfig = g.pto ? {
+						yearsOfService: g.pto.y || 2,
+						rolloverHours: g.pto.r || 0,
+						isEnabled: g.pto.e !== undefined ? g.pto.e : false
+					} : undefined;
+
+					const ptoEntries = g.ptoEntries ?
+						g.ptoEntries.map((entry: any) => ({
+							id: `${entry.sd}-${entry.ed}-restored`,
+							startDate: formatISO(addDays(startDate, entry.sd), { representation: "date" }),
+							endDate: formatISO(addDays(startDate, entry.ed), { representation: "date" }),
+							hoursPerDay: entry.hpd,
+							totalHours: PTOCalendarUtils.calculateTotalPTOHours(
+								formatISO(addDays(startDate, entry.sd), { representation: "date" }),
+								formatISO(addDays(startDate, entry.ed), { representation: "date" }),
+								entry.hpd
+							),
+							name: entry.n
+						})) : undefined;
+
+					return {
+						id: nanoid(),
+						name: g.n || "My PTO",
+						color: GROUP_COLORS[colorIndex].hex,
+						ranges: (g.r || []).map((r: any) => ({
+							start: formatISO(addDays(startDate, r[0]), {
+								representation: "date",
+							}),
+							end: formatISO(addDays(startDate, r[1]), {
+								representation: "date",
+							}),
+						})),
+						ptoConfig,
+						ptoEntries
+					};
+				}
+			);
+
+			set({
+				startDate,
+				includeWeekends: decodedState.w ?? true,
+				showToday: decodedState.t ?? true,
+				eventGroups:
+					eventGroups.length > 0
+						? eventGroups
+						: [createDefaultEventGroup()],
+				selectedGroupId: eventGroups[0]?.id ?? null,
+				holidays: createHolidaysCalendar(yearToUse),
+			});
+
+			return true;
+		} catch (error) {
+			console.error("Failed to load from localStorage:", error);
+			// Clear corrupted data
+			localStorage.removeItem("pocketcal_calendar_state_v1");
+			return false;
+		}
+	},
+
+	clearLocalStorage: () => {
+		try {
+			localStorage.removeItem("pocketcal_calendar_state_v1");
+		} catch (error) {
+			console.error("Failed to clear localStorage:", error);
+		}
+	},
+
+	checkInitializationState: () => {
+		const hasLocalStorage = !!localStorage.getItem("pocketcal_calendar_state_v1");
+		const hasUrlHash = window.location.hash.length > 1;
+		return { hasLocalStorage, hasUrlHash };
+	},
+
+	loadFromUrlAndMigrate: () => {
+		// Load from URL using existing logic
+		get().getAppStateFromUrl();
+		// Save to localStorage
+		get().saveToLocalStorage();
+		// Clear URL hash
+		window.history.replaceState(null, "", window.location.pathname + window.location.search);
 	},
 }));
 

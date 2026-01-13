@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from "
 import {
 	useStore,
 	getCalendarDates,
-	isDateInRange,
 	checkSameDay,
 	DateRange,
 	findRangeForDate,

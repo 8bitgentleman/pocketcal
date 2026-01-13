@@ -79,10 +79,11 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose, onDontShowAgain })
             icon: <LinkIcon width={48} height={48} color="var(--text-primary)" />,
             content: (
                 <>
-                    <p>Your calendar data is automatically saved in the URL.</p>
+                    <p>Your calendar is automatically saved locally in your browser.</p>
                     <ul>
-                        <li>Click <strong>Copy URL</strong> to share your calendar</li>
-                        <li>Bookmark the URL to save your calendar for later</li>
+                        <li>Click <strong>Share</strong> to generate a shareable link</li>
+                        <li>Shared links are snapshots - changes won't affect them</li>
+                        <li>Your data persists between sessions automatically</li>
                     </ul>
                     <p className="tip"><strong>Tip:</strong> Hover over buttons to see tooltips.</p>
                 </>

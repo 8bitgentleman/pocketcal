@@ -396,10 +396,89 @@ pre.license-key-display {
     .modal-actions {
         flex-direction: column;
     }
-    
+
     .delete-button {
         margin-right: 0;
         margin-bottom: 8px;
         order: 3; /* Move delete to bottom on mobile to prevent accidental clicks */
     }
+}
+
+/* ShareModal Styles */
+.share-description {
+	margin-bottom: 20px;
+	color: var(--text-secondary);
+	line-height: 1.5;
+}
+
+.share-url-container {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 16px;
+	align-items: center;
+}
+
+.share-url-input {
+	flex: 1;
+	font-family: monospace;
+	font-size: 12px;
+	cursor: text;
+}
+
+.share-url-container .btn {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	white-space: nowrap;
+}
+
+.share-note {
+	font-size: 13px;
+	color: var(--help-text-color);
+	font-style: italic;
+	margin-top: 16px;
+}
+
+/* ReconciliationModal Styles */
+.reconciliation-description {
+	margin-bottom: 24px;
+	color: var(--text-secondary);
+	line-height: 1.5;
+}
+
+.reconciliation-options {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.reconciliation-options .btn {
+	padding: 12px 16px;
+	font-size: 15px;
+}
+
+.reconciliation-options .btn-primary {
+	background: linear-gradient(135deg, #ff6b35, #ff006e);
+	color: #0a0a0a;
+}
+
+.reconciliation-options .btn-secondary {
+	background: transparent;
+	border: 2px solid #2a2a2a;
+	color: white;
+}
+
+.reconciliation-options .btn-secondary:hover {
+	border-color: #00d4ff;
+	background: rgba(0, 212, 255, 0.05);
+}
+
+.reconciliation-warning {
+	background-color: rgba(255, 107, 53, 0.1);
+	border: 1px solid rgba(255, 107, 53, 0.3);
+	border-radius: 6px;
+	padding: 12px;
+	font-size: 13px;
+	color: #ffb088;
 }

@@ -27,8 +27,8 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 						<li>
 							Create up to {MAX_GROUPS} event groups with different colors
 						</li>
-						<li>Your data is saved locally in the URL</li>
-						<li>Share your calendar with others by sharing the URL</li>
+						<li>Your data is saved automatically in your browser</li>
+						<li>Generate shareable snapshot links that won't change when you update your calendar</li>
 					</ul>
 					<h3>Navigation</h3>
 					<ul>
