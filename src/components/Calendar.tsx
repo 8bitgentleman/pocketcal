@@ -370,24 +370,31 @@ const Calendar: React.FC = () => {
 	};
 
 	const handleMouseDown = (date: Date) => {
-		if (!selectedGroupId) return;
+		// CRITICAL: Read fresh state from store to avoid stale closure values
+		// The component may not have re-rendered yet after sidebar selection
+		const freshSelectedGroupId = useStore.getState().selectedGroupId;
+		const allGroups = useStore.getState().getAllDisplayGroups();
+		const freshSelectedGroup = allGroups.find(g => g.id === freshSelectedGroupId);
+		const freshIsPTOEnabled = freshSelectedGroupId ? useStore.getState().isPTOEnabledForGroup(freshSelectedGroupId) : false;
+
+		if (!freshSelectedGroupId) return;
 		setFocusedDate(date);
 
-		if (!selectedGroup) return;
+		if (!freshSelectedGroup) return;
 
 		const dateStr = formatISO(date, { representation: "date" });
 		console.log('=== MOUSE DOWN ===');
 		console.log('Date:', dateStr);
-		console.log('Selected Calendar:', selectedGroup.name, 'ID:', selectedGroupId);
-		console.log('isPTOEnabled:', isPTOEnabled);
+		console.log('Selected Calendar:', freshSelectedGroup.name, 'ID:', freshSelectedGroupId);
+		console.log('isPTOEnabled:', freshIsPTOEnabled);
 
 		// Prevent interaction with special calendars
-		if (selectedGroup.isSpecial) {
+		if (freshSelectedGroup.isSpecial) {
 			alert("Cannot modify the holidays calendar. Please select a different calendar.");
 			return;
 		}
 
-		if (isPTOEnabled) {
+		if (freshIsPTOEnabled) {
 			// PTO mode: click-to-toggle with long-press for custom hours
 			// Block PTO creation on weekends
 			if (isWeekend(date)) {
@@ -419,11 +426,11 @@ const Calendar: React.FC = () => {
 			}, 500);
 		} else {
 			// Regular calendar mode: use existing drag logic
-			const existingRange = findRangeForDate(date, selectedGroup);
+			const existingRange = findRangeForDate(date, freshSelectedGroup);
 			console.log('Existing range in this calendar:', existingRange);
 			if (existingRange) {
 				console.log('Removing existing range and splitting');
-				deleteDateRange(selectedGroupId, existingRange);
+				deleteDateRange(freshSelectedGroupId, existingRange);
 
 				// Create two new ranges if needed - one before and one after the clicked date
 				const startDate = parseISO(existingRange.start);
@@ -434,7 +441,7 @@ const Calendar: React.FC = () => {
 						start: formatISO(startDate, { representation: "date" }),
 						end: formatISO(subDays(date, 1), { representation: "date" }),
 					};
-					addDateRange(selectedGroupId, beforeRange);
+					addDateRange(freshSelectedGroupId, beforeRange);
 				}
 
 				if (isAfter(endDate, date)) {
@@ -442,14 +449,14 @@ const Calendar: React.FC = () => {
 						start: formatISO(addDays(date, 1), { representation: "date" }),
 						end: formatISO(endDate, { representation: "date" }),
 					};
-					addDateRange(selectedGroupId, afterRange);
+					addDateRange(freshSelectedGroupId, afterRange);
 				}
 				return;
 			}
 
-			// Capture the selectedGroupId at mouseDown time to prevent stale closures
-			console.log('Starting new drag, capturing groupId:', selectedGroupId);
-			dragStartGroupIdRef.current = selectedGroupId;
+			// Capture the FRESH selectedGroupId at mouseDown time to prevent stale closures
+			console.log('Starting new drag, capturing FRESH groupId:', freshSelectedGroupId);
+			dragStartGroupIdRef.current = freshSelectedGroupId;
 			setIsDragging(true);
 			setDragStartDate(date);
 			setDragEndDate(date);
