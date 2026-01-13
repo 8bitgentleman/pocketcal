@@ -270,3 +270,45 @@
 	outline-offset: -2px;
 	z-index: 3;
 }
+
+/* PTO visual indicators */
+.pto-indicator {
+	position: absolute;
+	bottom: 2px;
+	right: 2px;
+	font-size: 0.65em;
+	font-weight: 600;
+	background-color: rgba(16, 185, 129, 0.9);
+	color: white;
+	padding: 1px 3px;
+	border-radius: 3px;
+	z-index: 3;
+	pointer-events: none;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* PTO day type styling - subtle border indicators */
+.calendar-day.pto-full-day {
+	border: 2px solid #10b981;
+}
+
+.calendar-day.pto-half-day {
+	border: 2px solid #f59e0b;
+}
+
+.calendar-day.pto-quarter-day {
+	border: 2px solid #3b82f6;
+}
+
+/* Adjust PTO indicator colors based on day type */
+.calendar-day.pto-full-day .pto-indicator {
+	background-color: rgba(16, 185, 129, 0.95);
+}
+
+.calendar-day.pto-half-day .pto-indicator {
+	background-color: rgba(245, 158, 11, 0.95);
+}
+
+.calendar-day.pto-quarter-day .pto-indicator {
+	background-color: rgba(59, 130, 246, 0.95);
+}
