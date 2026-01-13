@@ -4,35 +4,35 @@
 /* Calendar Grid Layout */
 .calendar-container {
 	flex: 1;
-	padding: 16px;
+	padding: 24px;
 	display: grid;
-	grid-template-columns: repeat(4, 250px);
-	gap: 12px;
+	grid-template-columns: repeat(4, minmax(250px, 250px));
+	gap: 16px;
 	align-content: start;
 	background-color: var(--bg-color);
 	overflow-y: auto;
 	height: 100%;
 	box-sizing: border-box;
 	max-width: 100%;
-	justify-content: center;
+	justify-content: start;
 }
 
 /* Responsive Breakpoints */
 @media (max-width: 1400px) {
 	.calendar-container {
-		grid-template-columns: repeat(3, 250px);
+		grid-template-columns: repeat(3, minmax(250px, 250px));
 	}
 }
 
 @media (max-width: 1000px) {
 	.calendar-container {
-		grid-template-columns: repeat(2, 250px);
+		grid-template-columns: repeat(2, minmax(250px, 250px));
 	}
 }
 
 @media (max-width: 600px) {
 	.calendar-container {
-		grid-template-columns: repeat(1, 250px);
+		grid-template-columns: minmax(250px, 250px);
 		padding: 16px;
 	}
 }
@@ -47,7 +47,6 @@
 	flex-direction: column;
 	gap: 8px;
 	min-width: 0;
-	width: 250px;
 	transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -66,7 +65,7 @@
 .calendar-grid {
 	display: grid;
 	grid-template-columns: repeat(7, 1fr);
-	gap: 2px;
+	gap: 1px;
 	font-size: 11px;
 }
 
@@ -160,6 +159,10 @@
 	border: 1px solid transparent;
 }
 
+.calendar-day.pto-single:hover {
+	opacity: 0.9;
+}
+
 .calendar-day.pto-single .day-number {
 	color: #0a0a0a;
 	font-weight: 600;
@@ -173,6 +176,10 @@
 	border: 1px solid transparent;
 }
 
+.calendar-day.pto-double:hover {
+	opacity: 0.9;
+}
+
 .calendar-day.pto-double .day-number {
 	color: #0a0a0a;
 	font-weight: 600;
@@ -184,6 +191,10 @@
 	color: #0a0a0a;
 	font-weight: 600;
 	border: 1px solid transparent;
+}
+
+.calendar-day.pto-triple:hover {
+	opacity: 0.9;
 }
 
 .calendar-day.pto-triple .day-number {

@@ -574,8 +574,9 @@ const Calendar: React.FC = () => {
 
 	const getRangeStyles = (date: Date): React.CSSProperties[] => {
 		const styles: React.CSSProperties[] = [];
+		// Filter out PTO-enabled groups since they use CSS gradients instead
 		const groupsWithDate = getAllDisplayGroups().filter((group) =>
-			isDateInRange(date, group)
+			isDateInRange(date, group) && !group.ptoConfig?.isEnabled
 		);
 
 		const totalGroups = groupsWithDate.length;

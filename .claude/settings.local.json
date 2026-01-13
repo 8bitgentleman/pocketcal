@@ -12,7 +12,10 @@
       "Skill(frontend-design)",
       "Bash(ls:*)",
       "Bash(start unispace-design-mockup.html)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(git fetch:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(git merge-base:*)"
     ],
     "deny": [],
     "ask": [],

@@ -160,12 +160,6 @@
 	}
 }
 
-.calendar-container {
-	max-width: 1200px;
-	margin: 0 auto;
-	padding: 20px;
-}
-
 /* Custom Checkbox Styling */
 input[type="checkbox"] {
 	appearance: none;
