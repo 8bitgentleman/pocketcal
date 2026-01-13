@@ -52,10 +52,10 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose, onDontShowAgain })
             icon: <SunIcon width={48} height={48} color="var(--text-primary)" />,
             content: (
                 <>
-                    <p>Once PTO is enabled, click or drag on any weekday to log time off.</p>
+                    <p>Once PTO is enabled, click on any weekday to log time off.</p>
                     <ul>
-                        <li><strong>Click</strong> a date to log a single day</li>
-                        <li><strong>Drag</strong> across dates to select multiple days</li>
+                        <li><strong>Quick click</strong> toggles full day (8h) PTO on/off</li>
+                        <li><strong>Long press</strong> (hold for 500ms) opens modal for custom hours</li>
                         <li>Choose between full day (8h), half day (4h), or quarter day (2h)</li>
                     </ul>
                 </>

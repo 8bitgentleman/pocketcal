@@ -33,7 +33,10 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 					<h3>Navigation</h3>
 					<ul>
 						<li>
-							<strong>Click</strong> on any date to add/edit events
+							<strong>Quick click</strong> on any date to toggle full-day (8h) PTO
+						</li>
+						<li>
+							<strong>Long press</strong> (hold 500ms) to open modal for custom hours
 						</li>
 						<li>
 							<strong>Arrow keys</strong> to move between dates when calendar is

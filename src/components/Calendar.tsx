@@ -535,6 +535,15 @@ const Calendar: React.FC = () => {
 		return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
 	}, [isDragging, handleMouseUp]);
 
+	// Clear drag state when PTO is enabled or when changing calendars
+	useEffect(() => {
+		if (isPTOEnabled || selectedGroupId) {
+			setIsDragging(false);
+			setDragStartDate(null);
+			setDragEndDate(null);
+		}
+	}, [isPTOEnabled, selectedGroupId]);
+
 	const getMonthYearKey = (date: Date) => `${getYear(date)}-${getMonth(date)}`;
 
 	const adjustPaddingForWeekdays = (dayOfWeek: number): number => {
@@ -658,7 +667,8 @@ const Calendar: React.FC = () => {
 			className += " has-gradient";
 		}
 
-		if (isDragging && dragStartDate && dragEndDate) {
+		// Only show drag preview for non-PTO calendars
+		if (!isPTOEnabled && isDragging && dragStartDate && dragEndDate) {
 			const currentDragStart = isBefore(dragStartDate, dragEndDate)
 				? dragStartDate
 				: dragEndDate;
@@ -667,12 +677,7 @@ const Calendar: React.FC = () => {
 				: dragStartDate;
 
 			if (date >= currentDragStart && date <= currentDragEnd) {
-				// For PTO-enabled groups, only highlight weekdays during drag
-				if (isPTOEnabled && isWeekend(date)) {
-					// Skip highlighting weekends for PTO groups
-				} else {
-					className += " dragging";
-				}
+				className += " dragging";
 			}
 		}
 

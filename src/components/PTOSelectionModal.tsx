@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import XIcon from "./icons/XIcon";
 import { useStore } from "../store";
 import { PTOEntry, PTOCalendarUtils } from "../utils/ptoUtils";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isWithinInterval } from "date-fns";
 import { getHolidayFromISODate } from "../constants/holidays";
 import "./Modal.css";
 
@@ -22,9 +22,15 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, onC
 		getSelectedGroupPTOEntries
 	} = useStore();
 
-	// Find existing PTO entry for this exact date (single-day only)
+	// Find existing PTO entry for this date (handles both single-day and multi-day entries)
 	const ptoEntries = getSelectedGroupPTOEntries();
-	const existingEntry = ptoEntries.find(entry => entry.startDate === selectedDate);
+	const selectedDateObj = parseISO(selectedDate);
+	const existingEntry = ptoEntries.find(entry => {
+		const entryStart = parseISO(entry.startDate);
+		const entryEnd = parseISO(entry.endDate);
+		// Check if selected date falls within this PTO entry's range
+		return isWithinInterval(selectedDateObj, { start: entryStart, end: entryEnd });
+	});
 
 	const [selectedHours, setSelectedHours] = useState<number>(existingEntry?.hoursPerDay || 8);
 	const [description, setDescription] = useState<string>(existingEntry?.name || "");
