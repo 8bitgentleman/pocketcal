@@ -10,6 +10,17 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Crimson+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+		<!-- Prevent dark mode flash by applying theme before React loads -->
+		<script>
+			(function() {
+				const darkMode = localStorage.getItem("pocketcal_dark_mode");
+				// Default to dark mode if not explicitly set to false
+				if (darkMode !== "false") {
+					document.documentElement.classList.add("dark");
+				}
+			})();
+		</script>
+
 		<meta property="og:type" content="website" />
 		<meta property="og:url" content="https://pocketcal.com" />
 		<meta property="og:title" content="Unispace PTO Calculator - Pick dates, share a link." />
