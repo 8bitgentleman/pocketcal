@@ -238,11 +238,12 @@
 }
 
 /* When the calendar day has range indicators, adjust styling */
-.calendar-day:has(.range-indicator) {
+/* Exclude PTO days from this rule so their gradients show through */
+.calendar-day:has(.range-indicator):not(.pto-single):not(.pto-double):not(.pto-triple) {
 	background-color: transparent;
 }
 
-.calendar-day:has(.range-indicator) .day-number {
+.calendar-day:has(.range-indicator):not(.pto-single):not(.pto-double):not(.pto-triple) .day-number {
 	color: white;
 	font-weight: 600;
 	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);

@@ -511,15 +511,14 @@ const Calendar: React.FC = () => {
 		const holidayGroup = allGroups.find(g => g.name === "Unispace Holidays");
 		const isHoliday = holidayGroup && isDateInRange(date, holidayGroup);
 
-		// Count PTO entries across all PTO-enabled groups for this date
+		// Count PTO-enabled groups that have this date selected (either in entries or ranges)
 		let ptoCount = 0;
-		const ptoGroups = allGroups.filter(group =>
-			group.ptoConfig?.isEnabled &&
-			group.ptoEntries &&
-			group.ptoEntries.some(entry =>
-				dateStr >= entry.startDate && dateStr <= entry.endDate
-			)
-		);
+		const ptoGroups = allGroups.filter(group => {
+			if (!group.ptoConfig?.isEnabled) return false;
+
+			// Check if date is in this group (via dateRanges or ptoEntries)
+			return isDateInRange(date, group);
+		});
 		ptoCount = ptoGroups.length;
 
 		// Apply PTO state classes based on count

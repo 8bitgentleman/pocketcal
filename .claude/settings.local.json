@@ -15,7 +15,15 @@
       "Bash(npm run dev:*)",
       "Bash(git fetch:*)",
       "WebFetch(domain:github.com)",
-      "Bash(git merge-base:*)"
+      "Bash(git merge-base:*)",
+      "Skill(webapp-testing)",
+      "Bash(python scripts/with_server.py:*)",
+      "Bash(python3:*)",
+      "Bash(source:*)",
+      "Bash(pip install:*)",
+      "Bash(playwright install:*)",
+      "Bash(python test_calendar_styling.py:*)",
+      "Bash(./venv/bin/python:*)"
     ],
     "deny": [],
     "ask": [],

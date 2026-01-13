@@ -160,7 +160,7 @@ export const useStore = create<AppState>((set, get) => ({
 	showHelpModal: false,
 	licenseKey: localStorage.getItem("pocketcal_license") || null,
 	isProUser: false,
-	isDarkMode: localStorage.getItem("pocketcal_dark_mode") === "true" || false,
+	isDarkMode: localStorage.getItem("pocketcal_dark_mode") === "false" ? false : true, // Default to dark mode (Unispace design)
 
 	setStartDate: (date) => {
 		const newStartDate = new Date(date.getFullYear(), 0, 1);
