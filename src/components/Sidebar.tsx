@@ -12,6 +12,7 @@ import ShareIcon from "./icons/ShareIcon";
 import InfoIcon from "./icons/InfoIcon";
 import PTOSummaryDashboard from "./PTOSummaryDashboard";
 import Tooltip from "./Tooltip";
+import DarkModeToggle from "./DarkModeToggle";
 
 import "./Sidebar.css";
 
@@ -51,6 +52,7 @@ function Sidebar({ onShowWelcome, onShowShareModal }: SidebarProps) {
 			// Find first non-special group
 			const firstNonSpecialGroup = eventGroups.find(group => !group.isSpecial);
 			if (firstNonSpecialGroup) {
+				console.log('[Sidebar] Auto-selecting first group:', firstNonSpecialGroup.id, firstNonSpecialGroup.name);
 				selectEventGroup(firstNonSpecialGroup.id);
 			}
 		}
@@ -100,7 +102,7 @@ function Sidebar({ onShowWelcome, onShowShareModal }: SidebarProps) {
 						onClick={onShowWelcome}
 						aria-label="Show getting started guide"
 					>
-						<InfoIcon color="#000" /> Guide
+						<InfoIcon color="currentColor" /> Guide
 					</button>
 				</Tooltip>
 				<Tooltip content="View keyboard shortcuts and features">
@@ -109,7 +111,7 @@ function Sidebar({ onShowWelcome, onShowShareModal }: SidebarProps) {
 						onClick={() => setShowHelpModal(true)}
 						aria-label="Show instructions"
 					>
-						<HelpIcon width={16} height={16} color="#000" /> Help
+						<HelpIcon width={16} height={16} color="currentColor" /> Help
 					</button>
 				</Tooltip>
 				<Tooltip content="Generate a shareable link for your calendar">
@@ -118,7 +120,7 @@ function Sidebar({ onShowWelcome, onShowShareModal }: SidebarProps) {
 						onClick={onShowShareModal}
 						aria-label="Share calendar"
 					>
-						<ShareIcon width={16} height={16} color="#000" /> Share
+						<ShareIcon width={16} height={16} color="currentColor" /> Share
 					</button>
 				</Tooltip>
 			</div>
@@ -133,8 +135,8 @@ function Sidebar({ onShowWelcome, onShowShareModal }: SidebarProps) {
 				<div className="logo">
 					{/* <div className="logo-cal">U</div> */}
 					<div className="logo-text">UNISPACE PTO CALCULATOR</div>
-					{/* <DarkModeToggle /> */}
 				</div>
+				<DarkModeToggle />
 
 			</div>
 
@@ -148,9 +150,12 @@ function Sidebar({ onShowWelcome, onShowShareModal }: SidebarProps) {
 						key={group.id}
 						className={`event-group-item ${selectedGroupId === group.id ? "selected" : ""
 							} ${editingGroup?.id === group.id ? "editing" : ""}`}
-						onClick={() =>
-							editingGroup?.id !== group.id && !group.isSpecial && selectEventGroup(group.id)
-						}
+						onClick={() => {
+							if (editingGroup?.id !== group.id && !group.isSpecial) {
+								console.log('[Sidebar] User clicked calendar:', group.id, group.name);
+								selectEventGroup(group.id);
+							}
+						}}
 						onKeyDown={(e) => handleKeyDown(e, group)}
 						tabIndex={editingGroup?.id !== group.id ? 0 : -1}
 						role="listitem"

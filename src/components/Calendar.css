@@ -39,8 +39,8 @@
 
 /* Month Card */
 .calendar-month {
-	background: var(--card-dark, #1a1a1a);
-	border: 1px solid var(--border-color, #2a2a2a);
+	background: var(--card-bg-color);
+	border: 1px solid var(--border-color);
 	border-radius: 8px;
 	padding: 12px;
 	display: flex;
@@ -54,7 +54,7 @@
 .calendar-month h3 {
 	text-align: center;
 	margin: 0;
-	color: #ffffff;
+	color: var(--text-primary);
 	font-family: 'Crimson Pro', serif;
 	font-size: 13px;
 	font-weight: 600;
@@ -105,7 +105,7 @@
 /* Day Cell Hover */
 .calendar-day:hover {
 	background-color: rgba(0, 212, 255, 0.1);
-	color: white;
+	color: var(--text-primary);
 }
 
 /* Empty cells */
@@ -130,10 +130,15 @@
 
 /* Today */
 .calendar-day.today {
-	background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(139, 92, 246, 0.15));
+	background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(139, 92, 246, 0.3));
 	border: 1px solid #00d4ff;
-	color: white;
+	color: #ffffff;
 	font-weight: 600;
+}
+
+.calendar-day.today .day-number {
+	color: #ffffff;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 /* Day Number */
@@ -166,26 +171,27 @@
 
 .calendar-day.has-gradient .day-number {
 	font-weight: 600;
-	color: #0a0a0a; /* Dark text on gradient background */
-	text-shadow: none;
+	color: #ffffff; /* White text on gradient background */
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 /* Holiday - subtle purple background */
 .calendar-day.holiday {
-	background: rgba(139, 92, 246, 0.15);
-	color: #8b5cf6;
+	background: rgba(139, 92, 246, 0.3);
+	color: #ffffff;
 	font-weight: 600;
-	border: 1px solid transparent;
+	border: 1px solid rgba(139, 92, 246, 0.5);
 }
 
 .calendar-day.holiday .day-number {
-	color: #8b5cf6;
+	color: #ffffff;
 	font-weight: 600;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .calendar-day.holiday:hover {
-	background: rgba(139, 92, 246, 0.25);
-	color: #8b5cf6;
+	background: rgba(139, 92, 246, 0.4);
+	color: #ffffff;
 }
 
 /* Range Indicators (for backward compatibility) */
@@ -212,15 +218,16 @@
 }
 
 .calendar-day:has(.range-indicator):not(.has-gradient):not(.pto-full-day):not(.pto-half-day):not(.pto-quarter-day) .day-number {
-	color: white;
+	color: #ffffff;
 	font-weight: 600;
-	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 /* Dragging State */
 .calendar-day.dragging {
 	background-color: rgba(0, 212, 255, 0.2);
 	border: 1px dashed #00d4ff;
+	color: var(--text-primary);
 }
 
 /* Focus States */
@@ -273,4 +280,6 @@
 .calendar-day.pto-half-day .day-number,
 .calendar-day.pto-quarter-day .day-number {
 	font-weight: 600;
+	color: #ffffff;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }

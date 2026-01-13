@@ -214,6 +214,8 @@ const Calendar: React.FC = () => {
 	// Tooltip state
 	const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number } | null>(null);
 	const calendarGridRef = useRef<HTMLDivElement>(null);
+	// Capture the selectedGroupId at mouseDown time to prevent stale closure bugs
+	const dragStartGroupIdRef = useRef<string | null>(null);
 
 	// Focus management
 	useEffect(() => {
@@ -373,6 +375,12 @@ const Calendar: React.FC = () => {
 
 		if (!selectedGroup) return;
 
+		const dateStr = formatISO(date, { representation: "date" });
+		console.log('=== MOUSE DOWN ===');
+		console.log('Date:', dateStr);
+		console.log('Selected Calendar:', selectedGroup.name, 'ID:', selectedGroupId);
+		console.log('isPTOEnabled:', isPTOEnabled);
+
 		// Prevent interaction with special calendars
 		if (selectedGroup.isSpecial) {
 			alert("Cannot modify the holidays calendar. Please select a different calendar.");
@@ -412,7 +420,9 @@ const Calendar: React.FC = () => {
 		} else {
 			// Regular calendar mode: use existing drag logic
 			const existingRange = findRangeForDate(date, selectedGroup);
+			console.log('Existing range in this calendar:', existingRange);
 			if (existingRange) {
+				console.log('Removing existing range and splitting');
 				deleteDateRange(selectedGroupId, existingRange);
 
 				// Create two new ranges if needed - one before and one after the clicked date
@@ -437,6 +447,9 @@ const Calendar: React.FC = () => {
 				return;
 			}
 
+			// Capture the selectedGroupId at mouseDown time to prevent stale closures
+			console.log('Starting new drag, capturing groupId:', selectedGroupId);
+			dragStartGroupIdRef.current = selectedGroupId;
 			setIsDragging(true);
 			setDragStartDate(date);
 			setDragEndDate(date);
@@ -472,6 +485,13 @@ const Calendar: React.FC = () => {
 	}, []);
 
 	const handleMouseUp = useCallback(() => {
+		console.log('=== MOUSE UP ===');
+		console.log('isDragging:', isDragging);
+		console.log('dragStartDate:', dragStartDate);
+		console.log('dragEndDate:', dragEndDate);
+		console.log('dragStartGroupIdRef.current:', dragStartGroupIdRef.current);
+		console.log('current selectedGroupId:', selectedGroupId);
+
 		// Clear long-press timer if it's still running
 		if (longPressTimerRef.current) {
 			clearTimeout(longPressTimerRef.current);
@@ -480,6 +500,7 @@ const Calendar: React.FC = () => {
 
 		// If this was a long press, don't do anything (modal already opened)
 		if (isLongPress) {
+			console.log('Was long press, aborting');
 			setIsLongPress(false);
 			ptoClickedDateRef.current = null;
 			return;
@@ -487,6 +508,7 @@ const Calendar: React.FC = () => {
 
 		if (isPTOEnabled) {
 			// PTO mode: simple click = instant 8h toggle
+			console.log('PTO mode, toggling');
 			if (ptoClickedDateRef.current) {
 				handlePTOToggle(ptoClickedDateRef.current);
 				ptoClickedDateRef.current = null;
@@ -495,9 +517,13 @@ const Calendar: React.FC = () => {
 		}
 
 		// Regular calendar mode: existing drag logic
-		if (!isDragging || !dragStartDate || !dragEndDate || !selectedGroupId) {
+		// Use the captured groupId from mouseDown to prevent stale closure bugs
+		const dragGroupId = dragStartGroupIdRef.current;
+		if (!isDragging || !dragStartDate || !dragEndDate || !dragGroupId) {
+			console.log('Missing drag state, aborting. isDragging:', isDragging, 'dragGroupId:', dragGroupId);
 			setDragStartDate(null);
 			setDragEndDate(null);
+			dragStartGroupIdRef.current = null;
 			return;
 		}
 
@@ -517,10 +543,12 @@ const Calendar: React.FC = () => {
 			end: formatISO(finalEndDate, { representation: "date" }),
 		};
 
-		addDateRange(selectedGroupId, newRange);
+		console.log('Adding range:', newRange, 'to calendar:', dragGroupId);
+		addDateRange(dragGroupId, newRange);
 
 		setDragStartDate(null);
 		setDragEndDate(null);
+		dragStartGroupIdRef.current = null;
 	}, [isDragging, dragStartDate, dragEndDate, selectedGroupId, isLongPress, addDateRange, isPTOEnabled, handlePTOToggle]);
 
 	useEffect(() => {
@@ -540,6 +568,7 @@ const Calendar: React.FC = () => {
 			setIsDragging(false);
 			setDragStartDate(null);
 			setDragEndDate(null);
+			dragStartGroupIdRef.current = null;
 		}
 	}, [isPTOEnabled, selectedGroupId]);
 

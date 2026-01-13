@@ -9,7 +9,7 @@
 
 .pto-summary-dashboard h3 {
 	margin: 0 0 12px 0;
-	color: #ffffff;
+	color: var(--text-primary);
 	font-size: 15px;
 	font-weight: 600;
 	border-bottom: 2px solid transparent;
@@ -22,7 +22,7 @@
 
 .pto-summary-dashboard h4 {
 	margin: 12px 0 8px 0;
-	color: #ffffff;
+	color: var(--text-primary);
 	font-size: 13px;
 	font-weight: 600;
 }
@@ -84,7 +84,7 @@
 	margin-bottom: 8px;
 	font-size: 14px;
 	font-weight: 500;
-	color: #ffffff;
+	color: var(--text-primary);
 }
 
 .progress-bar {
@@ -128,7 +128,7 @@
 }
 
 .config-value {
-	color: #ffffff;
+	color: var(--text-primary);
 	font-weight: 600;
 }
 
@@ -177,7 +177,7 @@
 }
 
 .pto-item-name {
-	color: #ffffff;
+	color: var(--text-primary);
 	font-style: italic;
 	max-width: 100px;
 	overflow: hidden;

@@ -17,7 +17,7 @@
 
 .welcome-modal h2 {
 	margin: 0 0 16px 0;
-	color: #ffffff;
+	color: var(--text-primary);
 	font-size: 22px;
 	font-family: 'Crimson Pro', serif;
 	font-weight: 600;
@@ -30,7 +30,7 @@
 
 .welcome-content p {
 	margin: 0 0 12px 0;
-	color: #ffffff;
+	color: var(--text-primary);
 }
 
 .welcome-content ul {
@@ -40,7 +40,7 @@
 
 .welcome-content li {
 	margin-bottom: 8px;
-	color: #ffffff;
+	color: var(--text-primary);
 }
 
 .welcome-content .tip {
@@ -113,8 +113,8 @@
 
 .welcome-btn.secondary {
 	background: transparent;
-	color: white;
-	border: 1px solid #2a2a2a;
+	color: var(--text-primary);
+	border: 1px solid var(--border-color);
 }
 
 .welcome-btn.secondary:hover {
@@ -138,7 +138,7 @@
 }
 
 .dont-show-btn:hover {
-	color: #ffffff;
+	color: var(--text-primary);
 }
 
 /* Info icon button for re-accessing welcome */

@@ -25,15 +25,15 @@
 }
 
 .modal-content {
-	background: rgba(26, 26, 26, 0.95);
-	border: 1px solid #2a2a2a;
+	background: var(--card-bg-color);
+	border: 1px solid var(--border-color);
 	border-radius: 16px;
 	padding: 32px;
 	max-width: 400px;
 	max-height: 80vh;
 	overflow-y: auto;
 	position: relative;
-	color: #ffffff;
+	color: var(--text-primary);
 	backdrop-filter: blur(10px);
 	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 	animation: slideUp 0.3s ease;
@@ -112,13 +112,13 @@ button.btn[disabled] {
 input[type="text"],
 textarea {
 	padding: 10px 12px;
-	border: 1px solid #2a2a2a;
+	border: 1px solid var(--border-color);
 	border-radius: 8px;
 	margin-top: 8px;
 	width: 100%;
 	box-sizing: border-box;
-	background: rgba(255, 255, 255, 0.05);
-	color: white;
+	background: var(--input-bg-color);
+	color: var(--text-primary);
 	font-family: 'Archivo', sans-serif;
 	transition: all 0.2s ease;
 }
@@ -168,7 +168,7 @@ pre.license-key-display {
 	overflow-x: auto;
 	font-family: monospace;
 	margin-top: 8px;
-	color: #ffffff;
+	color: var(--text-primary);
 }
 
 /* PTO Modal Styles */
@@ -178,7 +178,7 @@ pre.license-key-display {
 
 .pto-date-info h3 {
 	margin: 0 0 16px 0;
-	color: #ffffff;
+	color: var(--text-primary);
 	font-size: 18px;
 	font-family: 'Crimson Pro', serif;
 	font-weight: 600;
@@ -206,7 +206,7 @@ pre.license-key-display {
 	display: block;
 	margin-bottom: 8px;
 	font-weight: 600;
-	color: #ffffff;
+	color: var(--text-primary);
 }
 
 .hours-buttons {
@@ -219,13 +219,13 @@ pre.license-key-display {
 	padding: 12px 16px;
 	border: 2px solid var(--border-color);
 	border-radius: 6px;
-	background: var(--card-bg-color);
+	background: var(--button-bg-color);
 	cursor: pointer;
 	transition: all 0.2s ease;
 	font-size: 14px;
 	flex: 1;
 	min-width: 120px;
-	color: #ffffff;
+	color: var(--text-primary);
 }
 
 .hour-button:hover {
@@ -248,7 +248,7 @@ pre.license-key-display {
 	display: block;
 	margin-bottom: 8px;
 	font-weight: 600;
-	color: #ffffff;
+	color: var(--text-primary);
 }
 
 .pto-balance-info {
@@ -260,7 +260,7 @@ pre.license-key-display {
 
 .pto-balance-info h4 {
 	margin: 0 0 12px 0;
-	color: #ffffff;
+	color: var(--text-primary);
 	font-size: 16px;
 	font-family: 'Crimson Pro', serif;
 	font-weight: 600;
@@ -284,7 +284,7 @@ pre.license-key-display {
 
 .balance-value {
 	font-weight: 600;
-	color: #ffffff;
+	color: var(--text-primary);
 }
 
 .pto-modal-actions {
@@ -311,9 +311,9 @@ pre.license-key-display {
 }
 
 .cancel-button {
-	border: 1px solid #2a2a2a;
+	border: 1px solid var(--border-color);
 	background: transparent;
-	color: white;
+	color: var(--text-primary);
 }
 
 .cancel-button:hover {
@@ -465,8 +465,8 @@ pre.license-key-display {
 
 .reconciliation-options .btn-secondary {
 	background: transparent;
-	border: 2px solid #2a2a2a;
-	color: white;
+	border: 2px solid var(--border-color);
+	color: var(--text-primary);
 }
 
 .reconciliation-options .btn-secondary:hover {

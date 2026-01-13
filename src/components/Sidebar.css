@@ -5,9 +5,9 @@
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
-	background-color: var(--card-dark, #1a1a1a);
-	border-right: 1px solid var(--border-color, #2a2a2a);
-	color: #ffffff;
+	background-color: var(--card-bg-color);
+	border-right: 1px solid var(--border-color);
+	color: var(--text-primary);
 	overflow-y: auto;
 	overflow-x: hidden;
 	transition: max-height 0.3s ease;
@@ -37,7 +37,7 @@
 	padding-bottom: 8px;
 	font-weight: 600;
 	font-size: 15px;
-	color: #ffffff;
+	color: var(--text-primary);
 }
 
 .sidebar h3:first-of-type {
@@ -66,7 +66,7 @@ h2 {
 	text-transform: uppercase;
 	font-size: 14px;
 	font-weight: 600;
-	color: #a0a0a0;
+	color: var(--text-secondary);
 	letter-spacing: 0.5px;
 }
 
@@ -98,7 +98,7 @@ h2 {
 .setting-item label {
 	font-size: 13px;
 	font-weight: 500;
-	color: #e0e0e0;
+	color: var(--text-color);
 }
 
 .setting-item input {
@@ -111,7 +111,7 @@ h2 {
 	border: 1px solid var(--border-color);
 	border-radius: 4px;
 	background-color: var(--input-bg-color);
-	color: #ffffff;
+	color: var(--text-primary);
 	font-size: 12px;
 }
 
@@ -156,7 +156,7 @@ h2 {
 	font-weight: 600;
 	margin: 16px 0 8px 0;
 	padding: 0;
-	color: #e0e0e0;
+	color: var(--text-color);
 }
 
 /* Tighter spacing for PTO-specific help text */
@@ -185,17 +185,19 @@ h2 {
 	min-height: 30px;
 	font-size: 14px;
 	font-weight: 500;
-	color: #a0a0a0;
+	color: var(--text-secondary);
 	/* transition: all 0.2s ease; */
 }
 .event-group-item .delete-button {
 	background:transparent !important;
 }
 .event-group-item[aria-label="Event group: Unispace Holidays"]:hover  {
-	background:inherit !important;
-	border:none !important;
-	color:inherit !important;
-	cursor:default !important;
+	background: transparent !important;
+	border: 1px solid transparent !important;
+	color: inherit !important;
+	cursor: default !important;
+	font-weight: 500 !important;
+	transform: none !important;
 }
 .event-group-item .group-name {
 	flex-grow: 1;
@@ -300,7 +302,7 @@ input {
 	background-color: var(--input-bg-color);
 	border: 1px solid var(--border-color);
 	border-radius: 4px;
-	color: #ffffff;
+	color: var(--text-primary);
 	font-size: 1em;
 }
 
@@ -381,7 +383,7 @@ input.group-name-input {
 	justify-content: center;
 	gap: 4px;
 	transition: background-color 0.2s;
-	color: #ffffff;
+	color: var(--text-primary);
 	box-sizing: border-box;
 	white-space: nowrap;
 }
@@ -395,21 +397,24 @@ input.group-name-input {
 }
 
 .dark-mode-toggle {
-	padding: 8px;
+	padding: 6px;
 	background-color: transparent;
-	border: 1px solid var(--border-color);
-	border-radius: 8px;
+	border: 1px solid transparent;
+	border-radius: 6px;
 	cursor: pointer;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	transition: background-color 0.2s ease;
-	color: #ffffff;
+	transition: all 0.2s ease;
+	color: var(--text-secondary);
 	flex-shrink: 0;
+	opacity: 0.8;
 }
 
 .dark-mode-toggle:hover {
 	background-color: var(--hover-bg-color);
+	border-color: var(--border-color);
+	opacity: 1;
 }
 
 .dark-mode-toggle:active {
