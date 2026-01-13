@@ -85,6 +85,7 @@ interface AppState {
 	addPTOEntry: (groupId: string, entry: PTOEntry) => void;
 	updatePTOEntry: (groupId: string, entryId: string, updates: Partial<PTOEntry>) => void;
 	deletePTOEntry: (groupId: string, entryId: string) => void;
+	clearPTOEntries: (groupId: string) => void;
 	validatePTOEntry: (groupId: string, entry: PTOEntry) => { isValid: boolean; warning?: string };
 	getPTOSummary: (groupId: string) => {
 		totalHours: number;
@@ -678,6 +679,20 @@ export const useStore = create<AppState>((set, get) => ({
 				),
 			};
 		}),
+
+	clearPTOEntries: (groupId) =>
+		set((state) => ({
+			eventGroups: state.eventGroups.map((group) =>
+				group.id === groupId
+					? {
+						...group,
+						ptoEntries: [],
+						// Clear all PTO-related ranges by filtering out ranges that have PTO entries
+						ranges: []
+					}
+					: group
+			),
+		})),
 
 	validatePTOEntry: (groupId, entry) => {
 		const state = get();
