@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import {
 	useStore,
 	getCalendarDates,
@@ -6,6 +6,7 @@ import {
 	checkSameDay,
 	DateRange,
 	findRangeForDate,
+	EventGroup,
 } from "../store";
 // Holidays are now handled as a regular calendar
 import {
@@ -24,8 +25,86 @@ import {
 	addDays,
 } from "date-fns";
 import { getHolidayFromISODate } from "../constants/holidays";
-import { PTOCalendarUtils } from "../utils/ptoUtils";
+import { PTOCalendarUtils, PTOEntry } from "../utils/ptoUtils";
+import { createGradientFromColor } from "../utils/gradientUtils";
 import "./Calendar.css";
+
+// Memoized DateCell component to prevent unnecessary re-renders
+interface DateCellProps {
+	date: Date;
+	dateStr: string;
+	isSelected: boolean;
+	ptoEntry: PTOEntry | null;
+	hasSingleCalendar: boolean;
+	className: string;
+	gradientStyle: React.CSSProperties | null;
+	rangeStyles: React.CSSProperties[];
+	isFocused: boolean;
+	onMouseDown: (date: Date) => void;
+	onMouseEnter: (date: Date, e: React.MouseEvent) => void;
+	onMouseLeave: () => void;
+}
+
+const DateCell = memo(({
+	date,
+	dateStr,
+	isSelected,
+	ptoEntry,
+	hasSingleCalendar,
+	className,
+	gradientStyle,
+	rangeStyles,
+	isFocused,
+	onMouseDown,
+	onMouseEnter,
+	onMouseLeave
+}: DateCellProps) => {
+	return (
+		<div
+			key={dateStr}
+			className={className}
+			style={gradientStyle || {}}
+			onMouseDown={() => onMouseDown(date)}
+			onMouseEnter={(e) => onMouseEnter(date, e)}
+			onMouseLeave={onMouseLeave}
+			data-date={dateStr}
+			role="gridcell"
+			aria-selected={isSelected}
+			aria-label={format(date, "MMMM d, yyyy")}
+			tabIndex={isFocused ? 0 : -1}
+		>
+			<span className="day-number" aria-hidden="true">
+				{getDate(date)}
+			</span>
+			{/* Only render range indicators for multiple calendar overlaps */}
+			{!ptoEntry && !hasSingleCalendar && (
+				<div className="range-indicators" aria-hidden="true">
+					{rangeStyles.map((style, index) => (
+						<div
+							key={`range-${index}`}
+							className="range-indicator"
+							style={style}
+						/>
+					))}
+				</div>
+			)}
+		</div>
+	);
+}, (prevProps, nextProps) => {
+	// Custom comparison function - only re-render if these specific props change
+	return (
+		prevProps.dateStr === nextProps.dateStr &&
+		prevProps.className === nextProps.className &&
+		prevProps.isSelected === nextProps.isSelected &&
+		prevProps.ptoEntry === nextProps.ptoEntry &&
+		prevProps.hasSingleCalendar === nextProps.hasSingleCalendar &&
+		prevProps.isFocused === nextProps.isFocused &&
+		JSON.stringify(prevProps.gradientStyle) === JSON.stringify(nextProps.gradientStyle) &&
+		prevProps.rangeStyles.length === nextProps.rangeStyles.length
+	);
+});
+
+DateCell.displayName = 'DateCell';
 
 const Calendar: React.FC = () => {
 	const {
@@ -43,10 +122,86 @@ const Calendar: React.FC = () => {
 		cleanupWeekendPTOEntries,
 		// Display helpers
 		getAllDisplayGroups,
+		// Get actual state arrays for proper memoization dependencies
+		eventGroups,
+		holidays,
 	} = useStore();
 
 	const calendarDates = getCalendarDates(startDate);
 	const today = startOfDay(new Date());
+
+	// Memoize expensive store lookups based on actual state data (not function refs)
+	const allDisplayGroups = useMemo(() => getAllDisplayGroups(), [eventGroups, holidays, getAllDisplayGroups]);
+	const selectedGroup = useMemo(() =>
+		allDisplayGroups.find(g => g.id === selectedGroupId),
+		[allDisplayGroups, selectedGroupId]
+	);
+	const isPTOEnabled = useMemo(() =>
+		selectedGroupId ? isPTOEnabledForGroup(selectedGroupId) : false,
+		[selectedGroupId, eventGroups, isPTOEnabledForGroup]
+	);
+	const ptoEntries = useMemo(() =>
+		selectedGroupId && isPTOEnabled ? getSelectedGroupPTOEntries() : [],
+		[selectedGroupId, isPTOEnabled, eventGroups, getSelectedGroupPTOEntries]
+	);
+
+	// Pre-compute a Map of ONLY dates that have events/PTO/holidays
+	// This way we only process ~50 dates instead of 365
+	const dateInfoMap = useMemo(() => {
+		const map = new Map<string, {
+			ptoEntry?: PTOEntry;
+			groups: EventGroup[];
+			isHoliday: boolean;
+		}>();
+
+		// Add PTO entries
+		if (isPTOEnabled && ptoEntries.length > 0) {
+			ptoEntries.forEach(entry => {
+				if (entry.startDate === entry.endDate) {
+					const existing = map.get(entry.startDate) || { groups: [], isHoliday: false };
+					existing.ptoEntry = entry;
+					map.set(entry.startDate, existing);
+				} else {
+					const start = parseISO(entry.startDate);
+					const end = parseISO(entry.endDate);
+					let current = start;
+					while (current <= end) {
+						const dateStr = formatISO(current, { representation: "date" });
+						const existing = map.get(dateStr) || { groups: [], isHoliday: false };
+						existing.ptoEntry = entry;
+						map.set(dateStr, existing);
+						current = addDays(current, 1);
+					}
+				}
+			});
+		}
+
+		// Add events from all groups (including holidays)
+		allDisplayGroups.forEach(group => {
+			group.ranges.forEach(range => {
+				if (range.start === range.end) {
+					const existing = map.get(range.start) || { groups: [], isHoliday: false };
+					existing.groups.push(group);
+					if (group.name === "Unispace Holidays") existing.isHoliday = true;
+					map.set(range.start, existing);
+				} else {
+					const start = parseISO(range.start);
+					const end = parseISO(range.end);
+					let current = start;
+					while (current <= end) {
+						const dateStr = formatISO(current, { representation: "date" });
+						const existing = map.get(dateStr) || { groups: [], isHoliday: false };
+						existing.groups.push(group);
+						if (group.name === "Unispace Holidays") existing.isHoliday = true;
+						map.set(dateStr, existing);
+						current = addDays(current, 1);
+					}
+				}
+			});
+		});
+
+		return map;
+	}, [ptoEntries, isPTOEnabled, allDisplayGroups]);
 
 	const [isDragging, setIsDragging] = useState(false);
 	const [dragStartDate, setDragStartDate] = useState<Date | null>(null);
@@ -93,49 +248,22 @@ const Calendar: React.FC = () => {
 	};
 
 	// Simplified PTO toggle - handles both single-day and legacy multi-day entries
-	const handlePTOToggle = (date: Date) => {
+	const handlePTOToggle = useCallback((date: Date) => {
 		if (!selectedGroupId) return;
 
-		const ptoEntries = getSelectedGroupPTOEntries();
 		const dateStr = formatISO(date, { representation: "date" });
-
-		console.log('[PTO Toggle] Clicked:', {
-			dateStr,
-			entriesFound: ptoEntries.length,
-			allEntries: ptoEntries.map(e => ({
-				id: e.id,
-				start: e.startDate,
-				end: e.endDate,
-				hours: e.hoursPerDay
-			}))
-		});
-
-		// Find entry that contains this date (handles both new single-day and old multi-day)
-		const ptoEntry = ptoEntries.find(entry =>
-			dateStr >= entry.startDate && dateStr <= entry.endDate
-		);
-
-		console.log('[PTO Toggle] Entry match:', {
-			found: !!ptoEntry,
-			entry: ptoEntry ? {
-				id: ptoEntry.id,
-				start: ptoEntry.startDate,
-				end: ptoEntry.endDate,
-				hours: ptoEntry.hoursPerDay
-			} : null
-		});
+		const dateInfo = dateInfoMap.get(dateStr);
+		const ptoEntry = dateInfo?.ptoEntry;
 
 		if (ptoEntry && ptoEntry.id) {
 			// Remove existing PTO for this day
-			console.log('[PTO Toggle] Calling deletePTOEntry with:', { groupId: selectedGroupId, entryId: ptoEntry.id });
 			deletePTOEntry(selectedGroupId, ptoEntry.id);
 		} else {
 			// Add 8h PTO for this day
-			console.log('[PTO Toggle] Adding new entry for:', dateStr);
 			const newEntry = PTOCalendarUtils.createSingleDayEntry(dateStr, 8);
 			addPTOEntry(selectedGroupId, newEntry);
 		}
-	};
+	}, [selectedGroupId, dateInfoMap, deletePTOEntry, addPTOEntry]);
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (!focusedDate || !selectedGroupId) return;
@@ -197,9 +325,6 @@ const Calendar: React.FC = () => {
 	const handleDateSelection = (date: Date) => {
 		if (!selectedGroupId) return;
 
-		const selectedGroup = getAllDisplayGroups().find(
-			(group) => group.id === selectedGroupId
-		);
 		if (!selectedGroup) return;
 
 		// Prevent interaction with special calendars (like holidays)
@@ -247,9 +372,6 @@ const Calendar: React.FC = () => {
 		if (!selectedGroupId) return;
 		setFocusedDate(date);
 
-		const selectedGroup = getAllDisplayGroups().find(
-			(group) => group.id === selectedGroupId
-		);
 		if (!selectedGroup) return;
 
 		// Prevent interaction with special calendars
@@ -257,9 +379,6 @@ const Calendar: React.FC = () => {
 			alert("Cannot modify the holidays calendar. Please select a different calendar.");
 			return;
 		}
-
-		// Check if PTO is enabled for this group
-		const isPTOEnabled = isPTOEnabledForGroup(selectedGroupId);
 
 		if (isPTOEnabled) {
 			// PTO mode: click-to-toggle with long-press for custom hours
@@ -349,9 +468,9 @@ const Calendar: React.FC = () => {
 		}
 	};
 
-	const handleMouseLeaveDate = () => {
+	const handleMouseLeaveDate = useCallback(() => {
 		setTooltip(null);
-	};
+	}, []);
 
 	const handleMouseUp = useCallback(() => {
 		// Clear long-press timer if it's still running
@@ -366,9 +485,6 @@ const Calendar: React.FC = () => {
 			ptoClickedDateRef.current = null;
 			return;
 		}
-
-		// Check if PTO is enabled for this group
-		const isPTOEnabled = selectedGroupId ? isPTOEnabledForGroup(selectedGroupId) : false;
 
 		if (isPTOEnabled) {
 			// PTO mode: simple click = instant 8h toggle
@@ -406,7 +522,7 @@ const Calendar: React.FC = () => {
 
 		setDragStartDate(null);
 		setDragEndDate(null);
-	}, [isDragging, dragStartDate, dragEndDate, selectedGroupId, isLongPress, addDateRange, isPTOEnabledForGroup, handlePTOToggle]);
+	}, [isDragging, dragStartDate, dragEndDate, selectedGroupId, isLongPress, addDateRange, isPTOEnabled, handlePTOToggle]);
 
 	useEffect(() => {
 		const handleGlobalMouseUp = () => {
@@ -443,27 +559,23 @@ const Calendar: React.FC = () => {
 
 	const getTooltipContent = (date: Date): string | null => {
 		const dateStr = formatISO(date, { representation: "date" });
-		
-		// Holidays are now handled as a regular calendar, so check event groups first
+		const dateInfo = dateInfoMap.get(dateStr);
+
+		if (!dateInfo) return null; // No events on this date
 
 		// Check for PTO entries in the selected group
-		if (selectedGroupId && isPTOEnabledForGroup(selectedGroupId)) {
-			const ptoEntries = getSelectedGroupPTOEntries();
-			const ptoEntry = ptoEntries.find(entry => 
-				dateStr >= entry.startDate && dateStr <= entry.endDate
-			);
-			if (ptoEntry) {
-				const hourText = ptoEntry.hoursPerDay === 2 ? "Quarter Day" : 
-								ptoEntry.hoursPerDay === 4 ? "Half Day" : "Full Day";
-				const nameText = ptoEntry.name ? ` - ${ptoEntry.name}` : "";
-				const dayText = ptoEntry.startDate === ptoEntry.endDate ? "" : 
-								` (${ptoEntry.startDate} to ${ptoEntry.endDate})`;
-				return `PTO: ${hourText} (${ptoEntry.hoursPerDay}h)${nameText}${dayText}`;
-			}
+		if (selectedGroupId && isPTOEnabled && dateInfo.ptoEntry) {
+			const ptoEntry = dateInfo.ptoEntry;
+			const hourText = ptoEntry.hoursPerDay === 2 ? "Quarter Day" :
+							ptoEntry.hoursPerDay === 4 ? "Half Day" : "Full Day";
+			const nameText = ptoEntry.name ? ` - ${ptoEntry.name}` : "";
+			const dayText = ptoEntry.startDate === ptoEntry.endDate ? "" :
+							` (${ptoEntry.startDate} to ${ptoEntry.endDate})`;
+			return `PTO: ${hourText} (${ptoEntry.hoursPerDay}h)${nameText}${dayText}`;
 		}
 
 		// Check for regular events from all groups
-		const groupsWithEvent = getAllDisplayGroups().filter(group => isDateInRange(date, group));
+		const groupsWithEvent = dateInfo.groups;
 		if (groupsWithEvent.length > 0) {
 			if (groupsWithEvent.length === 1) {
 				const group = groupsWithEvent[0];
@@ -520,34 +632,29 @@ const Calendar: React.FC = () => {
 			className += " focused";
 		}
 
-		// Add PTO-specific visual classes (only on weekdays)
-		if (selectedGroupId && isPTOEnabledForGroup(selectedGroupId) && !isWeekend(date)) {
-			const dateStr = formatISO(date, { representation: "date" });
-			const ptoEntries = getSelectedGroupPTOEntries();
-			const ptoEntry = ptoEntries.find(entry =>
-				dateStr >= entry.startDate && dateStr <= entry.endDate
-			);
+		const dateStr = formatISO(date, { representation: "date" });
+		const dateInfo = dateInfoMap.get(dateStr);
 
-			if (ptoEntry) {
-				if (ptoEntry.hoursPerDay === 8) {
-					className += " pto-full-day";
-				} else if (ptoEntry.hoursPerDay === 4) {
-					className += " pto-half-day";
-				} else if (ptoEntry.hoursPerDay === 2) {
-					className += " pto-quarter-day";
-				}
+		// Add PTO-specific visual classes (only on weekdays)
+		if (dateInfo?.ptoEntry && selectedGroupId && isPTOEnabled && !isWeekend(date)) {
+			const ptoEntry = dateInfo.ptoEntry;
+			if (ptoEntry.hoursPerDay === 8) {
+				className += " pto-full-day";
+			} else if (ptoEntry.hoursPerDay === 4) {
+				className += " pto-half-day";
+			} else if (ptoEntry.hoursPerDay === 2) {
+				className += " pto-quarter-day";
 			}
 		}
 
 		// Check if this date has a holiday (apply subtle background)
-		const holidayGroup = getAllDisplayGroups().find(g => g.name === "Unispace Holidays");
-		if (holidayGroup && isDateInRange(date, holidayGroup)) {
+		if (dateInfo?.isHoliday) {
 			className += " holiday";
 		}
 
-		// Apply gradient styling for selected calendar events (non-PTO)
-		const selectedGroup = getAllDisplayGroups().find(g => g.id === selectedGroupId);
-		if (selectedGroup && selectedGroupId && !isPTOEnabledForGroup(selectedGroupId) && isDateInRange(date, selectedGroup)) {
+		// Apply gradient styling for single calendar event (not multiple overlaps)
+		const groupsWithDate = dateInfo?.groups.filter(g => g.name !== "Unispace Holidays") || [];
+		if (groupsWithDate.length === 1) {
 			className += " has-gradient";
 		}
 
@@ -561,7 +668,6 @@ const Calendar: React.FC = () => {
 
 			if (date >= currentDragStart && date <= currentDragEnd) {
 				// For PTO-enabled groups, only highlight weekdays during drag
-				const isPTOEnabled = selectedGroupId ? isPTOEnabledForGroup(selectedGroupId) : false;
 				if (isPTOEnabled && isWeekend(date)) {
 					// Skip highlighting weekends for PTO groups
 				} else {
@@ -573,64 +679,39 @@ const Calendar: React.FC = () => {
 		return className;
 	};
 
-	// Helper function to create a gradient from a base color
-	const createGradientFromColor = (baseColor: string): string => {
-		// Parse the hex color to RGB
-		const hex = baseColor.replace('#', '');
-		const r = parseInt(hex.substring(0, 2), 16);
-		const g = parseInt(hex.substring(2, 4), 16);
-		const b = parseInt(hex.substring(4, 6), 16);
-
-		// Create a lighter/brighter version by increasing RGB values
-		const r2 = Math.min(255, r + 40);
-		const g2 = Math.min(255, g + 40);
-		const b2 = Math.min(255, b + 40);
-
-		// Create gradient from original to lighter version
-		return `linear-gradient(135deg, rgb(${r}, ${g}, ${b}), rgb(${r2}, ${g2}, ${b2}))`;
-	};
-
-	// Get gradient style for a date based on calendar color
+	// Get gradient style for a date based on calendar color (uses imported utility function)
+	// This applies to ALL calendars (not just selected), but only when there's a single calendar on that date
 	const getGradientStyle = (date: Date): React.CSSProperties | null => {
-		if (!selectedGroupId) return null;
+		const dateStr = formatISO(date, { representation: "date" });
+		const dateInfo = dateInfoMap.get(dateStr);
 
-		const selectedGroup = getAllDisplayGroups().find(g => g.id === selectedGroupId);
-		if (!selectedGroup) return null;
+		if (!dateInfo) return null;
 
-		// For PTO-enabled calendars
-		if (isPTOEnabledForGroup(selectedGroupId) && !isWeekend(date)) {
-			const dateStr = formatISO(date, { representation: "date" });
-			const ptoEntries = getSelectedGroupPTOEntries();
-			const ptoEntry = ptoEntries.find(entry =>
-				dateStr >= entry.startDate && dateStr <= entry.endDate
-			);
+		// Find all calendars with events on this date (excluding holidays)
+		const groupsWithDate = dateInfo.groups.filter(g => g.name !== "Unispace Holidays");
 
-			if (ptoEntry) {
-				return {
-					background: createGradientFromColor(selectedGroup.color),
-					color: '#0a0a0a',
-				};
-			}
-		}
+		// Only apply gradient if there's exactly ONE calendar on this date
+		if (groupsWithDate.length !== 1) return null;
 
-		// For regular calendar events
-		if (!isPTOEnabledForGroup(selectedGroupId) && isDateInRange(date, selectedGroup)) {
-			return {
-				background: createGradientFromColor(selectedGroup.color),
-				color: '#0a0a0a',
-			};
-		}
+		const singleGroup = groupsWithDate[0];
 
-		return null;
+		// Apply gradient based on that calendar's color
+		return {
+			background: createGradientFromColor(singleGroup.color),
+			color: '#0a0a0a',
+		};
 	};
 
 	const getRangeStyles = (date: Date): React.CSSProperties[] => {
-		const styles: React.CSSProperties[] = [];
-		const groupsWithDate = getAllDisplayGroups().filter((group) =>
-			isDateInRange(date, group)
-		);
+		const dateStr = formatISO(date, { representation: "date" });
+		const dateInfo = dateInfoMap.get(dateStr);
 
+		if (!dateInfo || dateInfo.groups.length === 0) return [];
+
+		const styles: React.CSSProperties[] = [];
+		const groupsWithDate = dateInfo.groups;
 		const totalGroups = groupsWithDate.length;
+
 		groupsWithDate.forEach((group, index) => {
 			styles.push({
 				backgroundColor: group.color,
@@ -699,69 +780,37 @@ const Calendar: React.FC = () => {
 
 							{datesInMonth.map((date) => {
 								const dateStr = formatISO(date, { representation: "date" });
-								const isSelected = getAllDisplayGroups().some((group) =>
-									isDateInRange(date, group)
-								);
+								const dateInfo = dateInfoMap.get(dateStr);
 
-								// Get PTO entry for this date if applicable (only on weekdays)
-								let ptoEntry = null;
-								if (selectedGroupId && isPTOEnabledForGroup(selectedGroupId) && !isWeekend(date)) {
-									const ptoEntries = getSelectedGroupPTOEntries();
-									ptoEntry = ptoEntries.find(entry =>
-										dateStr >= entry.startDate && dateStr <= entry.endDate
-									) || null;
-								}
-
-								// Check if this date has a single selected calendar event (for gradient vs range-indicators)
-								const groupsWithDate = getAllDisplayGroups().filter((group) =>
-									isDateInRange(date, group)
-								);
-								const hasSingleSelectedCalendar = groupsWithDate.length === 1 &&
-									groupsWithDate[0].id === selectedGroupId &&
-									!isPTOEnabledForGroup(selectedGroupId);
+								// Quick lookups from pre-computed map
+								const isSelected = dateInfo ? dateInfo.groups.length > 0 : false;
+								const ptoEntry = dateInfo?.ptoEntry || null;
+								const groupsWithoutHolidays = dateInfo?.groups.filter(g => g.name !== "Unispace Holidays") || [];
+								const hasSingleCalendar = groupsWithoutHolidays.length === 1;
 
 								const gradientStyle = getGradientStyle(date);
+								const rangeStyles = getRangeStyles(date);
+								const isFocused = focusedDate ? checkSameDay(date, focusedDate) : false;
 
 								return (
-									<div
+									<DateCell
 										key={dateStr}
+										date={date}
+										dateStr={dateStr}
+										isSelected={isSelected}
+										ptoEntry={ptoEntry}
+										hasSingleCalendar={hasSingleCalendar}
 										className={getDayClassName(date)}
-										style={gradientStyle || {}}
-										onMouseDown={() => handleMouseDown(date)}
-										onMouseEnter={(e) => {
+										gradientStyle={gradientStyle}
+										rangeStyles={rangeStyles}
+										isFocused={isFocused}
+										onMouseDown={handleMouseDown}
+										onMouseEnter={(date, e) => {
 											handleMouseMove(date);
 											handleMouseEnterDate(date, e);
 										}}
 										onMouseLeave={handleMouseLeaveDate}
-										data-date={dateStr}
-										role="gridcell"
-										aria-selected={isSelected}
-										aria-label={format(date, "MMMM d, yyyy")}
-										tabIndex={
-											focusedDate && checkSameDay(date, focusedDate) ? 0 : -1
-										}
-									>
-										<span className="day-number" aria-hidden="true">
-											{getDate(date)}
-										</span>
-										{/* {ptoEntry && (
-											<div className="pto-indicator" aria-hidden="true">
-												{ptoEntry.hoursPerDay}h
-											</div>
-										)} */}
-										{/* Only render range indicators for multiple calendar overlaps */}
-										{!ptoEntry && !hasSingleSelectedCalendar && (
-											<div className="range-indicators" aria-hidden="true">
-												{getRangeStyles(date).map((style, index) => (
-													<div
-														key={`range-${index}`}
-														className="range-indicator"
-														style={style}
-													/>
-												))}
-											</div>
-										)}
-									</div>
+									/>
 								);
 							})}
 						</div>

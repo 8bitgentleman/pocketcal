@@ -489,20 +489,112 @@ export const useStore = create<AppState>((set, get) => ({
 
 	// Per-Group PTO Actions
 	setPTOConfig: (groupId, config) =>
-		set((state) => ({
-			eventGroups: state.eventGroups.map((group) =>
-				group.id === groupId
-					? { 
-						...group, 
-						ptoConfig: { 
-							yearsOfService: config.yearsOfService ?? group.ptoConfig?.yearsOfService ?? 2,
-							rolloverHours: config.rolloverHours ?? group.ptoConfig?.rolloverHours ?? 0,
-							isEnabled: config.isEnabled !== undefined ? config.isEnabled : (group.ptoConfig?.isEnabled ?? false)
-						} 
+		set((state) => {
+			const group = state.eventGroups.find((g) => g.id === groupId);
+
+			if (!group) return state;
+
+			// Check if we're enabling PTO for the first time
+			const wasEnabled = group.ptoConfig?.isEnabled ?? false;
+			const willBeEnabled = config.isEnabled !== undefined ? config.isEnabled : wasEnabled;
+			const isEnablingPTO = !wasEnabled && willBeEnabled;
+
+			// Convert existing ranges to PTO entries if enabling PTO
+			let newPTOEntries = group.ptoEntries || [];
+			let newRanges = group.ranges;
+
+			if (isEnablingPTO && group.ranges.length > 0) {
+				console.log(`[PTO] Converting ${group.ranges.length} event ranges to PTO entries...`);
+
+				// Group consecutive single-day ranges into multi-day ranges
+				// This helps convert ranges that were created as individual days
+				const consolidatedRanges: DateRange[] = [];
+				const sortedRanges = [...group.ranges].sort((a, b) =>
+					parseISO(a.start).getTime() - parseISO(b.start).getTime()
+				);
+
+				let currentRange: DateRange | null = null;
+				for (const range of sortedRanges) {
+					if (!currentRange) {
+						currentRange = { ...range };
+					} else {
+						// Check if this range is consecutive with the current one
+						const currentEnd = parseISO(currentRange.end);
+						const rangeStart = parseISO(range.start);
+						const daysDiff = differenceInDays(rangeStart, currentEnd);
+
+						if (daysDiff === 1) {
+							// Consecutive day, extend current range
+							currentRange.end = range.end;
+						} else {
+							// Non-consecutive, save current and start new
+							consolidatedRanges.push(currentRange);
+							currentRange = { ...range };
+						}
 					}
-					: group
-			),
-		})),
+				}
+				if (currentRange) {
+					consolidatedRanges.push(currentRange);
+				}
+
+				console.log(`[PTO] Consolidated into ${consolidatedRanges.length} ranges`);
+
+				// Convert each consolidated range to a PTO entry
+				const convertedEntries = consolidatedRanges.map((range) => {
+					const totalHours = PTOCalendarUtils.calculateTotalPTOHours(
+						range.start,
+						range.end,
+						8 // Default to 8 hours per day (full day)
+					);
+
+					return {
+						id: `${range.start}-${range.end}-converted-${Date.now()}`,
+						startDate: range.start,
+						endDate: range.end,
+						hoursPerDay: 8,
+						totalHours,
+					};
+				});
+
+				// Filter out any entries with 0 hours (weekend-only ranges)
+				const validEntries = convertedEntries.filter(entry => entry.totalHours > 0);
+				newPTOEntries = validEntries;
+
+				// Create new individual day ranges for each weekday in the PTO entries
+				// This matches the format used by addPTOEntry
+				newRanges = validEntries.flatMap(entry =>
+					eachDayOfInterval({
+						start: parseISO(entry.startDate),
+						end: parseISO(entry.endDate)
+					})
+					.filter(date => !isWeekend(date))
+					.map(date => ({
+						start: formatISO(date, { representation: "date" }),
+						end: formatISO(date, { representation: "date" })
+					}))
+				);
+
+				console.log(`[PTO] Converted to ${newPTOEntries.length} PTO entries (${newPTOEntries.reduce((sum, e) => sum + e.totalHours, 0)} total hours)`);
+			}
+
+			return {
+				eventGroups: state.eventGroups.map((g) =>
+					g.id === groupId
+						? {
+							...g,
+							ptoConfig: {
+								yearsOfService: config.yearsOfService ?? g.ptoConfig?.yearsOfService ?? 2,
+								rolloverHours: config.rolloverHours ?? g.ptoConfig?.rolloverHours ?? 0,
+								isEnabled: willBeEnabled
+							},
+							// Apply converted PTO entries and regenerated ranges
+							ptoEntries: isEnablingPTO ? newPTOEntries : g.ptoEntries,
+							ranges: isEnablingPTO ? newRanges : g.ranges
+						}
+						: g
+				),
+			};
+		}),
 
 	addPTOEntry: (groupId, entry) => {
 		set((state) => {
@@ -533,13 +625,7 @@ export const useStore = create<AppState>((set, get) => ({
 				return state;
 			}
 
-			console.log('[PTO] Adding entry:', {
-				startDate: entry.startDate,
-				endDate: entry.endDate,
-				hoursPerDay: entry.hoursPerDay,
-				calculatedTotalHours: totalHours,
-				providedTotalHours: entry.totalHours
-			});
+			// Removed console.log for performance
 
 			return {
 				eventGroups: state.eventGroups.map((group) =>
@@ -594,18 +680,7 @@ export const useStore = create<AppState>((set, get) => ({
 					updatedEntry.endDate,
 					updatedEntry.hoursPerDay
 				);
-				console.log('[PTO] Updating entry with recalculation:', {
-					id: entryId,
-					oldRange: `${existingEntry.startDate} to ${existingEntry.endDate}`,
-					newRange: `${updatedEntry.startDate} to ${updatedEntry.endDate}`,
-					oldTotalHours,
-					newTotalHours: updatedEntry.totalHours
-				});
-			} else {
-				console.log('[PTO] Updating entry (no date/hours change):', {
-					id: entryId,
-					updates: Object.keys(updates)
-				});
+				// Removed console.log for performance
 			}
 
 			return {

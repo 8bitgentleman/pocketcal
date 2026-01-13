@@ -157,6 +157,7 @@
 .calendar-day.has-gradient {
 	font-weight: 600;
 	border: 1px solid transparent;
+	/* Ensure inline styles take precedence */
 }
 
 .calendar-day.has-gradient:hover {
@@ -165,6 +166,8 @@
 
 .calendar-day.has-gradient .day-number {
 	font-weight: 600;
+	color: #0a0a0a; /* Dark text on gradient background */
+	text-shadow: none;
 }
 
 /* Holiday - subtle purple background */
@@ -202,13 +205,13 @@
 	transition: opacity 0.2s ease;
 }
 
-/* When the calendar day has range indicators, adjust styling */
-/* Exclude PTO days from this rule so their gradients show through */
-.calendar-day:has(.range-indicator):not(.pto-single):not(.pto-double):not(.pto-triple) {
+/* When the calendar day has range indicators (multiple calendars), use transparent background */
+/* Exclude gradient days and PTO days from this rule */
+.calendar-day:has(.range-indicator):not(.has-gradient):not(.pto-full-day):not(.pto-half-day):not(.pto-quarter-day) {
 	background-color: transparent;
 }
 
-.calendar-day:has(.range-indicator):not(.pto-single):not(.pto-double):not(.pto-triple) .day-number {
+.calendar-day:has(.range-indicator):not(.has-gradient):not(.pto-full-day):not(.pto-half-day):not(.pto-quarter-day) .day-number {
 	color: white;
 	font-weight: 600;
 	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
