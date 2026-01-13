@@ -32,7 +32,6 @@ const Calendar: React.FC = () => {
 		startDate,
 		includeWeekends,
 		showToday,
-		eventGroups,
 		selectedGroupId,
 		addDateRange,
 		deleteDateRange,
@@ -44,7 +43,6 @@ const Calendar: React.FC = () => {
 		cleanupWeekendPTOEntries,
 		// Display helpers
 		getAllDisplayGroups,
-		getHolidaysGroup,
 	} = useStore();
 
 	const calendarDates = getCalendarDates(startDate);
@@ -213,11 +211,6 @@ const Calendar: React.FC = () => {
 		// Check if the date is already in a range for this group
 		const existingRange = findRangeForDate(date, selectedGroup);
 		if (existingRange) {
-			// If this is a PTO-enabled group, handle PTO entry deletion/splitting
-			if (isPTOEnabledForGroup(selectedGroupId)) {
-				handlePTODayDeletion(date);
-			}
-			
 			deleteDateRange(selectedGroupId, existingRange);
 
 			// Create two new ranges if needed - one before and one after the clicked date
