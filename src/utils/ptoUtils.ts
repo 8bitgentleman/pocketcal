@@ -3,7 +3,7 @@
  * Mathematical precision functions for PTO calculation and validation
  */
 
-import { isWeekend } from 'date-fns';
+import { isWeekend, parseISO } from 'date-fns';
 
 export interface PTOEntry {
   id?: string;         // Unique identifier for the entry
@@ -151,20 +151,20 @@ export class PTOCalendarUtils {
     endDate: string,
     hoursPerDay: number
   ): number {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+
     // Count only weekdays between start and end dates (inclusive)
     let workDays = 0;
     const current = new Date(start);
-    
+
     while (current <= end) {
       if (!isWeekend(current)) {
         workDays++;
       }
       current.setDate(current.getDate() + 1);
     }
-    
+
     return workDays * hoursPerDay;
   }
 

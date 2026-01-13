@@ -539,7 +539,17 @@ const Calendar: React.FC = () => {
 			}
 		}
 
-		// Remove hard-coded holiday styling - holidays are now handled as a regular calendar
+		// Check if this date has a holiday (apply subtle background)
+		const holidayGroup = getAllDisplayGroups().find(g => g.name === "Unispace Holidays");
+		if (holidayGroup && isDateInRange(date, holidayGroup)) {
+			className += " holiday";
+		}
+
+		// Apply gradient styling for selected calendar events (non-PTO)
+		const selectedGroup = getAllDisplayGroups().find(g => g.id === selectedGroupId);
+		if (selectedGroup && selectedGroupId && !isPTOEnabledForGroup(selectedGroupId) && isDateInRange(date, selectedGroup)) {
+			className += " has-gradient";
+		}
 
 		if (isDragging && dragStartDate && dragEndDate) {
 			const currentDragStart = isBefore(dragStartDate, dragEndDate)
@@ -561,6 +571,57 @@ const Calendar: React.FC = () => {
 		}
 
 		return className;
+	};
+
+	// Helper function to create a gradient from a base color
+	const createGradientFromColor = (baseColor: string): string => {
+		// Parse the hex color to RGB
+		const hex = baseColor.replace('#', '');
+		const r = parseInt(hex.substring(0, 2), 16);
+		const g = parseInt(hex.substring(2, 4), 16);
+		const b = parseInt(hex.substring(4, 6), 16);
+
+		// Create a lighter/brighter version by increasing RGB values
+		const r2 = Math.min(255, r + 40);
+		const g2 = Math.min(255, g + 40);
+		const b2 = Math.min(255, b + 40);
+
+		// Create gradient from original to lighter version
+		return `linear-gradient(135deg, rgb(${r}, ${g}, ${b}), rgb(${r2}, ${g2}, ${b2}))`;
+	};
+
+	// Get gradient style for a date based on calendar color
+	const getGradientStyle = (date: Date): React.CSSProperties | null => {
+		if (!selectedGroupId) return null;
+
+		const selectedGroup = getAllDisplayGroups().find(g => g.id === selectedGroupId);
+		if (!selectedGroup) return null;
+
+		// For PTO-enabled calendars
+		if (isPTOEnabledForGroup(selectedGroupId) && !isWeekend(date)) {
+			const dateStr = formatISO(date, { representation: "date" });
+			const ptoEntries = getSelectedGroupPTOEntries();
+			const ptoEntry = ptoEntries.find(entry =>
+				dateStr >= entry.startDate && dateStr <= entry.endDate
+			);
+
+			if (ptoEntry) {
+				return {
+					background: createGradientFromColor(selectedGroup.color),
+					color: '#0a0a0a',
+				};
+			}
+		}
+
+		// For regular calendar events
+		if (!isPTOEnabledForGroup(selectedGroupId) && isDateInRange(date, selectedGroup)) {
+			return {
+				background: createGradientFromColor(selectedGroup.color),
+				color: '#0a0a0a',
+			};
+		}
+
+		return null;
 	};
 
 	const getRangeStyles = (date: Date): React.CSSProperties[] => {
@@ -651,10 +712,21 @@ const Calendar: React.FC = () => {
 									) || null;
 								}
 
+								// Check if this date has a single selected calendar event (for gradient vs range-indicators)
+								const groupsWithDate = getAllDisplayGroups().filter((group) =>
+									isDateInRange(date, group)
+								);
+								const hasSingleSelectedCalendar = groupsWithDate.length === 1 &&
+									groupsWithDate[0].id === selectedGroupId &&
+									!isPTOEnabledForGroup(selectedGroupId);
+
+								const gradientStyle = getGradientStyle(date);
+
 								return (
 									<div
 										key={dateStr}
 										className={getDayClassName(date)}
+										style={gradientStyle || {}}
 										onMouseDown={() => handleMouseDown(date)}
 										onMouseEnter={(e) => {
 											handleMouseMove(date);
@@ -677,15 +749,18 @@ const Calendar: React.FC = () => {
 												{ptoEntry.hoursPerDay}h
 											</div>
 										)} */}
-										<div className="range-indicators" aria-hidden="true">
-											{getRangeStyles(date).map((style, index) => (
-												<div
-													key={`range-${index}`}
-													className="range-indicator"
-													style={style}
-												/>
-											))}
-										</div>
+										{/* Only render range indicators for multiple calendar overlaps */}
+										{!ptoEntry && !hasSingleSelectedCalendar && (
+											<div className="range-indicators" aria-hidden="true">
+												{getRangeStyles(date).map((style, index) => (
+													<div
+														key={`range-${index}`}
+														className="range-indicator"
+														style={style}
+													/>
+												))}
+											</div>
+										)}
 									</div>
 								);
 							})}

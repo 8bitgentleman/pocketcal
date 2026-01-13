@@ -25,7 +25,8 @@
       "Bash(python test_calendar_styling.py:*)",
       "Bash(./venv/bin/python:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm test:*)"
     ],
     "deny": [],
     "ask": [],

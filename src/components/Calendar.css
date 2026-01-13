@@ -151,73 +151,38 @@
 	transition: font-weight 0.2s ease;
 }
 
-/* PTO States - Single Person */
-.calendar-day.pto-single {
-	background: linear-gradient(135deg, #00d4ff, #8b5cf6);
-	color: #0a0a0a;
+/* Removed old unused PTO gradient classes - now using dynamic inline styles */
+
+/* Has gradient - base styling for gradients (color comes from inline style) */
+.calendar-day.has-gradient {
 	font-weight: 600;
 	border: 1px solid transparent;
 }
 
-.calendar-day.pto-single:hover {
+.calendar-day.has-gradient:hover {
 	opacity: 0.9;
 }
 
-.calendar-day.pto-single .day-number {
-	color: #0a0a0a;
+.calendar-day.has-gradient .day-number {
 	font-weight: 600;
 }
 
-/* PTO States - Two People Split */
-.calendar-day.pto-double {
-	background: linear-gradient(180deg, #00d4ff 0%, #00d4ff 50%, #ff6b35 50%, #ff6b35 100%);
-	color: #0a0a0a;
-	font-weight: 600;
-	border: 1px solid transparent;
-}
-
-.calendar-day.pto-double:hover {
-	opacity: 0.9;
-}
-
-.calendar-day.pto-double .day-number {
-	color: #0a0a0a;
-	font-weight: 600;
-}
-
-/* PTO States - Three People Triple */
-.calendar-day.pto-triple {
-	background: linear-gradient(180deg, #00d4ff 0%, #00d4ff 33%, #8b5cf6 33%, #8b5cf6 66%, #ff006e 66%, #ff006e 100%);
-	color: #0a0a0a;
-	font-weight: 600;
-	border: 1px solid transparent;
-}
-
-.calendar-day.pto-triple:hover {
-	opacity: 0.9;
-}
-
-.calendar-day.pto-triple .day-number {
-	color: #0a0a0a;
-	font-weight: 600;
-}
-
-/* Holiday */
+/* Holiday - subtle purple background */
 .calendar-day.holiday {
-	background: rgba(255, 107, 53, 0.15);
-	color: #ff6b35;
+	background: rgba(139, 92, 246, 0.15);
+	color: #8b5cf6;
 	font-weight: 600;
 	border: 1px solid transparent;
 }
 
 .calendar-day.holiday .day-number {
-	color: #ff6b35;
+	color: #8b5cf6;
 	font-weight: 600;
 }
 
 .calendar-day.holiday:hover {
-	background: rgba(255, 107, 53, 0.25);
-	color: #ff6b35;
+	background: rgba(139, 92, 246, 0.25);
+	color: #8b5cf6;
 }
 
 /* Range Indicators (for backward compatibility) */
@@ -287,28 +252,22 @@
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* PTO day type styling - subtle border indicators */
-.calendar-day.pto-full-day {
-	border: 2px solid #10b981;
-}
-
-.calendar-day.pto-half-day {
-	border: 2px solid #f59e0b;
-}
-
+/* PTO day type styling - gradient backgrounds (color comes from inline style) */
+.calendar-day.pto-full-day,
+.calendar-day.pto-half-day,
 .calendar-day.pto-quarter-day {
-	border: 2px solid #3b82f6;
+	font-weight: 600;
+	border: 1px solid transparent;
 }
 
-/* Adjust PTO indicator colors based on day type */
-.calendar-day.pto-full-day .pto-indicator {
-	background-color: rgba(16, 185, 129, 0.95);
+.calendar-day.pto-full-day:hover,
+.calendar-day.pto-half-day:hover,
+.calendar-day.pto-quarter-day:hover {
+	opacity: 0.9;
 }
 
-.calendar-day.pto-half-day .pto-indicator {
-	background-color: rgba(245, 158, 11, 0.95);
-}
-
-.calendar-day.pto-quarter-day .pto-indicator {
-	background-color: rgba(59, 130, 246, 0.95);
+.calendar-day.pto-full-day .day-number,
+.calendar-day.pto-half-day .day-number,
+.calendar-day.pto-quarter-day .day-number {
+	font-weight: 600;
 }
