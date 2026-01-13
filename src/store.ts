@@ -581,9 +581,31 @@ export const useStore = create<AppState>((set, get) => ({
 			const existingEntry = (group?.ptoEntries || []).find(entry => entry.id === entryId);
 			
 			if (!existingEntry) return state;
-			
+
 			const updatedEntry = { ...existingEntry, ...updates };
-			
+
+			// Recalculate totalHours if dates or hoursPerDay changed
+			if (updates.startDate || updates.endDate || updates.hoursPerDay) {
+				const oldTotalHours = updatedEntry.totalHours;
+				updatedEntry.totalHours = PTOCalendarUtils.calculateTotalPTOHours(
+					updatedEntry.startDate,
+					updatedEntry.endDate,
+					updatedEntry.hoursPerDay
+				);
+				console.log('[PTO] Updating entry with recalculation:', {
+					id: entryId,
+					oldRange: `${existingEntry.startDate} to ${existingEntry.endDate}`,
+					newRange: `${updatedEntry.startDate} to ${updatedEntry.endDate}`,
+					oldTotalHours,
+					newTotalHours: updatedEntry.totalHours
+				});
+			} else {
+				console.log('[PTO] Updating entry (no date/hours change):', {
+					id: entryId,
+					updates: Object.keys(updates)
+				});
+			}
+
 			return {
 				eventGroups: state.eventGroups.map((group) =>
 					group.id === groupId
