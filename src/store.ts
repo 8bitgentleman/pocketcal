@@ -513,16 +513,45 @@ export const useStore = create<AppState>((set, get) => ({
 				console.warn(`Invalid PTO hours per day: ${entry.hoursPerDay}`);
 				return state;
 			}
-			
+
+			// Always recalculate totalHours to ensure accuracy
+			const totalHours = PTOCalendarUtils.calculateTotalPTOHours(
+				entry.startDate,
+				entry.endDate,
+				entry.hoursPerDay
+			);
+
+			// Don't create entries with 0 hours (weekend-only spans)
+			if (totalHours === 0) {
+				console.warn('[PTO] Skipping entry with 0 hours (weekend-only span):', {
+					startDate: entry.startDate,
+					endDate: entry.endDate,
+					hoursPerDay: entry.hoursPerDay
+				});
+				return state;
+			}
+
+			console.log('[PTO] Adding entry:', {
+				startDate: entry.startDate,
+				endDate: entry.endDate,
+				hoursPerDay: entry.hoursPerDay,
+				calculatedTotalHours: totalHours,
+				providedTotalHours: entry.totalHours
+			});
+
 			return {
 				eventGroups: state.eventGroups.map((group) =>
 					group.id === groupId
-						? { 
-							...group, 
-							// Add PTO entry
+						? {
+							...group,
+							// Add PTO entry with recalculated totalHours
 							ptoEntries: [
 								...(group.ptoEntries || []).filter(e => !(e.startDate === entry.startDate && e.endDate === entry.endDate)),
-								{ ...entry, id: `${entry.startDate}-${entry.endDate}-${Date.now()}` }
+								{
+									...entry,
+									id: `${entry.startDate}-${entry.endDate}-${Date.now()}`,
+									totalHours
+								}
 							],
 							// Also add as regular event ranges for visual consistency (weekdays only)
 							ranges: [
