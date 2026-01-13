@@ -80,7 +80,6 @@ const LicenseModal: React.FC<LicenseModalProps> = ({ onClose }) => {
 				</button>
 				<h2>
 					Unispace PTO Calculator{" "}
-					<span className="pro-badge">Pro</span>
 				</h2>
 
 				<p>{proDescription()}</p>

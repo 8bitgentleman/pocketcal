@@ -25,8 +25,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 					<h3>Features</h3>
 					<ul>
 						<li>
-							Create up to {MAX_GROUPS} event groups with different colors (or
-							up to 10 with Pro)
+							Create up to {MAX_GROUPS} event groups with different colors
 						</li>
 						<li>Your data is saved locally in the URL</li>
 						<li>Share your calendar with others by sharing the URL</li>
@@ -47,9 +46,9 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 					</ul>
 					<h3>About</h3>
 					<p className="footer">
-						Unispace PTO Calculator is built by <a href="https://cassidoo.co/">cassidoo</a>{" "}
+						Unispace PTO Calculator is built by <span style={{ color: "var(--cyan)", fontWeight: "bold" }}>Matt Vogel and cassidoo</span>{" "}
 						and is open source on{" "}
-						<a href="https://github.com/cassidoo/pocketcal">GitHub</a>.
+						<a href="https://github.com/8bitgentleman/pocketcal">GitHub</a>.
 					</p>
 				</div>
 			</div>

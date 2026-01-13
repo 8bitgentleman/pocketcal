@@ -23,7 +23,9 @@
       "Bash(pip install:*)",
       "Bash(playwright install:*)",
       "Bash(python test_calendar_styling.py:*)",
-      "Bash(./venv/bin/python:*)"
+      "Bash(./venv/bin/python:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": [],

@@ -485,17 +485,17 @@ const Calendar: React.FC = () => {
 				if (holidayGroup && selectedGroup) {
 					const holidayName = getHolidayFromISODate(formatISO(date, { representation: "date" }));
 					const others = otherGroups.length > 0 ? ` + ${otherGroups.map(g => g.name).join(", ")}` : "";
-					return `🎉 ${holidayName || holidayGroup.name} + 📅 ${selectedGroup.name}${others}`;
+					return `${holidayName || holidayGroup.name} + ${selectedGroup.name}${others}`;
 				} else if (holidayGroup) {
 					const holidayName = getHolidayFromISODate(formatISO(date, { representation: "date" }));
 					const others = otherGroups.length > 0 ? ` + ${otherGroups.map(g => g.name).join(", ")}` : "";
 					return `🎉 ${holidayName || holidayGroup.name}${others}`;
 				} else if (selectedGroup) {
 					const others = otherGroups.map(g => g.name).join(", ");
-					return `📅 ${selectedGroup.name} + ${otherGroups.length} other${otherGroups.length > 1 ? 's' : ''}: ${others}`;
+					return `${selectedGroup.name} + ${otherGroups.length} other${otherGroups.length > 1 ? 's' : ''}: ${others}`;
 				} else {
 					const groups = groupsWithEvent.map(g => g.name).join(", ");
-					return `📋 Background events: ${groups}`;
+					return `Background events: ${groups}`;
 				}
 			}
 		}
@@ -672,11 +672,11 @@ const Calendar: React.FC = () => {
 										<span className="day-number" aria-hidden="true">
 											{getDate(date)}
 										</span>
-										{ptoEntry && (
+										{/* {ptoEntry && (
 											<div className="pto-indicator" aria-hidden="true">
 												{ptoEntry.hoursPerDay}h
 											</div>
-										)}
+										)} */}
 										<div className="range-indicators" aria-hidden="true">
 											{getRangeStyles(date).map((style, index) => (
 												<div

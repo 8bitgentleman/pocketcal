@@ -1,104 +1,94 @@
 import React, { useState } from "react";
 import XIcon from "./icons/XIcon";
+// Import your new icons here:
+import CalendarIcon from "./icons/CalendarIcon";
+import UsersIcon from "./icons/UsersIcon";
+import SunIcon from "./icons/SunIcon";
+import SettingsIcon from "./icons/SettingsIcon";
+import LinkIcon from "./icons/LinkIcon";
+
 import "./Modal.css";
 import "./WelcomeModal.css";
 
 interface WelcomeModalProps {
-	onClose: () => void;
-	onDontShowAgain: () => void;
+    onClose: () => void;
+    onDontShowAgain: () => void;
 }
 
 const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose, onDontShowAgain }) => {
-	const [currentStep, setCurrentStep] = useState(0);
+    const [currentStep, setCurrentStep] = useState(0);
 
-	const steps = [
-		{
-			title: "Welcome to Unispace PTO Calculator",
-			icon: "📅",
-			content: (
-				<>
-					<p>
-						Plan and visualize your PTO (Paid Time Off) for the entire year at a glance.
-					</p>
-					<ul>
-						<li>Track vacation days, personal time, and sick leave</li>
-						<li>See your remaining PTO balance in real-time</li>
-						<li>Share your calendar with your team via URL</li>
-					</ul>
-				</>
-			),
-		},
-		{
-			title: "Creating Calendars",
-			icon: "👥",
-			content: (
-				<>
-					<p>
-						<strong>People/Teams</strong> are individual calendars. Each person or team gets their own PTO settings and calendar.
-					</p>
-					<ul>
-						<li>Click the <strong>+</strong> button to add a new calendar</li>
-						<li>Each calendar has its own color for easy identification</li>
-						<li>Enable PTO tracking per calendar in the settings below</li>
-					</ul>
-				</>
-			),
-		},
-		{
-			title: "Logging PTO",
-			icon: "🏝️",
-			content: (
-				<>
-					<p>
-						Once PTO is enabled for a calendar, click or drag on any weekday to log time off.
-					</p>
-					<ul>
-						<li><strong>Click</strong> a date to log a single day</li>
-						<li><strong>Drag</strong> across dates to select multiple days</li>
-						<li>Choose between full day (8h), half day (4h), or quarter day (2h)</li>
-						<li>Weekends are automatically excluded from PTO</li>
-					</ul>
-				</>
-			),
-		},
-		{
-			title: "Understanding PTO Settings",
-			icon: "⚙️",
-			content: (
-				<>
-					<p>Configure your PTO allowance in the sidebar:</p>
-					<ul>
-						<li>
-							<strong>Years of Service:</strong> How long you've worked at the company.
-							This determines your annual PTO allowance (21 days for {"<"}5 years, 26 days for 5+ years).
-						</li>
-						<li>
-							<strong>Rollover Hours:</strong> Unused PTO hours carried over from the previous year.
-						</li>
-					</ul>
-				</>
-			),
-		},
-		{
-			title: "Sharing & Saving",
-			icon: "🔗",
-			content: (
-				<>
-					<p>
-						Your calendar data is automatically saved in the URL. No account required!
-					</p>
-					<ul>
-						<li>Click <strong>Copy URL</strong> to share your calendar</li>
-						<li>Bookmark the URL to save your calendar for later</li>
-						<li>Anyone with the URL can view (and edit) the calendar</li>
-					</ul>
-					<p className="tip">
-						<strong>Tip:</strong> Hover over any setting or button to see helpful tooltips.
-					</p>
-				</>
-			),
-		},
-	];
+    const steps = [
+        {
+            title: "Welcome to Unispace PTO Calculator",
+            icon: <CalendarIcon width={48} height={48} color="var(--text-primary)" />,
+            content: (
+                <>
+                    <p>Plan and visualize your PTO for the entire year at a glance.</p>
+                    <ul>
+                        <li>Track vacation days, personal time, and sick leave</li>
+                        <li>See your remaining PTO balance in real-time</li>
+                        <li>Share your calendar with your team via URL</li>
+                    </ul>
+                </>
+            ),
+        },
+        {
+            title: "Creating Calendars",
+            icon: <UsersIcon width={48} height={48} color="var(--text-primary)" />,
+            content: (
+                <>
+                    <p><strong>People/Teams</strong> are individual calendars.</p>
+                    <ul>
+                        <li>Click the <strong>+</strong> button to add a new calendar</li>
+                        <li>Each calendar has its own color for easy identification</li>
+                        <li>Enable PTO tracking per calendar in the settings below</li>
+                    </ul>
+                </>
+            ),
+        },
+        {
+            title: "Logging PTO",
+            icon: <SunIcon width={48} height={48} color="var(--text-primary)" />,
+            content: (
+                <>
+                    <p>Once PTO is enabled, click or drag on any weekday to log time off.</p>
+                    <ul>
+                        <li><strong>Click</strong> a date to log a single day</li>
+                        <li><strong>Drag</strong> across dates to select multiple days</li>
+                        <li>Choose between full day (8h), half day (4h), or quarter day (2h)</li>
+                    </ul>
+                </>
+            ),
+        },
+        {
+            title: "Understanding PTO Settings",
+            icon: <SettingsIcon width={48} height={48} color="var(--text-primary)" />,
+            content: (
+                <>
+                    <p>Configure your PTO allowance in the sidebar:</p>
+                    <ul>
+                        <li><strong>Years of Service:</strong> Determines annual allowance.</li>
+                        <li><strong>Rollover Hours:</strong> Hours carried over from last year.</li>
+                    </ul>
+                </>
+            ),
+        },
+        {
+            title: "Sharing & Saving",
+            icon: <LinkIcon width={48} height={48} color="var(--text-primary)" />,
+            content: (
+                <>
+                    <p>Your calendar data is automatically saved in the URL.</p>
+                    <ul>
+                        <li>Click <strong>Copy URL</strong> to share your calendar</li>
+                        <li>Bookmark the URL to save your calendar for later</li>
+                    </ul>
+                    <p className="tip"><strong>Tip:</strong> Hover over buttons to see tooltips.</p>
+                </>
+            ),
+        },
+    ];
 
 	const handleNext = () => {
 		if (currentStep < steps.length - 1) {
