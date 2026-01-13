@@ -150,8 +150,8 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 		<div className="sidebar">
 			<div className="sidebar-header">
 				<div className="logo">
-					<div className="logo-cal">U</div>
-					<div className="logo-text">UNISPACE</div>
+					{/* <div className="logo-cal">U</div> */}
+					<div className="logo-text">UNISPACE PTO CALCULATOR</div>
 					{/* <DarkModeToggle /> */}
 				</div>
 				
@@ -159,7 +159,7 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 
 			<h3>
 				<CalIcon height={20} />
-				People/Teams ({eventGroups.length}/{maxGroups})
+				Calendars ({eventGroups.length}/{maxGroups})
 			</h3>
 			<div className="event-groups-list" role="list">
 				{getAllDisplayGroups().map((group) => (

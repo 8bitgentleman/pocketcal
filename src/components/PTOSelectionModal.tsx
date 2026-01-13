@@ -84,7 +84,7 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, onC
 					onClick={onClose}
 					aria-label="Close PTO selection"
 				>
-					<XIcon color="#000" />
+					<XIcon color="var(--text-secondary)" />
 				</button>
 
 				<h2>{existingEntry ? "Edit PTO" : "Add PTO"}</h2>
@@ -110,7 +110,7 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, onC
 										<button
 											key={hours}
 											type="button"
-											className={`hour-btn ${selectedHours === hours ? 'selected' : ''}`}
+											className={`hour-button ${selectedHours === hours ? 'selected' : ''}`}
 											onClick={() => setSelectedHours(hours)}
 										>
 											{getHourDisplay(hours)}
@@ -146,9 +146,6 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, onC
 
 							{/* Actions */}
 							<div className="modal-actions">
-								<button onClick={handleSubmit} className="primary-button">
-									{existingEntry ? 'Update' : 'Add'} PTO
-								</button>
 								{existingEntry && (
 									<button onClick={handleDelete} className="delete-button">
 										Delete PTO
@@ -156,6 +153,9 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, onC
 								)}
 								<button onClick={onClose} className="cancel-button">
 									Cancel
+								</button>
+								<button onClick={handleSubmit} className="submit-button">
+									{existingEntry ? 'Update' : 'Add'} PTO
 								</button>
 							</div>
 						</>

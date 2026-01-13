@@ -344,3 +344,62 @@ pre.license-key-display {
 	transform: translateY(-1px);
 	box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
+
+/* Container for the action buttons */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end; /* Align primary actions to the right */
+    gap: 12px;                /* Consistent spacing between buttons */
+    margin-top: 24px;         /* Separation from the form fields */
+    padding-top: 16px;
+    border-top: 1px solid var(--border-light-color);
+}
+
+/* Base button styles for consistency */
+.modal-actions button {
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.modal-actions button:hover {
+    opacity: 0.9;
+}
+
+/* Push Delete to the far left for safety (UX best practice) */
+.delete-button {
+    margin-right: auto; 
+    background-color: transparent;
+    color: #ff4d4d;
+    border: 1px solid #ff4d4d;
+}
+
+.submit-button {
+    background: linear-gradient(90deg, #ff6b35, #ff006e);
+    color: white;
+    border: none;
+    order: 2; /* Ensures it stays on the far right */
+}
+
+.cancel-button {
+    background-color: var(--border-color);
+    color: var(--text-secondary);
+    border: none;
+    order: 1; /* Sits to the left of the Submit button */
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+    .modal-actions {
+        flex-direction: column;
+    }
+    
+    .delete-button {
+        margin-right: 0;
+        margin-bottom: 8px;
+        order: 3; /* Move delete to bottom on mobile to prevent accidental clicks */
+    }
+}

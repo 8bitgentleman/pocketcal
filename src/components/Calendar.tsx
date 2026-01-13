@@ -458,7 +458,7 @@ const Calendar: React.FC = () => {
 				const nameText = ptoEntry.name ? ` - ${ptoEntry.name}` : "";
 				const dayText = ptoEntry.startDate === ptoEntry.endDate ? "" : 
 								` (${ptoEntry.startDate} to ${ptoEntry.endDate})`;
-				return `🏝️ PTO: ${hourText} (${ptoEntry.hoursPerDay}h)${nameText}${dayText}`;
+				return `PTO: ${hourText} (${ptoEntry.hoursPerDay}h)${nameText}${dayText}`;
 			}
 		}
 
@@ -469,7 +469,7 @@ const Calendar: React.FC = () => {
 				const group = groupsWithEvent[0];
 				const isSelected = group.id === selectedGroupId;
 				const isHoliday = group.name === "Unispace Holidays";
-				const prefix = isHoliday ? "🎉" : (isSelected ? "📅" : "📋");
+				const prefix = isHoliday ? "" : (isSelected ? "" : "");
 				
 				if (isHoliday) {
 					const holidayName = getHolidayFromISODate(formatISO(date, { representation: "date" }));
@@ -489,7 +489,7 @@ const Calendar: React.FC = () => {
 				} else if (holidayGroup) {
 					const holidayName = getHolidayFromISODate(formatISO(date, { representation: "date" }));
 					const others = otherGroups.length > 0 ? ` + ${otherGroups.map(g => g.name).join(", ")}` : "";
-					return `🎉 ${holidayName || holidayGroup.name}${others}`;
+					return `${holidayName || holidayGroup.name}${others}`;
 				} else if (selectedGroup) {
 					const others = otherGroups.map(g => g.name).join(", ");
 					return `${selectedGroup.name} + ${otherGroups.length} other${otherGroups.length > 1 ? 's' : ''}: ${others}`;

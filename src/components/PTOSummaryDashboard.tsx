@@ -77,11 +77,11 @@ const PTOSummaryDashboard: React.FC = () => {
 
 			{/* Configuration Details */}
 			<div className="pto-config-details">
-				<div className="config-item">
+				{/* <div className="config-item">
 					<span className="config-label">Years of Service:</span>
 					<span className="config-value">{selectedGroup.ptoConfig.yearsOfService} years</span>
-				</div>
-				<div className="config-item">
+				</div> */}
+				{/* <div className="config-item">
 					<span className="config-label">Annual Allowance:</span>
 					<span className="config-value">
 						{summary.totalHours - selectedGroup.ptoConfig.rolloverHours}h ({(summary.totalHours - selectedGroup.ptoConfig.rolloverHours) / 8} days)
@@ -92,7 +92,7 @@ const PTOSummaryDashboard: React.FC = () => {
 						<span className="config-label">Rollover Hours:</span>
 						<span className="config-value">{selectedGroup.ptoConfig.rolloverHours}h ({selectedGroup.ptoConfig.rolloverHours / 8} days)</span>
 					</div>
-				)}
+				)} */}
 				<div className="config-item">
 					<span className="config-label">Accrual Rate:</span>
 					<span className="config-value">{summary.accrualRate.toFixed(2)}h per day</span>

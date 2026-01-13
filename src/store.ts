@@ -18,11 +18,12 @@ import { isHolidayFromISODate, getHolidaysForYear } from "./constants/holidays";
 export const MAX_GROUPS = 5;
 
 export const GROUP_COLORS = [
-	{ hex: "#8a35de", rgb: "rgb(138, 53, 222)" }, // purple
+	{ hex: "#24d05a", rgb: "rgb(36, 208, 90)" }, // green
+	{ hex: "#f44336", rgb: "rgb(244 67 54)" }, // red
 	{ hex: "#10a2f5", rgb: "rgb(16, 162, 245)" }, // blue
 	{ hex: "#eb4888", rgb: "rgb(235, 72, 136)" }, // pink
 	{ hex: "#e9bc3f", rgb: "rgb(233, 188, 63)" }, // yellow
-	{ hex: "#24d05a", rgb: "rgb(36, 208, 90)" }, // green
+	
 	// Pro colors (same as above, but with .6 alpha)
 	{ hex: "#8a35de99", rgb: "rgba(138, 53, 222, 0.6)" },
 	{ hex: "#10a2f599", rgb: "rgba(16, 162, 245, 0.6)" },
@@ -127,7 +128,7 @@ const createHolidaysCalendar = (year: number = new Date().getFullYear()): EventG
 	return {
 		id: `holidays-${year}`,
 		name: "Unispace Holidays",
-		color: "#f44336", // Red color for holidays
+		color: "#814ffd", // purple color for holidays
 		ranges,
 		isSpecial: true
 	};
