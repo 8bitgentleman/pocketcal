@@ -725,13 +725,16 @@ export const useStore = create<AppState>((set, get) => ({
 	getPTOSummary: (groupId) => {
 		const state = get();
 		const group = state.eventGroups.find(g => g.id === groupId);
-		
+
 		if (!group?.ptoConfig?.isEnabled) {
 			return null;
 		}
 
+		// Filter out any entries with 0 hours (shouldn't exist but safety check)
+		const validEntries = (group.ptoEntries || []).filter(entry => entry.totalHours > 0);
+
 		return PTOCalendarUtils.calculatePTOSummary(
-			group.ptoEntries || [],
+			validEntries,
 			group.ptoConfig
 		);
 	},
@@ -748,7 +751,8 @@ export const useStore = create<AppState>((set, get) => ({
 		const state = get();
 		if (!state.selectedGroupId) return [];
 		const group = state.eventGroups.find(g => g.id === state.selectedGroupId);
-		return group?.ptoEntries || [];
+		// Filter out any entries with 0 hours (shouldn't exist but safety check)
+		return (group?.ptoEntries || []).filter(entry => entry.totalHours > 0);
 	},
 
 	isPTOEnabledForGroup: (groupId) => {
