@@ -165,7 +165,7 @@ const PTOSelectionModal: React.FC<PTOSelectionModalProps> = ({ selectedDate, ini
 					onClick={onClose}
 					aria-label="Close PTO selection"
 				>
-					<XIcon color="#000" />
+					<XIcon color="var(--text-secondary)" />
 				</button>
 				
 				<h2>{existingEntry ? "Edit PTO Request" : "Log PTO"}</h2>

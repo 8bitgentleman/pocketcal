@@ -127,7 +127,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose, onDontShowAgain })
 					onClick={onClose}
 					aria-label="Close welcome modal"
 				>
-					<XIcon color="#000" />
+					<XIcon color="var(--text-secondary)" />
 				</button>
 
 				<div className="welcome-step">

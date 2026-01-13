@@ -16,7 +16,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 					onClick={onClose}
 					aria-label="Close instructions"
 				>
-					<XIcon color="#000" />
+					<XIcon color="var(--text-secondary)" />
 				</button>
 				<h2>
 					Unispace PTO Calculator Instructions

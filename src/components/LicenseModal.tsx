@@ -76,7 +76,7 @@ const LicenseModal: React.FC<LicenseModalProps> = ({ onClose }) => {
 					onClick={onClose}
 					aria-label="Close license modal"
 				>
-					<XIcon color="#000" />
+					<XIcon color="var(--text-secondary)" />
 				</button>
 				<h2>
 					Unispace PTO Calculator{" "}
