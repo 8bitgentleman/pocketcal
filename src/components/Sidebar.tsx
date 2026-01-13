@@ -154,7 +154,7 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 					<div className="logo-text">UNISPACE PTO CALCULATOR</div>
 					{/* <DarkModeToggle /> */}
 				</div>
-				
+
 			</div>
 
 			<h3>
@@ -165,9 +165,8 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 				{getAllDisplayGroups().map((group) => (
 					<div
 						key={group.id}
-						className={`event-group-item ${
-							selectedGroupId === group.id ? "selected" : ""
-						} ${editingGroup?.id === group.id ? "editing" : ""}`}
+						className={`event-group-item ${selectedGroupId === group.id ? "selected" : ""
+							} ${editingGroup?.id === group.id ? "editing" : ""}`}
 						onClick={() =>
 							editingGroup?.id !== group.id && !group.isSpecial && selectEventGroup(group.id)
 						}
@@ -306,7 +305,7 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 						onChange={(e) => setShowToday(e.target.checked)}
 					/>
 				</div>
-				
+
 				{/* Per-Group PTO Settings */}
 				{selectedGroupId && !getAllDisplayGroups().find(g => g.id === selectedGroupId)?.isSpecial && (
 					<>
@@ -327,20 +326,17 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 						{isPTOEnabledForGroup(selectedGroupId) && (
 							<>
 								<div className="setting-item">
-									<Tooltip content="How long you've worked at the company. Employees with 5+ years get 26 PTO days/year instead of 21.">
-										<label htmlFor="years-of-service">Years of Service:</label>
+									<Tooltip content="PTO is based on years of service. 1–4 years: 21 days (6.46hr accrual). 5+ years: 26 days (8hr accrual).">
+										<label htmlFor="years-of-service">Years of Employment</label>
 									</Tooltip>
 									<select
 										id="years-of-service"
-										value={getSelectedGroupPTOConfig()?.yearsOfService || 2}
+										// Ensure the value matches your state (likely 1 or 5)
+										value={getSelectedGroupPTOConfig()?.yearsOfService || 1}
 										onChange={(e) => setPTOConfig(selectedGroupId, { yearsOfService: parseInt(e.target.value) })}
 									>
-										{Array.from({ length: 10 }, (_, i) => i + 1).map(year => (
-											<option key={year} value={year}>
-												{year} year{year !== 1 ? 's' : ''} {year < 5 ? '(21 days)' : '(26 days)'}
-											</option>
-										))}
-										<option value={10}>10+ years (26 days)</option>
+										<option value={1}>1 – 4 years</option>
+										<option value={5}>5+ years</option>
 									</select>
 								</div>
 								<div className="setting-item">
@@ -351,7 +347,7 @@ function Sidebar({ setShowLicenseModal, onShowWelcome }: SidebarProps) {
 										type="number"
 										id="rollover-hours"
 										min="0"
-										max="200"
+										max="2000"
 										step="1"
 										value={getSelectedGroupPTOConfig()?.rolloverHours || 0}
 										onChange={(e) => setPTOConfig(selectedGroupId, { rolloverHours: parseInt(e.target.value) || 0 })}
