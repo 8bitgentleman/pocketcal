@@ -487,12 +487,21 @@ const Calendar: React.FC = () => {
 			const existingRange = findRangeForDate(date, freshSelectedGroup);
 
 			if (existingRange) {
-				// Clicking on existing range -> open modal to edit
-				console.log('Opening modal to edit existing range');
-				const dateStr = formatISO(date, { representation: "date" });
-				setModalDate(dateStr);
-				setModalExistingRange(existingRange);
-				setShowDateRangeModal(true);
+				// Check if it's a single-day range
+				const isSingleDay = existingRange.start === existingRange.end;
+
+				if (isSingleDay) {
+					// Single-day range: remove it directly (quick toggle)
+					console.log('Removing single-day range');
+					deleteDateRange(freshSelectedGroupId, existingRange);
+				} else {
+					// Multi-day range: open modal to edit
+					console.log('Opening modal to edit multi-day range');
+					const dateStr = formatISO(date, { representation: "date" });
+					setModalDate(dateStr);
+					setModalExistingRange(existingRange);
+					setShowDateRangeModal(true);
+				}
 			} else {
 				// Add single date
 				console.log('Adding single date');
@@ -555,8 +564,12 @@ const Calendar: React.FC = () => {
 			return `PTO: ${hourText} (${ptoEntry.hoursPerDay}h)${nameText}${dayText}`;
 		}
 
-		// Check for regular events from all groups
-		const groupsWithEvent = dateInfo.groups;
+		// Read fresh groups from store to avoid stale descriptions
+		const freshGroups = useStore.getState().getAllDisplayGroups();
+		const groupsWithEvent = dateInfo.groups.map(g =>
+			freshGroups.find(fg => fg.id === g.id) || g
+		);
+
 		if (groupsWithEvent.length > 0) {
 			if (groupsWithEvent.length === 1) {
 				const group = groupsWithEvent[0];
@@ -569,7 +582,7 @@ const Calendar: React.FC = () => {
 					return `${prefix} ${holidayName || group.name}`;
 				}
 
-				// Check if this range has a description
+				// Check if this range has a description (using fresh group reference)
 				const range = findRangeForDate(date, group);
 				const descriptionText = range?.description ? ` - ${range.description}` : "";
 
@@ -578,7 +591,7 @@ const Calendar: React.FC = () => {
 				const holidayGroup = groupsWithEvent.find(g => g.name === "Unispace Holidays");
 				const selectedGroup = groupsWithEvent.find(g => g.id === selectedGroupId);
 				const otherGroups = groupsWithEvent.filter(g => g.id !== selectedGroupId && g.name !== "Unispace Holidays");
-				
+
 				if (holidayGroup && selectedGroup) {
 					const holidayName = getHolidayFromISODate(formatISO(date, { representation: "date" }));
 					const range = findRangeForDate(date, selectedGroup);

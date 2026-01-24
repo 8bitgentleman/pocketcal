@@ -1,6 +1,7 @@
 import React from "react";
 import XIcon from "./icons/XIcon";
 import { MAX_GROUPS } from "../store";
+import { version } from "../../package.json";
 import "./Modal.css";
 
 interface HelpModalProps {
@@ -47,7 +48,10 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 							selected date
 						</li>
 					</ul>
-					<h3>About</h3>
+					<h3 style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+					<span>About</span>
+					<span style={{ fontSize: "0.8em", color: "var(--text-secondary)" }}>v{version}</span>
+				</h3>
 					<p className="footer">
 						Unispace PTO Calculator is built by <span style={{ color: "var(--cyan)", fontWeight: "bold" }}>Matt Vogel and cassidoo</span>{" "}
 						and is open source on{" "}
