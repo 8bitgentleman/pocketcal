@@ -51,9 +51,9 @@ describe('Holiday Calendar 2025', () => {
 
   describe('getHoliday', () => {
     it('should return holiday name for valid holiday dates', () => {
-      expect(getHoliday(101)).toBe("New Year's Day");
-      expect(getHoliday(704)).toBe("Independence Day");
-      expect(getHoliday(1225)).toBe("Christmas");
+      expect(getHoliday(101, 2025)).toBe("New Year's Day");
+      expect(getHoliday(704, 2025)).toBe("Independence Day");
+      expect(getHoliday(1225, 2025)).toBe("Christmas");
     });
 
     it('should return null for non-holiday dates', () => {
@@ -65,10 +65,10 @@ describe('Holiday Calendar 2025', () => {
 
   describe('isHoliday', () => {
     it('should return true for holiday dates', () => {
-      expect(isHoliday(101)).toBe(true);
-      expect(isHoliday(704)).toBe(true);
-      expect(isHoliday(1225)).toBe(true);
-      expect(isHoliday(1226)).toBe(true);
+      expect(isHoliday(101, 2025)).toBe(true);
+      expect(isHoliday(704, 2025)).toBe(true);
+      expect(isHoliday(1225, 2025)).toBe(true);
+      expect(isHoliday(1226, 2025)).toBe(true);
     });
 
     it('should return false for non-holiday dates', () => {
@@ -80,7 +80,7 @@ describe('Holiday Calendar 2025', () => {
 
   describe('getAllHolidayDates', () => {
     it('should return all holiday dates as numbers', () => {
-      const dates = getAllHolidayDates();
+      const dates = getAllHolidayDates(2025);
       expect(dates).toContain(101);
       expect(dates).toContain(704);
       expect(dates).toContain(1225);
@@ -188,14 +188,14 @@ describe('Holiday Calendar 2025', () => {
 
   describe('Integration with PTO System', () => {
     it('should block PTO requests on all company holidays', () => {
-      const allHolidays = getAllHolidayDates();
-      
+      const allHolidays = getAllHolidayDates(2025);
+
       allHolidays.forEach(mmddDate => {
         // Convert MMDD back to ISO date for 2025
         const month = Math.floor(mmddDate / 100);
         const day = mmddDate % 100;
         const isoDate = `2025-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-        
+
         expect(isHolidayFromISODate(isoDate)).toBe(true);
       });
     });

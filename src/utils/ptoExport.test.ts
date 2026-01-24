@@ -98,7 +98,7 @@ describe('PTO Export Functions', () => {
       exportPTODataAsJSON(mockPTOEntries, mockPTOConfig);
 
       const element = mockCreateElement.mock.results[0].value;
-      expect(element.download).toMatch(/pto-2025-\d{4}-\d{2}-\d{2}\.json/);
+      expect(element.download).toMatch(/pto-\d{4}-\d{2}-\d{2}\.json/);
     });
   });
 
@@ -127,7 +127,7 @@ describe('PTO Export Functions', () => {
       exportPTODataAsCSV(mockPTOEntries, mockPTOConfig);
 
       const element = mockCreateElement.mock.results[0].value;
-      expect(element.download).toMatch(/pto-2025-\d{4}-\d{2}-\d{2}\.csv/);
+      expect(element.download).toMatch(/pto-\d{4}-\d{2}-\d{2}\.csv/);
     });
   });
 

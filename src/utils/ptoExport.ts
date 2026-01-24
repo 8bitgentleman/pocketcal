@@ -36,7 +36,7 @@ export const exportPTODataAsJSON = (
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `pto-2025-${format(new Date(), 'yyyy-MM-dd')}.json`;
+  a.download = `pto-${format(new Date(), 'yyyy-MM-dd')}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -57,9 +57,13 @@ export const exportPTODataAsCSV = (
   // Convert new multi-day structure to individual day entries for export compatibility
   const rows: string[][] = [];
   ptoEntries.forEach(entry => {
-    const startDate = new Date(entry.startDate);
-    const endDate = new Date(entry.endDate);
-    
+    // Parse date strings manually to avoid timezone issues
+    const [startYear, startMonth, startDay] = entry.startDate.split('-').map(Number);
+    const [endYear, endMonth, endDay] = entry.endDate.split('-').map(Number);
+
+    const startDate = new Date(startYear, startMonth - 1, startDay);
+    const endDate = new Date(endYear, endMonth - 1, endDay);
+
     for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
       rows.push([
         format(date, 'yyyy-MM-dd'),
@@ -79,7 +83,7 @@ export const exportPTODataAsCSV = (
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `pto-2025-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+  a.download = `pto-${format(new Date(), 'yyyy-MM-dd')}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -192,7 +196,7 @@ export const generatePTOSummaryReport = (
 
   let html = `
     <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
-      <h1>PTO Summary Report - 2025</h1>
+      <h1>PTO Summary Report - ${new Date().getFullYear()}</h1>
       <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
         <h3>PTO Balance</h3>
         <p><strong>Years of Service:</strong> ${config.yearsOfService}</p>

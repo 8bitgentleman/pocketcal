@@ -33,8 +33,9 @@ export class PTOCalendarUtils {
     rollover: number,   // Rollover hours from previous year
     totalHours: number  // Total hours for the year
   ): number {
-    const start = new Date(2025, 0, 1);
-    const target = new Date(2025, Math.floor(date / 100) - 1, date % 100);
+    const currentYear = new Date().getFullYear();
+    const start = new Date(currentYear, 0, 1);
+    const target = new Date(currentYear, Math.floor(date / 100) - 1, date % 100);
 
     // Calculate days that have completed (not including current day)
     // For July 1, we want days from Jan 1 through June 30 (180 days)
