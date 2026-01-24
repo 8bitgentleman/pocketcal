@@ -26,6 +26,8 @@ import {
 import { getHolidayFromISODate } from "../constants/holidays";
 import { PTOCalendarUtils, PTOEntry } from "../utils/ptoUtils";
 import { createGradientFromColor } from "../utils/gradientUtils";
+import PTOSelectionModal from "./PTOSelectionModal";
+import DateRangeSelectionModal from "./DateRangeSelectionModal";
 import "./Calendar.css";
 
 // Memoized DateCell component to prevent unnecessary re-renders
@@ -202,20 +204,20 @@ const Calendar: React.FC = () => {
 		return map;
 	}, [ptoEntries, isPTOEnabled, allDisplayGroups]);
 
-	const [isDragging, setIsDragging] = useState(false);
-	const [dragStartDate, setDragStartDate] = useState<Date | null>(null);
-	const [dragEndDate, setDragEndDate] = useState<Date | null>(null);
 	const [focusedDate, setFocusedDate] = useState<Date | null>(null);
 	const [isContainerFocused, setIsContainerFocused] = useState(false);
-	// PTO click state - use refs for synchronous access
-	const ptoClickedDateRef = useRef<Date | null>(null);
+	// Click state - use refs for synchronous access
+	const clickedDateRef = useRef<Date | null>(null);
 	const longPressTimerRef = useRef<number | null>(null);
 	const [isLongPress, setIsLongPress] = useState(false);
 	// Tooltip state
 	const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number } | null>(null);
 	const calendarGridRef = useRef<HTMLDivElement>(null);
-	// Capture the selectedGroupId at mouseDown time to prevent stale closure bugs
-	const dragStartGroupIdRef = useRef<string | null>(null);
+	// Modal state
+	const [showPTOModal, setShowPTOModal] = useState(false);
+	const [showDateRangeModal, setShowDateRangeModal] = useState(false);
+	const [modalDate, setModalDate] = useState<string | null>(null);
+	const [modalExistingRange, setModalExistingRange] = useState<DateRange | null>(null);
 
 	// Focus management
 	useEffect(() => {
@@ -394,85 +396,32 @@ const Calendar: React.FC = () => {
 			return;
 		}
 
-		if (freshIsPTOEnabled) {
-			// PTO mode: click-to-toggle with long-press for custom hours
-			// Block PTO creation on weekends
-			if (isWeekend(date)) {
-				alert("PTO cannot be requested on weekends.");
-				return;
-			}
+		// Store clicked date for handleMouseUp
+		clickedDateRef.current = date;
 
-			// Store clicked date for handleMouseUp
-			ptoClickedDateRef.current = date;
-
-			// Clear any existing timer
-			if (longPressTimerRef.current) {
-				clearTimeout(longPressTimerRef.current);
-			}
-
-			// Start long-press timer (500ms)
-			setIsLongPress(false);
-			longPressTimerRef.current = window.setTimeout(() => {
-				setIsLongPress(true);
-				longPressTimerRef.current = null;
-				// Open modal for custom hours
-				const ptoSelectEvent = new CustomEvent('ptoDateSelect', {
-					detail: {
-						date: formatISO(date, { representation: "date" }),
-						endDate: formatISO(date, { representation: "date" })
-					}
-				});
-				window.dispatchEvent(ptoSelectEvent);
-			}, 500);
-		} else {
-			// Regular calendar mode: use existing drag logic
-			const existingRange = findRangeForDate(date, freshSelectedGroup);
-			console.log('Existing range in this calendar:', existingRange);
-			if (existingRange) {
-				console.log('Removing existing range and splitting');
-				deleteDateRange(freshSelectedGroupId, existingRange);
-
-				// Create two new ranges if needed - one before and one after the clicked date
-				const startDate = parseISO(existingRange.start);
-				const endDate = parseISO(existingRange.end);
-
-				if (isBefore(startDate, date)) {
-					const beforeRange: DateRange = {
-						start: formatISO(startDate, { representation: "date" }),
-						end: formatISO(subDays(date, 1), { representation: "date" }),
-					};
-					addDateRange(freshSelectedGroupId, beforeRange);
-				}
-
-				if (isAfter(endDate, date)) {
-					const afterRange: DateRange = {
-						start: formatISO(addDays(date, 1), { representation: "date" }),
-						end: formatISO(endDate, { representation: "date" }),
-					};
-					addDateRange(freshSelectedGroupId, afterRange);
-				}
-				return;
-			}
-
-			// Capture the FRESH selectedGroupId at mouseDown time to prevent stale closures
-			console.log('Starting new drag, capturing FRESH groupId:', freshSelectedGroupId);
-			dragStartGroupIdRef.current = freshSelectedGroupId;
-			setIsDragging(true);
-			setDragStartDate(date);
-			setDragEndDate(date);
-		}
-	};
-
-	const handleMouseMove = (date: Date) => {
-		// Cancel long-press if mouse moves (user is dragging, not long-pressing)
+		// Clear any existing timer
 		if (longPressTimerRef.current) {
 			clearTimeout(longPressTimerRef.current);
-			longPressTimerRef.current = null;
-			setIsLongPress(false);
 		}
 
-		if (!isDragging || !dragStartDate) return;
-		setDragEndDate(date);
+		// Start long-press timer (500ms)
+		setIsLongPress(false);
+		longPressTimerRef.current = window.setTimeout(() => {
+			setIsLongPress(true);
+			longPressTimerRef.current = null;
+
+			if (freshIsPTOEnabled) {
+				// PTO mode: open PTO modal for custom hours
+				setModalDate(dateStr);
+				setShowPTOModal(true);
+			} else {
+				// Regular calendar mode: open date range modal
+				const existingRange = findRangeForDate(date, freshSelectedGroup);
+				setModalDate(dateStr);
+				setModalExistingRange(existingRange || null);
+				setShowDateRangeModal(true);
+			}
+		}, 500);
 	};
 
 	const handleMouseEnterDate = (date: Date, event: React.MouseEvent) => {
@@ -493,10 +442,8 @@ const Calendar: React.FC = () => {
 
 	const handleMouseUp = useCallback(() => {
 		console.log('=== MOUSE UP ===');
-		console.log('isDragging:', isDragging);
-		console.log('dragStartDate:', dragStartDate);
-		console.log('dragEndDate:', dragEndDate);
-		console.log('dragStartGroupIdRef.current:', dragStartGroupIdRef.current);
+		console.log('clickedDateRef.current:', clickedDateRef.current);
+		console.log('isLongPress:', isLongPress);
 		console.log('current selectedGroupId:', selectedGroupId);
 
 		// Clear long-press timer if it's still running
@@ -507,77 +454,67 @@ const Calendar: React.FC = () => {
 
 		// If this was a long press, don't do anything (modal already opened)
 		if (isLongPress) {
-			console.log('Was long press, aborting');
+			console.log('Was long press, modal opened');
 			setIsLongPress(false);
-			ptoClickedDateRef.current = null;
+			clickedDateRef.current = null;
 			return;
 		}
 
-		if (isPTOEnabled) {
+		// Short click: toggle single date
+		if (!clickedDateRef.current) {
+			console.log('No clicked date, aborting');
+			return;
+		}
+
+		// Read fresh state to avoid stale closure
+		const freshSelectedGroupId = useStore.getState().selectedGroupId;
+		const allGroups = useStore.getState().getAllDisplayGroups();
+		const freshSelectedGroup = allGroups.find(g => g.id === freshSelectedGroupId);
+		const freshIsPTOEnabled = freshSelectedGroupId ? useStore.getState().isPTOEnabledForGroup(freshSelectedGroupId) : false;
+
+		if (!freshSelectedGroupId || !freshSelectedGroup) {
+			clickedDateRef.current = null;
+			return;
+		}
+
+		if (freshIsPTOEnabled) {
 			// PTO mode: simple click = instant 8h toggle
-			console.log('PTO mode, toggling');
-			if (ptoClickedDateRef.current) {
-				handlePTOToggle(ptoClickedDateRef.current);
-				ptoClickedDateRef.current = null;
+			console.log('PTO mode, toggling 8h');
+			handlePTOToggle(clickedDateRef.current);
+		} else {
+			// Regular calendar mode: click behavior
+			const date = clickedDateRef.current;
+			const existingRange = findRangeForDate(date, freshSelectedGroup);
+
+			if (existingRange) {
+				// Clicking on existing range -> open modal to edit
+				console.log('Opening modal to edit existing range');
+				const dateStr = formatISO(date, { representation: "date" });
+				setModalDate(dateStr);
+				setModalExistingRange(existingRange);
+				setShowDateRangeModal(true);
+			} else {
+				// Add single date
+				console.log('Adding single date');
+				const newRange: DateRange = {
+					start: formatISO(date, { representation: "date" }),
+					end: formatISO(date, { representation: "date" }),
+				};
+				addDateRange(freshSelectedGroupId, newRange);
 			}
-			return;
 		}
 
-		// Regular calendar mode: existing drag logic
-		// Use the captured groupId from mouseDown to prevent stale closure bugs
-		const dragGroupId = dragStartGroupIdRef.current;
-		if (!isDragging || !dragStartDate || !dragEndDate || !dragGroupId) {
-			console.log('Missing drag state, aborting. isDragging:', isDragging, 'dragGroupId:', dragGroupId);
-			setDragStartDate(null);
-			setDragEndDate(null);
-			dragStartGroupIdRef.current = null;
-			return;
-		}
-
-		setIsDragging(false);
-
-		// Ensure start is before end
-		const finalStartDate = isBefore(dragStartDate, dragEndDate)
-			? dragStartDate
-			: dragEndDate;
-		const finalEndDate = isAfter(dragEndDate, dragStartDate)
-			? dragEndDate
-			: dragStartDate;
-
-		// For regular calendars, create the date range directly
-		const newRange: DateRange = {
-			start: formatISO(finalStartDate, { representation: "date" }),
-			end: formatISO(finalEndDate, { representation: "date" }),
-		};
-
-		console.log('Adding range:', newRange, 'to calendar:', dragGroupId);
-		addDateRange(dragGroupId, newRange);
-
-		setDragStartDate(null);
-		setDragEndDate(null);
-		dragStartGroupIdRef.current = null;
-	}, [isDragging, dragStartDate, dragEndDate, selectedGroupId, isLongPress, addDateRange, isPTOEnabled, handlePTOToggle]);
+		clickedDateRef.current = null;
+	}, [isLongPress, selectedGroupId, handlePTOToggle, addDateRange, deleteDateRange]);
 
 	useEffect(() => {
 		const handleGlobalMouseUp = () => {
-			if (isDragging) {
-				handleMouseUp();
-			}
+			handleMouseUp();
 		};
 
 		window.addEventListener("mouseup", handleGlobalMouseUp);
 		return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
-	}, [isDragging, handleMouseUp]);
-
-	// Clear drag state when PTO is enabled or when changing calendars
-	useEffect(() => {
-		if (isPTOEnabled || selectedGroupId) {
-			setIsDragging(false);
-			setDragStartDate(null);
-			setDragEndDate(null);
-			dragStartGroupIdRef.current = null;
-		}
-	}, [isPTOEnabled, selectedGroupId]);
+	}, [handleMouseUp]);
 
 	const getMonthYearKey = (date: Date) => `${getYear(date)}-${getMonth(date)}`;
 
@@ -626,13 +563,17 @@ const Calendar: React.FC = () => {
 				const isSelected = group.id === selectedGroupId;
 				const isHoliday = group.name === "Unispace Holidays";
 				const prefix = isHoliday ? "" : (isSelected ? "" : "");
-				
+
 				if (isHoliday) {
 					const holidayName = getHolidayFromISODate(formatISO(date, { representation: "date" }));
 					return `${prefix} ${holidayName || group.name}`;
 				}
-				
-				return `${prefix} ${group.name}${isSelected ? "" : ""}`;
+
+				// Check if this range has a description
+				const range = findRangeForDate(date, group);
+				const descriptionText = range?.description ? ` - ${range.description}` : "";
+
+				return `${prefix} ${group.name}${isSelected ? "" : ""}${descriptionText}`;
 			} else {
 				const holidayGroup = groupsWithEvent.find(g => g.name === "Unispace Holidays");
 				const selectedGroup = groupsWithEvent.find(g => g.id === selectedGroupId);
@@ -640,15 +581,19 @@ const Calendar: React.FC = () => {
 				
 				if (holidayGroup && selectedGroup) {
 					const holidayName = getHolidayFromISODate(formatISO(date, { representation: "date" }));
+					const range = findRangeForDate(date, selectedGroup);
+					const descriptionText = range?.description ? ` - ${range.description}` : "";
 					const others = otherGroups.length > 0 ? ` + ${otherGroups.map(g => g.name).join(", ")}` : "";
-					return `${holidayName || holidayGroup.name} + ${selectedGroup.name}${others}`;
+					return `${holidayName || holidayGroup.name} + ${selectedGroup.name}${descriptionText}${others}`;
 				} else if (holidayGroup) {
 					const holidayName = getHolidayFromISODate(formatISO(date, { representation: "date" }));
 					const others = otherGroups.length > 0 ? ` + ${otherGroups.map(g => g.name).join(", ")}` : "";
 					return `${holidayName || holidayGroup.name}${others}`;
 				} else if (selectedGroup) {
+					const range = findRangeForDate(date, selectedGroup);
+					const descriptionText = range?.description ? ` - ${range.description}` : "";
 					const others = otherGroups.map(g => g.name).join(", ");
-					return `${selectedGroup.name} + ${otherGroups.length} other${otherGroups.length > 1 ? 's' : ''}: ${others}`;
+					return `${selectedGroup.name}${descriptionText} + ${otherGroups.length} other${otherGroups.length > 1 ? 's' : ''}: ${others}`;
 				} else {
 					const groups = groupsWithEvent.map(g => g.name).join(", ");
 					return `Background events: ${groups}`;
@@ -700,20 +645,6 @@ const Calendar: React.FC = () => {
 		const groupsWithDate = dateInfo?.groups.filter(g => g.name !== "Unispace Holidays") || [];
 		if (groupsWithDate.length === 1) {
 			className += " has-gradient";
-		}
-
-		// Only show drag preview for non-PTO calendars
-		if (!isPTOEnabled && isDragging && dragStartDate && dragEndDate) {
-			const currentDragStart = isBefore(dragStartDate, dragEndDate)
-				? dragStartDate
-				: dragEndDate;
-			const currentDragEnd = isAfter(dragEndDate, dragStartDate)
-				? dragEndDate
-				: dragStartDate;
-
-			if (date >= currentDragStart && date <= currentDragEnd) {
-				className += " dragging";
-			}
 		}
 
 		return className;
@@ -845,10 +776,7 @@ const Calendar: React.FC = () => {
 										rangeStyles={rangeStyles}
 										isFocused={isFocused}
 										onMouseDown={handleMouseDown}
-										onMouseEnter={(date, e) => {
-											handleMouseMove(date);
-											handleMouseEnterDate(date, e);
-										}}
+										onMouseEnter={handleMouseEnterDate}
 										onMouseLeave={handleMouseLeaveDate}
 									/>
 								);
@@ -880,6 +808,30 @@ const Calendar: React.FC = () => {
 			>
 				{tooltip.content}
 			</div>
+		)}
+
+		{/* PTO Selection Modal */}
+		{showPTOModal && modalDate && (
+			<PTOSelectionModal
+				selectedDate={modalDate}
+				onClose={() => {
+					setShowPTOModal(false);
+					setModalDate(null);
+				}}
+			/>
+		)}
+
+		{/* Date Range Selection Modal */}
+		{showDateRangeModal && modalDate && (
+			<DateRangeSelectionModal
+				selectedDate={modalDate}
+				existingRange={modalExistingRange || undefined}
+				onClose={() => {
+					setShowDateRangeModal(false);
+					setModalDate(null);
+					setModalExistingRange(null);
+				}}
+			/>
 		)}
 		</>
 	);

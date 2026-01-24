@@ -110,6 +110,7 @@ button.btn[disabled] {
 }
 
 input[type="text"],
+input[type="date"],
 textarea {
 	margin-bottom: 2px;
 	border: 1px solid var(--border-color);
@@ -121,8 +122,10 @@ textarea {
 	color: var(--text-primary);
 	font-family: 'Archivo', sans-serif;
 	transition: all 0.2s ease;
+	padding: 8px 12px;
 }
 input[type="text"]:focus,
+input[type="date"]:focus,
 textarea:focus {
 	border-color: #00d4ff;
 	background: rgba(0, 212, 255, 0.05);
@@ -238,6 +241,25 @@ pre.license-key-display {
 	background: linear-gradient(135deg, #ff6b35, #ff006e);
 	color: #0a0a0a;
 	font-weight: 600;
+}
+
+/* Date Range Input Styles */
+.date-range-inputs {
+	display: flex;
+	gap: 16px;
+	margin-bottom: 20px;
+}
+
+.date-input-group {
+	flex: 1;
+}
+
+.date-input-group label {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: 600;
+	color: var(--text-primary);
+	font-size: 14px;
 }
 
 .pto-description {

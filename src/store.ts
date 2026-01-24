@@ -37,6 +37,7 @@ export const getMaxGroups = (isProUser: boolean) => (isProUser ? 10 : 5);
 export interface DateRange {
 	start: string;
 	end: string;
+	description?: string;
 }
 
 export interface EventGroup {
@@ -586,12 +587,16 @@ export const useStore = create<AppState>((set, get) => ({
 
 				// Create new individual day ranges for each weekday in the PTO entries
 				// This matches the format used by addPTOEntry
+				// Exclude holidays so they remain visible
 				newRanges = validEntries.flatMap(entry =>
 					eachDayOfInterval({
 						start: parseISO(entry.startDate),
 						end: parseISO(entry.endDate)
 					})
-					.filter(date => !isWeekend(date))
+					.filter(date => {
+						const dateStr = formatISO(date, { representation: "date" });
+						return !isWeekend(date) && !isHolidayFromISODate(dateStr);
+					})
 					.map(date => ({
 						start: formatISO(date, { representation: "date" }),
 						end: formatISO(date, { representation: "date" })
@@ -668,14 +673,18 @@ export const useStore = create<AppState>((set, get) => ({
 								}
 							],
 							// Also add as regular event ranges for visual consistency (weekdays only)
+							// Exclude holidays so they remain visible
 							ranges: [
 								...group.ranges.filter(r => !(r.start === entry.startDate && r.end === entry.endDate)),
 								// Create individual ranges for each weekday in the PTO entry
-								...eachDayOfInterval({ 
-									start: parseISO(entry.startDate), 
-									end: parseISO(entry.endDate) 
+								...eachDayOfInterval({
+									start: parseISO(entry.startDate),
+									end: parseISO(entry.endDate)
 								})
-								.filter(date => !isWeekend(date))
+								.filter(date => {
+									const dateStr = formatISO(date, { representation: "date" });
+									return !isWeekend(date) && !isHolidayFromISODate(dateStr);
+								})
 								.map(date => ({
 									start: formatISO(date, { representation: "date" }),
 									end: formatISO(date, { representation: "date" })
@@ -721,22 +730,28 @@ export const useStore = create<AppState>((set, get) => ({
 							ranges: [
 								// Remove old ranges for all days in old entry
 								...group.ranges.filter(r => {
-									const oldDays = eachDayOfInterval({ 
-										start: parseISO(existingEntry.startDate), 
-										end: parseISO(existingEntry.endDate) 
-									}).filter(date => !isWeekend(date));
-									
+									const oldDays = eachDayOfInterval({
+										start: parseISO(existingEntry.startDate),
+										end: parseISO(existingEntry.endDate)
+									}).filter(date => {
+										const dateStr = formatISO(date, { representation: "date" });
+										return !isWeekend(date) && !isHolidayFromISODate(dateStr);
+									});
+
 									return !oldDays.some(date => {
 										const dayStr = formatISO(date, { representation: "date" });
 										return r.start === dayStr && r.end === dayStr;
 									});
 								}),
-								// Add new ranges for weekdays only
-								...eachDayOfInterval({ 
-									start: parseISO(updatedEntry.startDate), 
-									end: parseISO(updatedEntry.endDate) 
+								// Add new ranges for weekdays only, excluding holidays
+								...eachDayOfInterval({
+									start: parseISO(updatedEntry.startDate),
+									end: parseISO(updatedEntry.endDate)
 								})
-								.filter(date => !isWeekend(date))
+								.filter(date => {
+									const dateStr = formatISO(date, { representation: "date" });
+									return !isWeekend(date) && !isHolidayFromISODate(dateStr);
+								})
 								.map(date => ({
 									start: formatISO(date, { representation: "date" }),
 									end: formatISO(date, { representation: "date" })
@@ -764,13 +779,16 @@ export const useStore = create<AppState>((set, get) => ({
 							// Remove PTO entry
 							ptoEntries: (group.ptoEntries || []).filter((entry) => entry.id !== entryId),
 							// Also remove corresponding regular event ranges (all weekdays in the PTO entry)
-							ranges: ptoEntry 
+							ranges: ptoEntry
 								? group.ranges.filter(r => {
-									const ptoWeekdays = eachDayOfInterval({ 
-										start: parseISO(ptoEntry.startDate), 
-										end: parseISO(ptoEntry.endDate) 
-									}).filter(date => !isWeekend(date));
-									
+									const ptoWeekdays = eachDayOfInterval({
+										start: parseISO(ptoEntry.startDate),
+										end: parseISO(ptoEntry.endDate)
+									}).filter(date => {
+										const dateStr = formatISO(date, { representation: "date" });
+										return !isWeekend(date) && !isHolidayFromISODate(dateStr);
+									});
+
 									return !ptoWeekdays.some(date => {
 										const dayStr = formatISO(date, { representation: "date" });
 										return r.start === dayStr && r.end === dayStr;

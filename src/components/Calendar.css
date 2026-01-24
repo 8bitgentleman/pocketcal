@@ -224,12 +224,6 @@
 }
 
 /* Dragging State */
-.calendar-day.dragging {
-	background-color: rgba(0, 212, 255, 0.2);
-	border: 1px dashed #00d4ff;
-	color: var(--text-primary);
-}
-
 /* Focus States */
 .calendar-container:focus {
 	outline: 2px solid rgba(0, 212, 255, 0.5);

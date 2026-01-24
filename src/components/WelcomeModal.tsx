@@ -20,14 +20,14 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose, onDontShowAgain })
 
     const steps = [
         {
-            title: "Welcome to Unispace PTO Calculator",
+            title: "Welcome to Unispace Calendar",
             icon: <CalendarIcon width={48} height={48} color="var(--text-primary)" />,
             content: (
                 <>
-                    <p>Plan and visualize your PTO for the entire year at a glance.</p>
+                    <p>Plan and visualize your time for the entire year at a glance.</p>
                     <ul>
+                        <li>Create calendars for projects, travel, or PTO tracking</li>
                         <li>Track vacation days, personal time, and sick leave</li>
-                        <li>See your remaining PTO balance in real-time</li>
                         <li>Share your calendar with your team via URL</li>
                     </ul>
                 </>
@@ -42,20 +42,35 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose, onDontShowAgain })
                     <ul>
                         <li>Click the <strong>+</strong> button to add a new calendar</li>
                         <li>Each calendar has its own color for easy identification</li>
-                        <li>Enable PTO tracking per calendar in the settings below</li>
+                        <li>Use as regular calendars OR enable PTO tracking in settings</li>
                     </ul>
                 </>
             ),
         },
         {
-            title: "Logging PTO",
+            title: "Using Regular Calendars",
+            icon: <CalendarIcon width={48} height={48} color="var(--text-primary)" />,
+            content: (
+                <>
+                    <p>Mark dates and date ranges on regular calendars:</p>
+                    <ul>
+                        <li><strong>Short click</strong> on empty date → adds that day</li>
+                        <li><strong>Short click</strong> on existing date → opens editor</li>
+                        <li><strong>Long press</strong> (500ms) → select multi-day range</li>
+                        <li>Add optional descriptions that appear on hover</li>
+                    </ul>
+                </>
+            ),
+        },
+        {
+            title: "Using PTO Calendars",
             icon: <SunIcon width={48} height={48} color="var(--text-primary)" />,
             content: (
                 <>
-                    <p>Once PTO is enabled, click on any weekday to log time off.</p>
+                    <p>Once PTO is enabled, click on any weekday to log time off:</p>
                     <ul>
-                        <li><strong>Quick click</strong> toggles full day (8h) PTO on/off</li>
-                        <li><strong>Long press</strong> (hold for 500ms) opens modal for custom hours</li>
+                        <li><strong>Short click</strong> toggles full day (8h) PTO on/off</li>
+                        <li><strong>Long press</strong> (500ms) opens modal for custom hours</li>
                         <li>Choose between full day (8h), half day (4h), or quarter day (2h)</li>
                     </ul>
                 </>

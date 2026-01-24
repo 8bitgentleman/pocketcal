@@ -6,7 +6,6 @@ import Calendar from "./components/Calendar";
 import ChevronIcon from "./components/icons/ChevronIcon";
 import HelpModal from "./components/HelpModal";
 import LicenseModal from "./components/LicenseModal";
-import PTOSelectionModal from "./components/PTOSelectionModal";
 import WelcomeModal from "./components/WelcomeModal";
 import ShareModal from "./components/ShareModal";
 import ReconciliationModal from "./components/ReconciliationModal";
@@ -16,8 +15,6 @@ const WELCOME_DISMISSED_KEY = "pocketcal_welcome_dismissed";
 function App() {
 	const [isSidebarHidden, setIsSidebarHidden] = useState(false);
 	const [showLicenseModal, setShowLicenseModal] = useState(false);
-	const [showPTOModal, setShowPTOModal] = useState(false);
-	const [selectedPTODate, setSelectedPTODate] = useState<string>("");
 	const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 	const [showShareModal, setShowShareModal] = useState(false);
 	const [showReconciliationModal, setShowReconciliationModal] = useState(false);
@@ -29,7 +26,6 @@ function App() {
 	const setShowHelpModal = useStore((state) => state.setShowHelpModal);
 	const validateLicenseKey = useStore((state) => state.validateLicenseKey);
 	const licenseKey = useStore((state) => state.licenseKey);
-	const getSelectedGroupPTOConfig = useStore((state) => state.getSelectedGroupPTOConfig);
 	const isDarkMode = useStore((state) => state.isDarkMode);
 
 	// Load state on initial mount - handle 4 cases
@@ -104,24 +100,6 @@ function App() {
 		}
 	}, [isDarkMode]);
 
-	// Handle PTO date selection from Calendar
-	const handlePTODateSelection = (dateStr: string) => {
-		const ptoConfig = getSelectedGroupPTOConfig();
-		if (ptoConfig?.isEnabled) {
-			setSelectedPTODate(dateStr);
-			setShowPTOModal(true);
-		}
-	};
-
-	// Set up global PTO date selection handler
-	useEffect(() => {
-		const handlePTODateSelect = (event: CustomEvent) => {
-			handlePTODateSelection(event.detail.date);
-		};
-
-		window.addEventListener('ptoDateSelect' as any, handlePTODateSelect);
-		return () => window.removeEventListener('ptoDateSelect' as any, handlePTODateSelect);
-	}, [getSelectedGroupPTOConfig]);
 
 	const toggleSidebar = () => {
 		const sidebar = document.querySelector(".sidebar");
@@ -156,15 +134,6 @@ function App() {
 			{showHelpModal && <HelpModal onClose={() => setShowHelpModal(false)} />}
 			{showLicenseModal && (
 				<LicenseModal onClose={() => setShowLicenseModal(false)} />
-			)}
-			{showPTOModal && selectedPTODate && (
-				<PTOSelectionModal
-					selectedDate={selectedPTODate}
-					onClose={() => {
-						setShowPTOModal(false);
-						setSelectedPTODate("");
-					}}
-				/>
 			)}
 			{showWelcomeModal && (
 				<WelcomeModal

@@ -8,7 +8,7 @@
 	background-color: var(--card-bg-color);
 	border-right: 1px solid var(--border-color);
 	color: var(--text-primary);
-	overflow-y: auto;
+	overflow-y: scroll;
 	overflow-x: hidden;
 	transition: max-height 0.3s ease;
 	box-sizing: border-box;
