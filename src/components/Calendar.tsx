@@ -77,8 +77,8 @@ const DateCell = memo(({
 			<span className="day-number" aria-hidden="true">
 				{getDate(date)}
 			</span>
-			{/* Only render range indicators for multiple calendar overlaps */}
-			{!ptoEntry && !hasSingleCalendar && (
+			{/* Only render range indicators for multiple calendar overlaps (including PTO entries) */}
+			{!hasSingleCalendar && (
 				<div className="range-indicators" aria-hidden="true">
 					{rangeStyles.map((style, index) => (
 						<div
@@ -553,7 +553,8 @@ const Calendar: React.FC = () => {
 
 		if (!dateInfo) return null; // No events on this date
 
-		// Check for PTO entries in the selected group
+		// Build PTO text if present
+		let ptoText = "";
 		if (selectedGroupId && isPTOEnabled && dateInfo.ptoEntry) {
 			const ptoEntry = dateInfo.ptoEntry;
 			const hourText = ptoEntry.hoursPerDay === 2 ? "Quarter Day" :
@@ -561,7 +562,7 @@ const Calendar: React.FC = () => {
 			const nameText = ptoEntry.name ? ` - ${ptoEntry.name}` : "";
 			const dayText = ptoEntry.startDate === ptoEntry.endDate ? "" :
 							` (${ptoEntry.startDate} to ${ptoEntry.endDate})`;
-			return `PTO: ${hourText} (${ptoEntry.hoursPerDay}h)${nameText}${dayText}`;
+			ptoText = `PTO: ${hourText} (${ptoEntry.hoursPerDay}h)${nameText}${dayText}`;
 		}
 
 		// Read fresh groups from store to avoid stale descriptions
@@ -571,6 +572,8 @@ const Calendar: React.FC = () => {
 		);
 
 		if (groupsWithEvent.length > 0) {
+			let calendarText = "";
+
 			if (groupsWithEvent.length === 1) {
 				const group = groupsWithEvent[0];
 				const isSelected = group.id === selectedGroupId;
@@ -579,14 +582,13 @@ const Calendar: React.FC = () => {
 
 				if (isHoliday) {
 					const holidayName = getHolidayFromISODate(formatISO(date, { representation: "date" }));
-					return `${prefix} ${holidayName || group.name}`;
+					calendarText = `${prefix} ${holidayName || group.name}`;
+				} else {
+					// Check if this range has a description (using fresh group reference)
+					const range = findRangeForDate(date, group);
+					const descriptionText = range?.description ? ` - ${range.description}` : "";
+					calendarText = `${prefix} ${group.name}${isSelected ? "" : ""}${descriptionText}`;
 				}
-
-				// Check if this range has a description (using fresh group reference)
-				const range = findRangeForDate(date, group);
-				const descriptionText = range?.description ? ` - ${range.description}` : "";
-
-				return `${prefix} ${group.name}${isSelected ? "" : ""}${descriptionText}`;
 			} else {
 				const holidayGroup = groupsWithEvent.find(g => g.name === "Unispace Holidays");
 				const selectedGroup = groupsWithEvent.find(g => g.id === selectedGroupId);
@@ -597,21 +599,35 @@ const Calendar: React.FC = () => {
 					const range = findRangeForDate(date, selectedGroup);
 					const descriptionText = range?.description ? ` - ${range.description}` : "";
 					const others = otherGroups.length > 0 ? ` + ${otherGroups.map(g => g.name).join(", ")}` : "";
-					return `${holidayName || holidayGroup.name} + ${selectedGroup.name}${descriptionText}${others}`;
+					calendarText = `${holidayName || holidayGroup.name} + ${selectedGroup.name}${descriptionText}${others}`;
 				} else if (holidayGroup) {
 					const holidayName = getHolidayFromISODate(formatISO(date, { representation: "date" }));
 					const others = otherGroups.length > 0 ? ` + ${otherGroups.map(g => g.name).join(", ")}` : "";
-					return `${holidayName || holidayGroup.name}${others}`;
+					calendarText = `${holidayName || holidayGroup.name}${others}`;
 				} else if (selectedGroup) {
 					const range = findRangeForDate(date, selectedGroup);
 					const descriptionText = range?.description ? ` - ${range.description}` : "";
 					const others = otherGroups.map(g => g.name).join(", ");
-					return `${selectedGroup.name}${descriptionText} + ${otherGroups.length} other${otherGroups.length > 1 ? 's' : ''}: ${others}`;
+					calendarText = `${selectedGroup.name}${descriptionText} + ${otherGroups.length} other${otherGroups.length > 1 ? 's' : ''}: ${others}`;
 				} else {
 					const groups = groupsWithEvent.map(g => g.name).join(", ");
-					return `Background events: ${groups}`;
+					calendarText = `Background events: ${groups}`;
 				}
 			}
+
+			// Combine PTO and calendar text
+			if (ptoText && calendarText) {
+				return `${ptoText} + ${calendarText}`;
+			} else if (ptoText) {
+				return ptoText;
+			} else {
+				return calendarText;
+			}
+		}
+
+		// Only PTO, no calendar events
+		if (ptoText) {
+			return ptoText;
 		}
 
 		return null;
@@ -674,28 +690,52 @@ const Calendar: React.FC = () => {
 		// Find all calendars with events on this date (excluding holidays)
 		const groupsWithDate = dateInfo.groups.filter(g => g.name !== "Unispace Holidays");
 
-		// Only apply gradient if there's exactly ONE calendar on this date
-		if (groupsWithDate.length !== 1) return null;
+		// Count total calendars including PTO entry (if it exists)
+		const hasPTOEntry = dateInfo.ptoEntry && selectedGroupId && isPTOEnabled;
+		const totalCalendars = groupsWithDate.length + (hasPTOEntry ? 1 : 0);
 
-		const singleGroup = groupsWithDate[0];
+		// Only apply gradient if there's exactly ONE calendar/PTO entry total
+		if (totalCalendars !== 1) return null;
 
-		// Apply gradient based on that calendar's color
-		return {
-			background: createGradientFromColor(singleGroup.color),
-			color: '#0a0a0a',
-		};
+		// If it's a PTO entry alone, use the selected calendar's color
+		if (hasPTOEntry && groupsWithDate.length === 0) {
+			const selectedCalendar = allDisplayGroups.find(g => g.id === selectedGroupId);
+			if (selectedCalendar) {
+				return {
+					background: createGradientFromColor(selectedCalendar.color),
+					color: '#0a0a0a',
+				};
+			}
+		}
+
+		// If it's a single regular calendar, use that calendar's color
+		if (groupsWithDate.length === 1) {
+			const singleGroup = groupsWithDate[0];
+			return {
+				background: createGradientFromColor(singleGroup.color),
+				color: '#0a0a0a',
+			};
+		}
+
+		return null;
 	};
 
 	const getRangeStyles = (date: Date): React.CSSProperties[] => {
 		const dateStr = formatISO(date, { representation: "date" });
 		const dateInfo = dateInfoMap.get(dateStr);
 
-		if (!dateInfo || dateInfo.groups.length === 0) return [];
+		if (!dateInfo) return [];
 
 		const styles: React.CSSProperties[] = [];
 		const groupsWithDate = dateInfo.groups;
-		const totalGroups = groupsWithDate.length;
 
+		// Include PTO entry as a "calendar" for rendering purposes
+		const hasPTOEntry = dateInfo.ptoEntry && selectedGroupId && isPTOEnabled;
+		const totalGroups = groupsWithDate.length + (hasPTOEntry ? 1 : 0);
+
+		if (totalGroups === 0) return [];
+
+		// Add range indicator for each regular calendar
 		groupsWithDate.forEach((group, index) => {
 			styles.push({
 				backgroundColor: group.color,
@@ -706,6 +746,21 @@ const Calendar: React.FC = () => {
 				height: `${100 / totalGroups}%`,
 			});
 		});
+
+		// Add range indicator for PTO entry (if it exists)
+		if (hasPTOEntry) {
+			const selectedCalendar = allDisplayGroups.find(g => g.id === selectedGroupId);
+			if (selectedCalendar) {
+				styles.push({
+					backgroundColor: selectedCalendar.color,
+					position: "absolute",
+					left: 0,
+					right: 0,
+					top: `${(groupsWithDate.length / totalGroups) * 100}%`,
+					height: `${100 / totalGroups}%`,
+				});
+			}
+		}
 
 		return styles;
 	};
@@ -770,7 +825,10 @@ const Calendar: React.FC = () => {
 								const isSelected = dateInfo ? dateInfo.groups.length > 0 : false;
 								const ptoEntry = dateInfo?.ptoEntry || null;
 								const groupsWithoutHolidays = dateInfo?.groups.filter(g => g.name !== "Unispace Holidays") || [];
-								const hasSingleCalendar = groupsWithoutHolidays.length === 1;
+								// Include PTO entries in the count to determine if we show gradient or range indicators
+								const hasPTOEntry = ptoEntry && selectedGroupId && isPTOEnabled;
+								const totalCalendarsOnDate = groupsWithoutHolidays.length + (hasPTOEntry ? 1 : 0);
+								const hasSingleCalendar = totalCalendarsOnDate === 1;
 
 								const gradientStyle = getGradientStyle(date);
 								const rangeStyles = getRangeStyles(date);
