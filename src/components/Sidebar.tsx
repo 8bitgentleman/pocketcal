@@ -252,10 +252,10 @@ function Sidebar({ onShowWelcome, onShowShareModal }: SidebarProps) {
 				</button>
 			)}
 
-			<>
-				<h3>
-					<SettingsIcon height={20} /> Settings
-				</h3>
+			<h3>
+				<SettingsIcon height={20} /> Settings
+			</h3>
+			<div className="settings-scroll-container">
 				{/* <div className="setting-item">
 					<Tooltip content="The calendar will display 12 months starting from January of this year.">
 						<label htmlFor="start-date">Start Year:</label>
@@ -345,10 +345,10 @@ function Sidebar({ onShowWelcome, onShowShareModal }: SidebarProps) {
 						)}
 					</>
 				)}
-			</>
 
-			{/* PTO Summary Dashboard */}
-			<PTOSummaryDashboard />
+				{/* PTO Summary Dashboard */}
+				<PTOSummaryDashboard />
+			</div>
 
 			<div className="sidebar-footer">{footerGroups()}</div>
 		</div>
