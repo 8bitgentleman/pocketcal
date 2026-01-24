@@ -35,7 +35,6 @@ interface DateCellProps {
 	date: Date;
 	dateStr: string;
 	isSelected: boolean;
-	ptoEntry: PTOEntry | null;
 	hasSingleCalendar: boolean;
 	className: string;
 	gradientStyle: React.CSSProperties | null;
@@ -50,7 +49,6 @@ const DateCell = memo(({
 	date,
 	dateStr,
 	isSelected,
-	ptoEntry,
 	hasSingleCalendar,
 	className,
 	gradientStyle,
@@ -97,7 +95,6 @@ const DateCell = memo(({
 		prevProps.dateStr === nextProps.dateStr &&
 		prevProps.className === nextProps.className &&
 		prevProps.isSelected === nextProps.isSelected &&
-		prevProps.ptoEntry === nextProps.ptoEntry &&
 		prevProps.hasSingleCalendar === nextProps.hasSingleCalendar &&
 		prevProps.isFocused === nextProps.isFocused &&
 		JSON.stringify(prevProps.gradientStyle) === JSON.stringify(nextProps.gradientStyle) &&
@@ -823,10 +820,9 @@ const Calendar: React.FC = () => {
 
 								// Quick lookups from pre-computed map
 								const isSelected = dateInfo ? dateInfo.groups.length > 0 : false;
-								const ptoEntry = dateInfo?.ptoEntry || null;
 								const groupsWithoutHolidays = dateInfo?.groups.filter(g => g.name !== "Unispace Holidays") || [];
 								// Include PTO entries in the count to determine if we show gradient or range indicators
-								const hasPTOEntry = ptoEntry && selectedGroupId && isPTOEnabled;
+								const hasPTOEntry = dateInfo?.ptoEntry && selectedGroupId && isPTOEnabled;
 								const totalCalendarsOnDate = groupsWithoutHolidays.length + (hasPTOEntry ? 1 : 0);
 								const hasSingleCalendar = totalCalendarsOnDate === 1;
 
@@ -840,7 +836,6 @@ const Calendar: React.FC = () => {
 										date={date}
 										dateStr={dateStr}
 										isSelected={isSelected}
-										ptoEntry={ptoEntry}
 										hasSingleCalendar={hasSingleCalendar}
 										className={getDayClassName(date)}
 										gradientStyle={gradientStyle}
