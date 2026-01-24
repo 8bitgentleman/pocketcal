@@ -3,7 +3,8 @@
  * Mathematical precision functions for PTO calculation and validation
  */
 
-import { isWeekend, parseISO } from 'date-fns';
+import { isWeekend, parseISO, format } from 'date-fns';
+import { isHolidayFromISODate } from '../constants/holidays';
 
 export interface PTOEntry {
   id?: string;         // Unique identifier for the entry
@@ -21,6 +22,17 @@ export interface PTOConfig {
 }
 
 export class PTOCalendarUtils {
+  /**
+   * Helper function to calculate the number of days in a year
+   * @param year The year to check
+   * @returns 366 for leap years, 365 otherwise
+   */
+  private static getDaysInYear(year: number): number {
+    // A year is a leap year if divisible by 4, except century years must be divisible by 400
+    const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    return isLeapYear ? 366 : 365;
+  }
+
   /**
    * Calculates accrued PTO based on the current date
    * @param date Date in MMDD format
@@ -51,7 +63,10 @@ export class PTOCalendarUtils {
     const days = Math.floor((Date.UTC(dayBefore.getFullYear(), dayBefore.getMonth(), dayBefore.getDate()) -
                              Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) /
                             (1000 * 60 * 60 * 24)) + 1;
-    return Math.floor(rollover + (days * (totalHours / 365)));
+
+    // Use actual days in year (365 or 366 for leap years)
+    const daysInYear = this.getDaysInYear(currentYear);
+    return Math.floor(rollover + (days * (totalHours / daysInYear)));
   }
 
   /**
@@ -143,9 +158,9 @@ export class PTOCalendarUtils {
   /**
    * Calculates total hours for a multi-day PTO entry
    * @param startDate Start date in ISO format
-   * @param endDate End date in ISO format  
+   * @param endDate End date in ISO format
    * @param hoursPerDay Hours per day (2, 4, or 8)
-   * @returns Total hours for the PTO entry (excluding weekends)
+   * @returns Total hours for the PTO entry (excluding weekends and company holidays)
    */
   static calculateTotalPTOHours(
     startDate: string,
@@ -155,12 +170,14 @@ export class PTOCalendarUtils {
     const start = parseISO(startDate);
     const end = parseISO(endDate);
 
-    // Count only weekdays between start and end dates (inclusive)
+    // Count only weekdays that are not company holidays between start and end dates (inclusive)
     let workDays = 0;
     const current = new Date(start);
 
     while (current <= end) {
-      if (!isWeekend(current)) {
+      const currentDateStr = format(current, 'yyyy-MM-dd');
+      // Only count if it's not a weekend AND not a company holiday
+      if (!isWeekend(current) && !isHolidayFromISODate(currentDateStr)) {
         workDays++;
       }
       current.setDate(current.getDate() + 1);
@@ -247,6 +264,9 @@ export class PTOCalendarUtils {
     const usedHours = ptoEntries.reduce((sum, entry) => sum + entry.totalHours, 0);
     const remainingHours = totalHours - usedHours;
     
+    const currentYear = new Date().getFullYear();
+    const daysInYear = this.getDaysInYear(currentYear);
+
     return {
       totalHours,
       usedHours,
@@ -254,7 +274,7 @@ export class PTOCalendarUtils {
       totalDays: totalHours / 8,
       usedDays: usedHours / 8,
       remainingDays: remainingHours / 8,
-      accrualRate: totalHours / 365 // Hours per day
+      accrualRate: totalHours / daysInYear // Hours per day (accounts for leap years)
     };
   }
 }

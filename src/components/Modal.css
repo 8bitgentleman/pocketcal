@@ -111,10 +111,10 @@ button.btn[disabled] {
 
 input[type="text"],
 textarea {
-	padding: 10px 12px;
+	margin-bottom: 2px;
 	border: 1px solid var(--border-color);
 	border-radius: 8px;
-	margin-top: 8px;
+	margin-top: 3px;
 	width: 100%;
 	box-sizing: border-box;
 	background: var(--input-bg-color);

@@ -176,7 +176,7 @@ h2 {
 .event-group-item {
 	display: flex;
 	align-items: center;
-	padding: 0px 4px;
+	padding: 4px;
 	border: 1px solid transparent;
 	border-radius: 8px;
 	cursor: pointer;
@@ -206,6 +206,10 @@ h2 {
 	white-space: nowrap;
 	margin-right: 8px;
 	max-width: 165px;
+	padding: 2px 4px;
+	min-height: 20px;
+	display: flex;
+	align-items: center;
 }
 
 .event-group-item .group-actions {
@@ -265,7 +269,9 @@ h2 {
 	opacity: 0.3;
 	cursor: not-allowed;
 }
-
+input#pto-enabled{
+	border:2px solid var(--text-secondary, #2a2a2a)
+}
 .add-group-button {
 	display: flex;
 	align-items: center;
@@ -315,6 +321,14 @@ input.group-name-input {
 	margin-right: 8px;
 	width: auto;
 	max-width: 158px;
+	padding: 2px 4px;
+	min-height: 20px;
+	box-sizing: border-box;
+	font-size: 14px;
+	font-weight: 500;
+	border: none;
+	background-color: transparent;
+	outline: none;
 }
 
 .sidebar-help-text {
