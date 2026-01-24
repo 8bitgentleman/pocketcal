@@ -15,6 +15,9 @@ import LZString from "lz-string";
 import { PTOEntry, PTOConfig, PTOCalendarUtils } from "./utils/ptoUtils";
 import { isHolidayFromISODate, getHolidaysForYear } from "./constants/holidays";
 
+// Re-export types for use in tests and other modules
+export type { PTOEntry, PTOConfig } from "./utils/ptoUtils";
+
 export const MAX_GROUPS = 5;
 
 export const GROUP_COLORS = [
