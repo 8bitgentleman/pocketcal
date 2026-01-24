@@ -36,3 +36,5 @@ tmpclaude-ae96-cwd
 tmpclaude-bb54-cwd
 tmpclaude-f055-cwd
 tmpclaude-e83e-cwd
+/test-results
+/e2e/visual.spec.ts-snapshots

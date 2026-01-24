@@ -107,9 +107,9 @@ h2 {
 	display: none;
 }
 
-/* Subtle shadows to indicate scrollable content */
-.settings-scroll-container::before,
-.settings-scroll-container::after {
+/* Subtle shadows to indicate scrollable content - only shown when PTO is enabled */
+.settings-scroll-container.has-scrollable-content::before,
+.settings-scroll-container.has-scrollable-content::after {
 	content: '';
 	position: sticky;
 	left: 0;
@@ -121,14 +121,14 @@ h2 {
 }
 
 /* Top shadow */
-.settings-scroll-container::before {
+.settings-scroll-container.has-scrollable-content::before {
 	top: 0;
 	background: linear-gradient(to bottom, var(--card-bg-color) 0%, transparent 100%);
 	box-shadow: 0 4px 8px -4px rgba(0, 0, 0, 0.15);
 }
 
 /* Bottom shadow */
-.settings-scroll-container::after {
+.settings-scroll-container.has-scrollable-content::after {
 	bottom: 0;
 	background: linear-gradient(to top, var(--card-bg-color) 0%, transparent 100%);
 	box-shadow: 0 -4px 8px -4px rgba(0, 0, 0, 0.15);
