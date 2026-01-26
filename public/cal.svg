@@ -1,35 +1,30 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="100%" height="100%" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;">
-    <g transform="matrix(0.0482261,-0.0209885,0.0209885,0.0482261,-40.9969,16.1016)">
-        <g transform="matrix(16.2338,0,0,16.2338,758.365,120.194)">
-            <path d="M23.036,9.548L23.036,20.583C23.036,21.929 21.929,23.036 20.583,23.036L3.417,23.036C2.071,23.036 0.964,21.929 0.964,20.583L0.964,9.548L23.036,9.548Z" style="fill:white;"/>
-        </g>
-        <g transform="matrix(16.2338,0,0,16.2338,758.365,120.194)">
-            <path d="M0.964,9.548L0.964,5.869C0.964,4.524 2.071,3.417 3.417,3.417L20.583,3.417C21.929,3.417 23.036,4.524 23.036,5.869L23.036,9.548L0.964,9.548Z" style="fill:rgb(221,186,255);"/>
-        </g>
-        <g transform="matrix(19.906,0,0,19.906,714.297,76.1263)">
-            <path d="M5,5L19,5C20.097,5 21,5.903 21,7L21,19C21,20.097 20.097,21 19,21L5,21C3.903,21 3,20.097 3,19L3,7C3,5.903 3.903,5 5,5ZM16,3L16,7M8,3L8,7M3,10L21,10" style="fill:none;fill-rule:nonzero;stroke:black;stroke-width:1px;"/>
-        </g>
-        <g transform="matrix(0.95541,0,0,0.95541,564.05,83.7206)">
-            <g transform="matrix(0.844046,0,0,0.880096,-10.6024,62.7698)">
-                <rect x="347" y="315" width="59.238" height="56.812"/>
-            </g>
-            <g transform="matrix(0.844046,0,0,0.880096,89.3976,62.7698)">
-                <rect x="347" y="315" width="59.238" height="56.812"/>
-            </g>
-            <g transform="matrix(0.844046,0,0,0.880096,189.398,62.7698)">
-                <rect x="347" y="315" width="59.238" height="56.812"/>
-            </g>
-            <g transform="matrix(0.844046,0,0,0.880096,89.3976,-37.2302)">
-                <rect x="347" y="315" width="59.238" height="56.812"/>
-            </g>
-            <g transform="matrix(0.844046,0,0,0.880096,189.398,-37.2302)">
-                <rect x="347" y="315" width="59.238" height="56.812"/>
-            </g>
-            <g transform="matrix(0.844046,0,0,0.880096,-10.6024,-37.2302)">
-                <rect x="347" y="315" width="59.238" height="56.812"/>
-            </g>
-        </g>
-    </g>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:serif="http://www.serif.com/" viewBox="0 0 595.3 841.9">
+  <!-- Generator: Adobe Illustrator 30.1.0, SVG Export Plug-In . SVG Version: 2.1.1 Build 136)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #fff;
+        fill-rule: evenodd;
+      }
+
+      .st1 {
+        fill: none;
+        stroke: #000;
+        stroke-miterlimit: 103.9;
+        stroke-width: 26px;
+      }
+    </style>
+  </defs>
+  <path class="st0" d="M480.9,262.4l93.3,214.3c11.4,26.1-.8,57-26.9,68.4l-333.3,145.1c-26.1,11.4-57-.8-68.4-26.9l-93.3-214.3,428.6-186.5Z"/>
+  <path class="st0" d="M52.3,448.9l-31.1-71.4c-11.4-26.1.8-57,26.9-68.3l333.3-145.1c26.1-11.4,57,.8,68.4,26.9l31.1,71.4L52.3,448.9Z"/>
+  <path class="st1" d="M48.1,309.1l333.4-145.1c26.1-11.4,57,.8,68.3,26.9l124.4,285.7c11.4,26.1-.8,57-26.9,68.3l-333.4,145.1c-26.1,11.4-57-.8-68.3-26.9L21.2,377.5c-11.4-26.1.8-57,26.9-68.3ZM289.3,147.5l41.5,95.2M98.8,230.4l41.5,95.2M52.2,448.9l428.6-186.5"/>
+  <g>
+    <rect x="203" y="562.3" width="62.3" height="62.3" transform="translate(-217.4 142.7) rotate(-23.5)"/>
+    <rect x="317.3" y="512.6" width="62.3" height="62.3" transform="translate(-188 184.2) rotate(-23.5)"/>
+    <rect x="431.5" y="462.9" width="62.3" height="62.3" transform="translate(-158.7 225.7) rotate(-23.5)"/>
+    <rect x="267.5" y="398.3" width="62.3" height="62.3" transform="translate(-146.6 154.9) rotate(-23.5)"/>
+    <rect x="381.8" y="348.6" width="62.3" height="62.3" transform="translate(-117.2 196.3) rotate(-23.5)"/>
+    <rect x="153.2" y="448" width="62.3" height="62.3" transform="translate(-175.9 113.4) rotate(-23.5)"/>
+  </g>
 </svg>
