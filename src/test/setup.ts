@@ -18,9 +18,9 @@ afterEach(() => {
 // Mock window.location for URL tests
 Object.defineProperty(window, 'location', {
   value: {
-    origin: 'https://pocketcal.app',
+    origin: 'https://unispace-pto-calendar.netlify.app',
     pathname: '/',
-    hostname: 'pocketcal.app',
+    hostname: 'unispace-pto-calendar.netlify.app',
     hash: ''
   },
   writable: true

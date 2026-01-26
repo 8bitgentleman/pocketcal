@@ -1,6 +1,6 @@
 function getAllowedOrigin(origin) {
 	if (!origin) return null;
-	if (origin.endsWith("pocketcal.com")) return origin;
+	if (origin.endsWith("unispace-pto-calendar.netlify.app")) return origin;
 	if (
 		origin.startsWith("http://localhost") ||
 		origin.startsWith("https://localhost")
