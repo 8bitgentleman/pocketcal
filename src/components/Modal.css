@@ -145,35 +145,6 @@ textarea {
 	text-align: center;
 }
 
-.license-actions {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-top: 8px;
-}
-
-p.pro-description span {
-	color: #8a35de;
-	font-weight: bold;
-}
-
-p.license-active {
-	display: flex;
-	justify-content: center;
-	gap: 8px;
-}
-
-pre.license-key-display {
-	background-color: var(--hover-bg-color);
-	border: 1px solid var(--border-color);
-	border-radius: 4px;
-	padding: 8px;
-	overflow-x: auto;
-	font-family: monospace;
-	margin-top: 8px;
-	color: var(--text-primary);
-}
-
 /* PTO Modal Styles */
 .pto-modal-content {
 	margin-top: 16px;

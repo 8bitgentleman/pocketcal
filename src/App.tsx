@@ -5,7 +5,6 @@ import Sidebar from "./components/Sidebar";
 import Calendar from "./components/Calendar";
 import ChevronIcon from "./components/icons/ChevronIcon";
 import HelpModal from "./components/HelpModal";
-import LicenseModal from "./components/LicenseModal";
 import WelcomeModal from "./components/WelcomeModal";
 import ShareModal from "./components/ShareModal";
 import ReconciliationModal from "./components/ReconciliationModal";
@@ -14,7 +13,6 @@ const WELCOME_DISMISSED_KEY = "pocketcal_welcome_dismissed";
 
 function App() {
 	const [isSidebarHidden, setIsSidebarHidden] = useState(false);
-	const [showLicenseModal, setShowLicenseModal] = useState(false);
 	const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 	const [showShareModal, setShowShareModal] = useState(false);
 	const [showReconciliationModal, setShowReconciliationModal] = useState(false);
@@ -24,8 +22,6 @@ function App() {
 	const loadFromUrlAndMigrate = useStore((state) => state.loadFromUrlAndMigrate);
 	const showHelpModal = useStore((state) => state.showHelpModal);
 	const setShowHelpModal = useStore((state) => state.setShowHelpModal);
-	const validateLicenseKey = useStore((state) => state.validateLicenseKey);
-	const licenseKey = useStore((state) => state.licenseKey);
 	const isDarkMode = useStore((state) => state.isDarkMode);
 
 	// Load state on initial mount - handle 4 cases
@@ -46,26 +42,12 @@ function App() {
 			getAppStateFromUrl();
 		}
 
-		// Check license validity on load (with cache)
-		if (licenseKey) {
-			const lastValidated = localStorage.getItem("pocketcal_pro_validated");
-			const daysSinceValidation = lastValidated
-				? (Date.now() - parseInt(lastValidated)) / (1000 * 60 * 60 * 24)
-				: Infinity;
-			// Re-validate every 7 days
-			if (daysSinceValidation > 7) {
-				validateLicenseKey(licenseKey);
-			} else {
-				useStore.setState({ isProUser: true });
-			}
-		}
-
 		// Show welcome modal for first-time visitors
 		const welcomeDismissed = localStorage.getItem(WELCOME_DISMISSED_KEY);
 		if (!welcomeDismissed) {
 			setShowWelcomeModal(true);
 		}
-	}, [checkInitializationState, loadFromLocalStorage, loadFromUrlAndMigrate, getAppStateFromUrl, validateLicenseKey, licenseKey]);
+	}, [checkInitializationState, loadFromLocalStorage, loadFromUrlAndMigrate, getAppStateFromUrl]);
 
 	// Handle dismissing the welcome modal permanently
 	const handleDismissWelcome = () => {
@@ -132,9 +114,6 @@ function App() {
 			/>
 			<Calendar />
 			{showHelpModal && <HelpModal onClose={() => setShowHelpModal(false)} />}
-			{showLicenseModal && (
-				<LicenseModal onClose={() => setShowLicenseModal(false)} />
-			)}
 			{showWelcomeModal && (
 				<WelcomeModal
 					onClose={() => setShowWelcomeModal(false)}

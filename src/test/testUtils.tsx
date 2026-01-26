@@ -25,8 +25,6 @@ export function resetStore() {
     selectedGroupId: null,
     showHelpModal: false,
     isDarkMode: false,
-    licenseKey: null,
-    isProUser: false,
   });
 }
 

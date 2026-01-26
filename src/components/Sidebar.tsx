@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useStore, EventGroup, getMaxGroups } from "../store";
+import { useStore, EventGroup, MAX_GROUPS } from "../store";
 import CalIcon from "./icons/CalIcon";
 import PencilIcon from "./icons/PencilIcon";
 import TrashIcon from "./icons/TrashIcon";
@@ -34,7 +34,6 @@ function Sidebar({ onShowWelcome, onShowShareModal }: SidebarProps) {
 		updateEventGroup,
 		deleteEventGroup,
 		selectEventGroup,
-		isProUser,
 		// PTO state
 		setPTOConfig,
 		getSelectedGroupPTOConfig,
@@ -42,7 +41,7 @@ function Sidebar({ onShowWelcome, onShowShareModal }: SidebarProps) {
 		// Display helpers
 		getAllDisplayGroups,
 	} = useStore();
-	const maxGroups = getMaxGroups(isProUser);
+	const maxGroups = MAX_GROUPS;
 	const [newEventName, setNewEventName] = useState("");
 	const [editingGroup, setEditingGroup] = useState<EventGroup | null>(null);
 

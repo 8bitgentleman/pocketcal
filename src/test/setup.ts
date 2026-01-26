@@ -43,7 +43,7 @@ const localStorageMock = {
 }
 Object.defineProperty(window, 'localStorage', { value: localStorageMock })
 
-// Mock fetch for license validation tests
+// Mock fetch for tests
 globalThis.fetch = vi.fn()
 
 // Setup global console spy to catch warnings/errors in tests

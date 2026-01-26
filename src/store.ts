@@ -18,7 +18,7 @@ import { isHolidayFromISODate, getHolidaysForYear } from "./constants/holidays";
 // Re-export types for use in tests and other modules
 export type { PTOEntry, PTOConfig } from "./utils/ptoUtils";
 
-export const MAX_GROUPS = 5;
+export const MAX_GROUPS = 10;
 
 export const GROUP_COLORS = [
 	{ hex: "#24d05a", rgb: "rgb(36, 208, 90)" }, // green
@@ -26,16 +26,12 @@ export const GROUP_COLORS = [
 	{ hex: "#10a2f5", rgb: "rgb(16, 162, 245)" }, // blue
 	{ hex: "#eb4888", rgb: "rgb(235, 72, 136)" }, // pink
 	{ hex: "#e9bc3f", rgb: "rgb(233, 188, 63)" }, // yellow
-	
-	// Pro colors (same as above, but with .6 alpha)
 	{ hex: "#8a35de99", rgb: "rgba(138, 53, 222, 0.6)" },
 	{ hex: "#10a2f599", rgb: "rgba(16, 162, 245, 0.6)" },
 	{ hex: "#eb488899", rgb: "rgba(235, 72, 136, 0.6)" },
 	{ hex: "#e9bc3f99", rgb: "rgba(233, 188, 63, 0.6)" },
 	{ hex: "#24d05a99", rgb: "rgba(36, 208, 90, 0.6)" },
 ];
-
-export const getMaxGroups = (isProUser: boolean) => (isProUser ? 10 : 5);
 
 export interface DateRange {
 	start: string;
@@ -61,8 +57,6 @@ interface AppState {
 	holidays: EventGroup; // Separate read-only holidays data
 	selectedGroupId: string | null;
 	showHelpModal: boolean;
-	licenseKey: string | null;
-	isProUser: boolean;
 	isDarkMode: boolean;
 	// Actions
 	setStartDate: (date: Date) => void;
@@ -70,8 +64,6 @@ interface AppState {
 	setShowToday: (show: boolean) => void;
 	setShowHelpModal: (show: boolean) => void;
 	setIsDarkMode: (isDark: boolean) => void;
-	setLicenseKey: (key: string | null) => void;
-	validateLicenseKey: (key: string) => Promise<boolean>;
 	addEventGroup: (name: string) => EventGroup;
 	updateEventGroup: (id: string, name: string) => void;
 	deleteEventGroup: (id: string) => void;
@@ -170,8 +162,6 @@ const getDefaultState = () => {
 export const useStore = create<AppState>((set, get) => ({
 	...getDefaultState(),
 	showHelpModal: false,
-	licenseKey: localStorage.getItem("pocketcal_license") || null,
-	isProUser: false,
 	isDarkMode: localStorage.getItem("pocketcal_dark_mode") === "false" ? false : true, // Default to dark mode (Unispace design)
 
 	setStartDate: (date) => {
@@ -203,49 +193,10 @@ export const useStore = create<AppState>((set, get) => ({
 		set({ isDarkMode: isDark });
 	},
 
-	setLicenseKey: (key) => {
-		if (key) {
-			localStorage.setItem("pocketcal_license", key);
-		} else {
-			localStorage.removeItem("pocketcal_license");
-		}
-		set({ licenseKey: key });
-	},
-
-	validateLicenseKey: async (key) => {
-		try {
-			if (!key || key.length < 20) return false;
-			const instanceName = `pocketcal-web-${window.navigator.userAgent}-${window.location.hostname}`;
-			const response = await fetch("/.netlify/functions/validate-license", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					licenseKey: key,
-					action: "activate",
-					instanceName,
-				}),
-			});
-			const data = await response.json();
-			const valid =
-				data.valid ||
-				(data.license_key && data.license_key.status === "active");
-			set({ isProUser: valid });
-			if (valid) {
-				localStorage.setItem("pocketcal_license", key);
-				localStorage.setItem("pocketcal_pro_validated", Date.now().toString());
-			}
-			return valid;
-		} catch (error) {
-			console.error("License validation error:", error);
-			return false;
-		}
-	},
-
 	addEventGroup: (name) => {
 		let newGroup: EventGroup | null = null;
 		set((state) => {
-			const maxGroups = getMaxGroups(state.isProUser);
-			if (state.eventGroups.length >= maxGroups) {
+			if (state.eventGroups.length >= MAX_GROUPS) {
 				return state;
 			}
 
